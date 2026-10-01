@@ -1,0 +1,87 @@
+﻿@model Inventario_Vidal.Models.Proveedore
+
+@{
+    ViewData["Title"] = "Detalles del Proveedor";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="bi bi-info-circle"></i> Detalles del Proveedor</h4>
+        </div>
+        <div class="card-body p-4">
+            <dl class="row">
+                <dt class="col-sm-3 fw-semibold">RUC</dt>
+                <dd class="col-sm-9"><span class="badge bg-secondary">@Model.Ruc</span></dd>
+
+                <dt class="col-sm-3 fw-semibold">Razón Social</dt>
+                <dd class="col-sm-9">@Model.RazonSocial</dd>
+
+                <dt class="col-sm-3 fw-semibold">Dirección</dt>
+                <dd class="col-sm-9">@Model.Direccion</dd>
+
+                <dt class="col-sm-3 fw-semibold">Teléfono</dt>
+                <dd class="col-sm-9">@Model.Telefono</dd>
+
+                <dt class="col-sm-3 fw-semibold">Email</dt>
+                <dd class="col-sm-9">@Model.CorreoElectronico</dd>
+
+                <dt class="col-sm-3 fw-semibold">Contacto</dt>
+                <dd class="col-sm-9">@Model.ContactoNombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Condiciones de Pago</dt>
+                <dd class="col-sm-9">@Model.CondicionesPago</dd>
+
+                <dt class="col-sm-3 fw-semibold">Clasificación</dt>
+                <dd class="col-sm-9">@Model.Clasificacion</dd>
+
+                <dt class="col-sm-3 fw-semibold">Calificación</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Calificacion.HasValue)
+                    {
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= Model.Calificacion.Value)
+                            {
+                                <i class="bi bi-star-fill text-warning"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star text-muted"></i>
+                            }
+                        }
+                    }
+                </dd>
+
+                <dt class="col-sm-3 fw-semibold">Observaciones</dt>
+                <dd class="col-sm-9">@Model.Observaciones</dd>
+
+                <dt class="col-sm-3 fw-semibold">Estado</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Activo)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactivo</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3 fw-semibold">Fecha de Registro</dt>
+                <dd class="col-sm-9">@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+            </dl>
+
+            <hr />
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.IdProveedor" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,117 @@
+﻿@model Inventario_Vidal.Models.Cliente
+
+@{
+    ViewData["Title"] = "Editar Cliente";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Cliente</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="IdCliente" />
+                <input type="hidden" asp-for="FechaRegistro" />
+
+                <h6 class="text-muted mb-3">Datos de Identificación</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="TipoCliente" class="form-label fw-semibold">Tipo de Cliente</label>
+                        <select asp-for="TipoCliente" class="form-select">
+                            <option value="Natural">Persona Natural</option>
+                            <option value="Juridico">Persona Jurídica</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="TipoDocumento" class="form-label fw-semibold">Tipo de Documento</label>
+                        <select asp-for="TipoDocumento" class="form-select">
+                            <option value="DNI">DNI</option>
+                            <option value="RUC">RUC</option>
+                            <option value="CE">Carnet de Extranjería</option>
+                            <option value="Pasaporte">Pasaporte</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="NumeroDocumento" class="form-label fw-semibold">Número de Documento</label>
+                        <input asp-for="NumeroDocumento" class="form-control" />
+                        <span asp-validation-for="NumeroDocumento" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label asp-for="NombreOrazonSocial" class="form-label fw-semibold">Razón Social / Nombre</label>
+                        <input asp-for="NombreOrazonSocial" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="NombreComercial" class="form-label fw-semibold">Nombre Comercial</label>
+                        <input asp-for="NombreComercial" class="form-control" />
+                    </div>
+                </div>
+
+                <h6 class="text-muted mt-4 mb-3">Datos de Contacto</h6>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label asp-for="Direccion" class="form-label fw-semibold">Dirección</label>
+                        <input asp-for="Direccion" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Telefono" class="form-label fw-semibold">Teléfono</label>
+                        <input asp-for="Telefono" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Distrito" class="form-label fw-semibold">Distrito</label>
+                        <input asp-for="Distrito" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Provincia" class="form-label fw-semibold">Provincia</label>
+                        <input asp-for="Provincia" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Departamento" class="form-label fw-semibold">Departamento</label>
+                        <input asp-for="Departamento" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="CorreoElectronico" class="form-label fw-semibold">Email</label>
+                        <input asp-for="CorreoElectronico" type="email" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ContactoNombre" class="form-label fw-semibold">Nombre del Contacto</label>
+                        <input asp-for="ContactoNombre" class="form-control" />
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Observaciones" class="form-label fw-semibold">Observaciones</label>
+                        <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" asp-for="Activo" />
+                            <label class="form-check-label fw-semibold" asp-for="Activo">Cliente Activo</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,58 @@
+﻿@model Inventario_Vidal.Models.Cliente
+
+@{
+    ViewData["Title"] = "Eliminar Cliente";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Eliminar Cliente</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-circle"></i>
+                ¿Estás seguro que deseas eliminar este cliente?
+                Si tiene proyectos asociados, se desactivará en lugar de eliminarse.
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3 fw-semibold">Tipo</dt>
+                <dd class="col-sm-9">@Model.TipoCliente</dd>
+
+                <dt class="col-sm-3 fw-semibold">Documento</dt>
+                <dd class="col-sm-9">@Model.TipoDocumento: @Model.NumeroDocumento</dd>
+
+                <dt class="col-sm-3 fw-semibold">Razón Social</dt>
+                <dd class="col-sm-9">@Model.NombreOrazonSocial</dd>
+
+                <dt class="col-sm-3 fw-semibold">Teléfono</dt>
+                <dd class="col-sm-9">@Model.Telefono</dd>
+
+                <dt class="col-sm-3 fw-semibold">Proyectos Asociados</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Proyectos != null && Model.Proyectos.Any())
+                    {
+                        <span class="badge bg-warning text-dark">@Model.Proyectos.Count proyectos</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Sin proyectos</span>
+                    }
+                </dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="IdCliente" />
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirmar Eliminación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

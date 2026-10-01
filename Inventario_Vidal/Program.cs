@@ -1,4 +1,4 @@
-using Inventario_Vital.Data; // Tu carpeta Data
+using Inventario_Vidal.Data; // Tu carpeta Data
 using Microsoft.EntityFrameworkCore; // Para UseSqlServer
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +8,7 @@ builder.Services.AddControllersWithViews();
 
 // 🔥 REGISTRO DEL CONTEXTO DE BASE DE DATOS
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

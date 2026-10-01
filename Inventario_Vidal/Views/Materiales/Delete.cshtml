@@ -1,0 +1,44 @@
+﻿@model Inventario_Vidal.Models.Materiale
+
+@{
+    ViewData["Title"] = "Eliminar Material";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Eliminar Material</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-circle"></i> ¿Estás seguro que deseas eliminar este material? Esta acción no se puede deshacer.
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3 fw-semibold">Código</dt>
+                <dd class="col-sm-9">@Model.CodigoBarras</dd>
+
+                <dt class="col-sm-3 fw-semibold">Nombre</dt>
+                <dd class="col-sm-9">@Model.Nombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Categoría</dt>
+                <dd class="col-sm-9">@Model.IdCategoriaNavigation?.Nombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Stock Actual</dt>
+                <dd class="col-sm-9">@Model.StockActual.ToString("N2")</dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="IdMaterial" />
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Eliminar Definitivamente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,8 +1,8 @@
-using Inventario_Vidal.Models;
+﻿using Inventario_Vidal.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace Inventario_Vidal.Controllers
+namespace  Inventario_Vidal.Controllers
 {
     public class HomeController : Controller
     {

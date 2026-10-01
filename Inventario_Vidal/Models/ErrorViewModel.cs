@@ -1,4 +1,4 @@
-namespace Inventario_Vidal.Models
+﻿namespace Inventario_Vidal.Models
 {
     public class ErrorViewModel
     {

@@ -1,0 +1,69 @@
+﻿@model Inventario_Vidal.Models.Materiale
+
+@{
+    ViewData["Title"] = "Detalles del Material";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="bi bi-info-circle"></i> Detalles del Material</h4>
+        </div>
+        <div class="card-body p-4">
+            <dl class="row">
+                <dt class="col-sm-3 fw-semibold">Código de Barras</dt>
+                <dd class="col-sm-9"><span class="badge bg-secondary">@Model.CodigoBarras</span></dd>
+
+                <dt class="col-sm-3 fw-semibold">Nombre</dt>
+                <dd class="col-sm-9">@Model.Nombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Descripción</dt>
+                <dd class="col-sm-9">@Model.Descripcion</dd>
+
+                <dt class="col-sm-3 fw-semibold">Categoría</dt>
+                <dd class="col-sm-9">@Model.IdCategoriaNavigation?.Nombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Marca</dt>
+                <dd class="col-sm-9">@Model.IdMarcaNavigation?.Nombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Unidad de Compra</dt>
+                <dd class="col-sm-9">@Model.IdUnidadCompraNavigation?.Nombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Unidad de Consumo</dt>
+                <dd class="col-sm-9">@Model.IdUnidadConsumoNavigation?.Nombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Stock Actual</dt>
+                <dd class="col-sm-9">@Model.StockActual.ToString("N2")</dd>
+
+                <dt class="col-sm-3 fw-semibold">Stock Mínimo</dt>
+                <dd class="col-sm-9">@Model.StockMinimo.ToString("N2")</dd>
+
+                <dt class="col-sm-3 fw-semibold">Estado</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Activo)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactivo</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3 fw-semibold">Fecha de Registro</dt>
+                <dd class="col-sm-9">@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+            </dl>
+
+            <hr />
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.IdMaterial" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

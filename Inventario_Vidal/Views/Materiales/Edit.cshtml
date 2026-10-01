@@ -1,0 +1,95 @@
+﻿@model Inventario_Vidal.Models.Materiale
+
+@{
+    ViewData["Title"] = "Editar Material";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Material</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="IdMaterial" />
+                <input type="hidden" asp-for="FechaRegistro" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="CodigoBarras" class="form-label fw-semibold">Código de Barras</label>
+                        <input asp-for="CodigoBarras" class="form-control" />
+                        <span asp-validation-for="CodigoBarras" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label fw-semibold">Nombre</label>
+                        <input asp-for="Nombre" class="form-control" />
+                        <span asp-validation-for="Nombre" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Descripcion" class="form-label fw-semibold">Descripción</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="IdCategoria" class="form-label fw-semibold">Categoría</label>
+                        <select asp-for="IdCategoria" class="form-select" asp-items="ViewBag.IdCategoria"></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="IdMarca" class="form-label fw-semibold">Marca</label>
+                        <select asp-for="IdMarca" class="form-select" asp-items="ViewBag.IdMarca">
+                            <option value="">-- Sin Marca --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="IdUnidadCompra" class="form-label fw-semibold">Unidad de Compra</label>
+                        <select asp-for="IdUnidadCompra" class="form-select" asp-items="ViewBag.IdUnidadCompra"></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="IdUnidadConsumo" class="form-label fw-semibold">Unidad de Consumo</label>
+                        <select asp-for="IdUnidadConsumo" class="form-select" asp-items="ViewBag.IdUnidadConsumo"></select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="StockActual" class="form-label fw-semibold">Stock Actual</label>
+                        <input asp-for="StockActual" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="StockMinimo" class="form-label fw-semibold">Stock Mínimo</label>
+                        <input asp-for="StockMinimo" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="StockMaximo" class="form-label fw-semibold">Stock Máximo</label>
+                        <input asp-for="StockMaximo" class="form-control" />
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" asp-for="Activo" />
+                            <label class="form-check-label fw-semibold" asp-for="Activo">Material Activo</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

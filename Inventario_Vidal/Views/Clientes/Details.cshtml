@@ -1,0 +1,133 @@
+﻿@model Inventario_Vidal.Models.Cliente
+
+@{
+    ViewData["Title"] = "Detalles del Cliente";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="bi bi-person-badge"></i> Detalles del Cliente</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3">Datos de Identificación</h6>
+                    <dl class="row">
+                        <dt class="col-sm-4 fw-semibold">Tipo Cliente</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @(Model.TipoCliente == "Juridico" ? "bg-primary" : "bg-info")">
+                                @Model.TipoCliente
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4 fw-semibold">Documento</dt>
+                        <dd class="col-sm-8">@Model.TipoDocumento: @Model.NumeroDocumento</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Razón Social</dt>
+                        <dd class="col-sm-8">@Model.NombreOrazonSocial</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Nombre Comercial</dt>
+                        <dd class="col-sm-8">@Model.NombreComercial</dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3">Datos de Contacto</h6>
+                    <dl class="row">
+                        <dt class="col-sm-4 fw-semibold">Dirección</dt>
+                        <dd class="col-sm-8">@Model.Direccion</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Distrito</dt>
+                        <dd class="col-sm-8">@Model.Distrito</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Provincia</dt>
+                        <dd class="col-sm-8">@Model.Provincia</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Departamento</dt>
+                        <dd class="col-sm-8">@Model.Departamento</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Teléfono</dt>
+                        <dd class="col-sm-8">@Model.Telefono</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Email</dt>
+                        <dd class="col-sm-8">@Model.CorreoElectronico</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Contacto</dt>
+                        <dd class="col-sm-8">@Model.ContactoNombre</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <hr />
+
+            <dl class="row">
+                <dt class="col-sm-2 fw-semibold">Observaciones</dt>
+                <dd class="col-sm-10">@Model.Observaciones</dd>
+
+                <dt class="col-sm-2 fw-semibold">Estado</dt>
+                <dd class="col-sm-10">
+                    @if (Model.Activo)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactivo</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-2 fw-semibold">Fecha de Registro</dt>
+                <dd class="col-sm-10">@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+            </dl>
+
+            <hr />
+
+            <h6 class="text-muted mb-3">
+                <i class="bi bi-folder2-open"></i> Proyectos Asociados (@Model.Proyectos?.Count ?? 0)
+            </h6>
+
+            @if (Model.Proyectos != null && Model.Proyectos.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Fecha Inicio</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var proyecto in Model.Proyectos)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@proyecto.CodigoProyecto</span></td>
+                                    <td>@proyecto.Descripcion</td>
+                                    <td>@proyecto.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                    <td>@proyecto.IdEstadoNavigation?.Nombre</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted fst-italic">Este cliente no tiene proyectos asociados.</p>
+            }
+
+            <hr />
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.IdCliente" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
