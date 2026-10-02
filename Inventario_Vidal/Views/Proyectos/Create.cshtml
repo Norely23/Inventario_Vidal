@@ -1,0 +1,117 @@
+﻿@model Inventario_Vidal.Models.Proyecto
+
+@{
+    ViewData["Title"] = "Crear Proyecto";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-folder-plus"></i> Crear Nuevo Proyecto</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <h6 class="text-muted mb-3">Información del Proyecto</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="CodigoProyecto" class="form-label fw-semibold">Código <span class="text-danger">*</span></label>
+                        <input asp-for="CodigoProyecto" class="form-control" placeholder="PRY-2026-0001" />
+                        <span asp-validation-for="CodigoProyecto" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-8">
+                        <label asp-for="IdCliente" class="form-label fw-semibold">Cliente <span class="text-danger">*</span></label>
+                        <select asp-for="IdCliente" class="form-select" asp-items="ViewBag.IdCliente">
+                            <option value="">-- Seleccione un cliente --</option>
+                        </select>
+                        <span asp-validation-for="IdCliente" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="IdTipoProyecto" class="form-label fw-semibold">Tipo de Proyecto <span class="text-danger">*</span></label>
+                        <select asp-for="IdTipoProyecto" class="form-select" asp-items="ViewBag.IdTipoProyecto">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="IdEstado" class="form-label fw-semibold">Estado <span class="text-danger">*</span></label>
+                        <select asp-for="IdEstado" class="form-select" asp-items="ViewBag.IdEstado"></select>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Descripcion" class="form-label fw-semibold">Descripción</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="2" placeholder="Descripción del proyecto..."></textarea>
+                    </div>
+                </div>
+
+                <h6 class="text-muted mt-4 mb-3">Fechas</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="FechaInicio" class="form-label fw-semibold">Fecha de Inicio <span class="text-danger">*</span></label>
+                        <input asp-for="FechaInicio" type="date" class="form-control" />
+                        <span asp-validation-for="FechaInicio" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="FechaEntregaEstimada" class="form-label fw-semibold">Entrega Estimada</label>
+                        <input asp-for="FechaEntregaEstimada" type="date" class="form-control" />
+                        <span asp-validation-for="FechaEntregaEstimada" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Prioridad" class="form-label fw-semibold">Prioridad</label>
+                        <select asp-for="Prioridad" class="form-select">
+                            <option value="Baja">Baja</option>
+                            <option value="Media" selected>Media</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Urgente">Urgente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h6 class="text-muted mt-4 mb-3">Datos Económicos y Responsable</h6>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label asp-for="PrecioVenta" class="form-label fw-semibold">Precio Venta</label>
+                        <input asp-for="PrecioVenta" type="number" step="0.01" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="Moneda" class="form-label fw-semibold">Moneda</label>
+                        <select asp-for="Moneda" class="form-select">
+                            <option value="PEN">Soles (PEN)</option>
+                            <option value="USD">Dólares (USD)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="IdUsuarioResponsable" class="form-label fw-semibold">Responsable <span class="text-danger">*</span></label>
+                        <select asp-for="IdUsuarioResponsable" class="form-select" asp-items="ViewBag.IdUsuarioResponsable">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span asp-validation-for="IdUsuarioResponsable" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Observaciones" class="form-label fw-semibold">Observaciones</label>
+                        <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Guardar Proyecto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

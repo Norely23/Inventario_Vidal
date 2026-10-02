@@ -1,51 +1,368 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Inventario_Vidal</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>@ViewData["Title"] - Inventario Vidal</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Inventario_Vidal.styles.css" asp-append-version="true" />
+
+    <style>
+            :root {
+                --sidebar-width: 260px;
+                --sidebar-bg: #1e293b;
+                --sidebar-hover: #334155;
+                --sidebar-active: #3b82f6;
+                --primary-color: #2563eb;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f1f5f9;
+                margin: 0;
+                padding: 0;
+            }
+
+            /* Sidebar */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: var(--sidebar-width);
+                height: 100vh;
+                background: var(--sidebar-bg);
+                color: #e2e8f0;
+                overflow-y: auto;
+                transition: all 0.3s;
+                z-index: 1000;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+
+            .sidebar-header {
+                padding: 20px;
+                background: #0f172a;
+                border-bottom: 1px solid #334155;
+                text-align: center;
+            }
+
+                .sidebar-header h4 {
+                    margin: 0;
+                    color: #fff;
+                    font-weight: 700;
+                    font-size: 1.1rem;
+                }
+
+                .sidebar-header small {
+                    color: #94a3b8;
+                    font-size: 0.75rem;
+                }
+
+            .sidebar-user {
+                padding: 15px 20px;
+                background: #0f172a;
+                border-bottom: 1px solid #334155;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .sidebar-user .avatar {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: var(--primary-color);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #fff;
+                    font-weight: bold;
+                }
+
+                .sidebar-user .info {
+                    flex: 1;
+                    overflow: hidden;
+                }
+
+                    .sidebar-user .info .name {
+                        color: #fff;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    .sidebar-user .info .role {
+                        color: #94a3b8;
+                        font-size: 0.75rem;
+                    }
+
+            .sidebar-menu {
+                padding: 10px 0;
+            }
+
+            .menu-section {
+                padding: 15px 20px 5px 20px;
+                font-size: 0.7rem;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-weight: 600;
+            }
+
+            .sidebar-menu a {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 20px;
+                color: #cbd5e1;
+                text-decoration: none;
+                font-size: 0.9rem;
+                transition: all 0.2s;
+                border-left: 3px solid transparent;
+            }
+
+                .sidebar-menu a:hover {
+                    background: var(--sidebar-hover);
+                    color: #fff;
+                    border-left-color: var(--sidebar-active);
+                }
+
+                .sidebar-menu a.active {
+                    background: var(--sidebar-hover);
+                    color: #fff;
+                    border-left-color: var(--sidebar-active);
+                    font-weight: 600;
+                }
+
+                .sidebar-menu a i {
+                    font-size: 1.1rem;
+                    width: 22px;
+                    text-align: center;
+                }
+
+            /* Main content */
+            .main-content {
+                margin-left: var(--sidebar-width);
+                min-height: 100vh;
+                transition: all 0.3s;
+            }
+
+            .topbar {
+                background: #fff;
+                padding: 15px 25px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: sticky;
+                top: 0;
+                z-index: 999;
+            }
+
+                .topbar .page-title {
+                    margin: 0;
+                    font-size: 1.3rem;
+                    font-weight: 600;
+                    color: #1e293b;
+                }
+
+            .content-area {
+                padding: 25px;
+            }
+
+            /* Toggle button */
+            .sidebar-toggle {
+                display: none;
+            }
+
+            @@media (max-width: 768px) {
+                .sidebar {
+                    margin-left: calc(-1 * var(--sidebar-width));
+                }
+
+                    .sidebar.show {
+                        margin-left: 0;
+                    }
+
+                .main-content {
+                    margin-left: 0;
+                }
+
+                .sidebar-toggle {
+                    display: block;
+                }
+            }
+
+            /* Estilos para tablas y tarjetas */
+            .card {
+                border: none;
+                border-radius: 12px;
+            }
+
+            .card-header {
+                border-radius: 12px 12px 0 0 !important;
+            }
+
+            .table > :not(caption) > * > * {
+                padding: 0.75rem;
+            }
+
+            .btn {
+                border-radius: 8px;
+            }
+
+            .form-control, .form-select {
+                border-radius: 8px;
+            }
+
+            /* Animaciones */
+            .fade-in {
+                animation: fadeIn 0.4s ease-in;
+            }
+
+            @@keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Inventario_Vidal</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4><i class="bi bi-box-seam-fill"></i> Inventario Vidal</h4>
+            <small>Sistema Logístico</small>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="avatar">
+                @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "A")
             </div>
+            <div class="info">
+                <div class="name">@(User.Identity?.Name ?? "Administrador")</div>
+                <div class="role">Administrador</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <!-- PRINCIPAL -->
+            <div class="menu-section">Principal</div>
+            <a asp-controller="Home" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+
+            <!-- INVENTARIO -->
+            <div class="menu-section">Inventario</div>
+            <a asp-controller="Materiales" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Materiales" ? "active" : "")">
+                <i class="bi bi-box-seam"></i> Materiales
+            </a>
+            <a asp-controller="Kardex" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Kardex" ? "active" : "")">
+                <i class="bi bi-journal-text"></i> Kardex
+            </a>
+            <a asp-controller="Alertas" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Alertas" ? "active" : "")">
+                <i class="bi bi-exclamation-triangle"></i> Alertas de Stock
+            </a>
+
+            <!-- COMPRAS -->
+            <div class="menu-section">Compras</div>
+            <a asp-controller="Compras" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Compras" ? "active" : "")">
+                <i class="bi bi-cart-check"></i> Compras
+            </a>
+            <a asp-controller="Proveedores" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Proveedores" ? "active" : "")">
+                <i class="bi bi-truck"></i> Proveedores
+            </a>
+
+            <!-- PROYECTOS -->
+            <div class="menu-section">Proyectos</div>
+            <a asp-controller="Proyectos" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Proyectos" ? "active" : "")">
+                <i class="bi bi-folder-fill"></i> Proyectos
+            </a>
+            <a asp-controller="Clientes" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Clientes" ? "active" : "")">
+                <i class="bi bi-people-fill"></i> Clientes
+            </a>
+
+            <!-- PERSONAL -->
+            <div class="menu-section">Personal</div>
+            <a asp-controller="Empleados" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Empleados" ? "active" : "")">
+                <i class="bi bi-person-badge"></i> Empleados
+            </a>
+            <a asp-controller="Contratistas" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Contratistas" ? "active" : "")">
+                <i class="bi bi-person-workspace"></i> Contratistas
+            </a>
+
+            <!-- MAQUINARIA -->
+            <div class="menu-section">Maquinaria</div>
+            <a asp-controller="Maquinaria" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Maquinaria" ? "active" : "")">
+                <i class="bi bi-gear-wide-connected"></i> Maquinaria
+            </a>
+
+            <!-- REPORTES -->
+            <div class="menu-section">Reportes</div>
+            <a asp-controller="Reportes" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reportes" ? "active" : "")">
+                <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+            </a>
+
+            <!-- ADMINISTRACIÓN -->
+            <div class="menu-section">Administración</div>
+            <a asp-controller="Usuarios" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Usuarios" ? "active" : "")">
+                <i class="bi bi-shield-lock"></i> Usuarios
+            </a>
+            <a asp-controller="Configuracion" asp-action="Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Configuracion" ? "active" : "")">
+                <i class="bi bi-gear"></i> Configuración
+            </a>
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-outline-secondary sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h5 class="page-title">
+                    @ViewData["Title"]
+                </h5>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small">
+                    <i class="bi bi-calendar"></i> @DateTime.Now.ToString("dd/MM/yyyy")
+                </span>
+            </div>
+        </div>
+
+        <div class="content-area fade-in">
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
+
+        <footer class="text-center text-muted py-3 small">
+            &copy; @DateTime.Now.Year - Inventario Vidal | Sistema Logístico para Fabricaciones de Estructuras Metálicas
+        </footer>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Inventario_Vidal - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+            function toggleSidebar() {
+                document.getElementById('sidebar').classList.toggle('show');
+            }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

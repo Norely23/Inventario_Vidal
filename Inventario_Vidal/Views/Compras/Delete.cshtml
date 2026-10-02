@@ -1,0 +1,55 @@
+﻿@model Inventario_Vidal.Models.Compra
+
+@{
+    ViewData["Title"] = "Anular Compra";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Anular Compra #@Model.IdCompra</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-circle"></i>
+                <strong>¿Estás seguro?</strong> Al anular esta compra, el stock de los materiales será <strong>revertido</strong> automáticamente mediante un movimiento de ajuste en el Kardex. Esta acción no puede deshacerse.
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3 fw-semibold">Comprobante</dt>
+                <dd class="col-sm-9">@Model.TipoComprobante @Model.NumeroComprobante</dd>
+
+                <dt class="col-sm-3 fw-semibold">Proveedor</dt>
+                <dd class="col-sm-9">@Model.IdProveedorNavigation?.RazonSocial</dd>
+
+                <dt class="col-sm-3 fw-semibold">Fecha</dt>
+                <dd class="col-sm-9">@Model.FechaCompra.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                <dt class="col-sm-3 fw-semibold">Total</dt>
+                <dd class="col-sm-9">@Model.Moneda @Model.Total.ToString("N2")</dd>
+
+                <dt class="col-sm-3 fw-semibold">Materiales</dt>
+                <dd class="col-sm-9">
+                    <ul class="mb-0">
+                        @foreach (var detalle in Model.DetalleCompras)
+                        {
+                            <li>@detalle.IdMaterialNavigation?.Nombre - @detalle.Cantidad.ToString("N2")</li>
+                        }
+                    </ul>
+                </dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="IdCompra" />
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirmar Anulación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,206 @@
+﻿@model Inventario_Vidal.Models.Compra
+@{
+    ViewData["Title"] = "Registrar Compra";
+}
+
+<div class="container-fluid mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-cart-plus"></i> Registrar Nueva Compra</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post" id="formCompra">
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+                <!-- Datos del comprobante -->
+                <h6 class="text-muted mb-3"><i class="bi bi-receipt"></i> Datos del Comprobante</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="IdProveedor" class="form-label fw-semibold">Proveedor <span class="text-danger">*</span></label>
+                        <select asp-for="IdProveedor" class="form-select" asp-items="ViewBag.IdProveedor">
+                            <option value="">-- Seleccione un proveedor --</option>
+                        </select>
+                        <span asp-validation-for="IdProveedor" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <label asp-for="TipoComprobante" class="form-label fw-semibold">Tipo <span class="text-danger">*</span></label>
+                        <select asp-for="TipoComprobante" class="form-select">
+                            <option value="Factura">Factura</option>
+                            <option value="Boleta">Boleta</option>
+                            <option value="Guia">Guía</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label asp-for="NumeroComprobante" class="form-label fw-semibold">Número <span class="text-danger">*</span></label>
+                        <input asp-for="NumeroComprobante" class="form-control" placeholder="F001-12345" />
+                        <span asp-validation-for="NumeroComprobante" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <label asp-for="Moneda" class="form-label fw-semibold">Moneda</label>
+                        <select asp-for="Moneda" class="form-select">
+                            <option value="PEN">Soles</option>
+                            <option value="USD">Dólares</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Observaciones" class="form-label fw-semibold">Observaciones</label>
+                        <input asp-for="Observaciones" class="form-control" />
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <!-- Materiales -->
+                <h6 class="text-muted mb-3"><i class="bi bi-box-seam"></i> Materiales</h6>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="tablaMateriales">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 25%;">Material</th>
+                                <th style="width: 15%;">Presentación</th>
+                                <th style="width: 12%;">Cantidad</th>
+                                <th style="width: 15%;">Costo Unitario</th>
+                                <th style="width: 13%;">Subtotal</th>
+                                <th style="width: 10%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpoMateriales">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold">Subtotal:</td>
+                                <td class="text-end" id="subtotalGeneral">S/ 0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold">IGV (18%):</td>
+                                <td class="text-end" id="igvGeneral">S/ 0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="table-primary">
+                                <td colspan="4" class="text-end fw-bold">TOTAL:</td>
+                                <td class="text-end fw-bold" id="totalGeneral">S/ 0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-primary" onclick="agregarFila()">
+                        <i class="bi bi-plus-circle"></i> Agregar Material
+                    </button>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Registrar Compra
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Datos serializados desde el servidor
+        const materiales = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["Materiales"]));
+        const presentaciones = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["Presentaciones"]));
+
+        function agregarFila() {
+            let opcionesMateriales = '<option value="">-- Seleccione --</option>';
+            materiales.forEach(m => {
+                opcionesMateriales += `<option value="${m.IdMaterial}" data-unidad="${m.IdUnidadCompra}">${m.CodigoBarras} - ${m.Nombre} (Stock: ${m.StockActual})</option>`;
+            });
+
+            const fila = `
+                        <tr class="fila-material">
+                            <td>
+                                <select name="MaterialIds" class="form-select form-select-sm select-material" required onchange="actualizarPresentaciones(this)">
+                                    ${opcionesMateriales}
+                                </select>
+                            </td>
+                            <td>
+                                <select name="PresentacionIdsStr" class="form-select form-select-sm select-presentacion">
+                                    <option value="">-- Unidad base --</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input name="Cantidades" type="number" step="0.01" min="0.01" class="form-control form-control-sm input-cantidad" required onchange="calcularFila(this)" />
+                            </td>
+                            <td>
+                                <input name="Costos" type="number" step="0.01" min="0" class="form-control form-control-sm input-costo" required onchange="calcularFila(this)" />
+                            </td>
+                            <td class="text-end">
+                                <span class="subtotal-fila">0.00</span>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-danger" onclick="eliminarFila(this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+            document.getElementById('cuerpoMateriales').insertAdjacentHTML('beforeend', fila);
+        }
+
+        function actualizarPresentaciones(select) {
+            const fila = select.closest('tr');
+            const idMaterial = select.value;
+            const selectPres = fila.querySelector('.select-presentacion');
+
+            selectPres.innerHTML = '<option value="">-- Unidad base --</option>';
+
+            if (!idMaterial) return;
+
+            const presDeMaterial = presentaciones.filter(p => p.IdMaterial == idMaterial);
+            presDeMaterial.forEach(p => {
+                selectPres.innerHTML += `<option value="${p.IdPresentacion}">${p.Nombre} (x${p.FactorAunidadBase})</option>`;
+            });
+        }
+
+        function calcularFila(input) {
+            const fila = input.closest('tr');
+            const cantidad = parseFloat(fila.querySelector('.input-cantidad').value) || 0;
+            const costo = parseFloat(fila.querySelector('.input-costo').value) || 0;
+            const subtotal = cantidad * costo;
+            fila.querySelector('.subtotal-fila').textContent = subtotal.toFixed(2);
+            calcularTotales();
+        }
+
+        function calcularTotales() {
+            let subtotal = 0;
+            document.querySelectorAll('.fila-material').forEach(fila => {
+                const cantidad = parseFloat(fila.querySelector('.input-cantidad').value) || 0;
+                const costo = parseFloat(fila.querySelector('.input-costo').value) || 0;
+                subtotal += cantidad * costo;
+            });
+            const igv = subtotal * 0.18;
+            const total = subtotal + igv;
+
+            document.getElementById('subtotalGeneral').textContent = 'S/ ' + subtotal.toFixed(2);
+            document.getElementById('igvGeneral').textContent = 'S/ ' + igv.toFixed(2);
+            document.getElementById('totalGeneral').textContent = 'S/ ' + total.toFixed(2);
+        }
+
+        function eliminarFila(btn) {
+            btn.closest('tr').remove();
+            calcularTotales();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            agregarFila();
+        });
+    </script>
+}

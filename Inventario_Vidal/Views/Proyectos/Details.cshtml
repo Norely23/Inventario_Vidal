@@ -1,0 +1,149 @@
+﻿@model Inventario_Vidal.Models.Proyecto
+
+@{
+    ViewData["Title"] = "Detalles del Proyecto";
+}
+
+<div class="container-fluid mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header text-white" style="background-color: @(Model.IdEstadoNavigation?.ColorHex ?? "#0d6efd");">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-folder2-open"></i> Proyecto @Model.CodigoProyecto
+                </h4>
+                <span class="badge bg-light text-dark fs-6">@Model.IdEstadoNavigation?.Nombre</span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3"><i class="bi bi-info-circle"></i> Información General</h6>
+                    <dl class="row">
+                        <dt class="col-sm-5 fw-semibold">Cliente</dt>
+                        <dd class="col-sm-7">@Model.IdClienteNavigation?.NombreOrazonSocial</dd>
+
+                        <dt class="col-sm-5 fw-semibold">Tipo de Proyecto</dt>
+                        <dd class="col-sm-7">@Model.IdTipoProyectoNavigation?.Nombre</dd>
+
+                        <dt class="col-sm-5 fw-semibold">Responsable</dt>
+                        <dd class="col-sm-7">@Model.IdUsuarioResponsableNavigation?.NombreCompleto</dd>
+
+                        <dt class="col-sm-5 fw-semibold">Prioridad</dt>
+                        <dd class="col-sm-7">
+                            @if (Model.Prioridad == "Urgente")
+                            {
+                                <span class="badge bg-danger">@Model.Prioridad</span>
+                            }
+                            else if (Model.Prioridad == "Alta")
+                            {
+                                <span class="badge bg-warning text-dark">@Model.Prioridad</span>
+                            }
+                            else if (Model.Prioridad == "Media")
+                            {
+                                <span class="badge bg-info">@Model.Prioridad</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@Model.Prioridad</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-5 fw-semibold">Descripción</dt>
+                        <dd class="col-sm-7">@Model.Descripcion</dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3"><i class="bi bi-calendar-event"></i> Fechas y Economía</h6>
+                    <dl class="row">
+                        <dt class="col-sm-5 fw-semibold">Fecha de Inicio</dt>
+                        <dd class="col-sm-7">@Model.FechaInicio.ToString("dd/MM/yyyy")</dd>
+
+                        <dt class="col-sm-5 fw-semibold">Entrega Estimada</dt>
+                        <dd class="col-sm-7">
+                            @(Model.FechaEntregaEstimada?.ToString("dd/MM/yyyy") ?? "No definida")
+                        </dd>
+
+                        <dt class="col-sm-5 fw-semibold">Entrega Real</dt>
+                        <dd class="col-sm-7">
+                            @(Model.FechaEntregaReal?.ToString("dd/MM/yyyy") ?? "Pendiente")
+                        </dd>
+
+                        <dt class="col-sm-5 fw-semibold">Precio Venta</dt>
+                        <dd class="col-sm-7">
+                            @if (Model.PrecioVenta.HasValue)
+                            {
+                                @Model.PrecioVenta.Value.ToString("N2") @Model.Moneda
+                            }
+                        </dd>
+
+                        <dt class="col-sm-5 fw-semibold">Costo Estimado</dt>
+                        <dd class="col-sm-7">@Model.CostoEstimado.ToString("N2") @Model.Moneda</dd>
+
+                        <dt class="col-sm-5 fw-semibold">Costo Real</dt>
+                        <dd class="col-sm-7">
+                            @if (Model.CostoReal.HasValue)
+                            {
+                                @Model.CostoReal.Value.ToString("N2") @Model.Moneda
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <hr />
+
+            <h6 class="text-muted mb-3">
+                <i class="bi bi-box-seam"></i> Materiales Asignados (@Model.AsignacionMaterialesPersonals?.Count ?? 0)
+            </h6>
+
+            @if (Model.AsignacionMaterialesPersonals != null && Model.AsignacionMaterialesPersonals.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Material</th>
+                                <th class="text-end">Entregado</th>
+                                <th class="text-end">Utilizado</th>
+                                <th class="text-end">Devuelto</th>
+                                <th class="text-end">Dañado</th>
+                                <th class="text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var asig in Model.AsignacionMaterialesPersonals)
+                            {
+                                <tr>
+                                    <td>@asig.IdMaterialNavigation?.Nombre</td>
+                                    <td class="text-end">@asig.CantidadEntregada.ToString("N2")</td>
+                                    <td class="text-end">@asig.CantidadUtilizada.ToString("N2")</td>
+                                    <td class="text-end">@asig.CantidadDevuelta.ToString("N2")</td>
+                                    <td class="text-end">@asig.CantidadDanada.ToString("N2")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@asig.Estado</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted fst-italic">Este proyecto no tiene materiales asignados.</p>
+            }
+
+            <hr />
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.IdProyecto" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

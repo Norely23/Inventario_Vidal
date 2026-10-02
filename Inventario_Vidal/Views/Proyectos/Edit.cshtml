@@ -1,0 +1,122 @@
+﻿@model Inventario_Vidal.Models.Proyecto
+
+@{
+    ViewData["Title"] = "Editar Proyecto";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Proyecto</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="IdProyecto" />
+                <input type="hidden" asp-for="FechaRegistro" />
+
+                <h6 class="text-muted mb-3">Información del Proyecto</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="CodigoProyecto" class="form-label fw-semibold">Código</label>
+                        <input asp-for="CodigoProyecto" class="form-control" />
+                        <span asp-validation-for="CodigoProyecto" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-8">
+                        <label asp-for="IdCliente" class="form-label fw-semibold">Cliente</label>
+                        <select asp-for="IdCliente" class="form-select" asp-items="ViewBag.IdCliente"></select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="IdTipoProyecto" class="form-label fw-semibold">Tipo</label>
+                        <select asp-for="IdTipoProyecto" class="form-select" asp-items="ViewBag.IdTipoProyecto"></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="IdEstado" class="form-label fw-semibold">Estado</label>
+                        <select asp-for="IdEstado" class="form-select" asp-items="ViewBag.IdEstado"></select>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Descripcion" class="form-label fw-semibold">Descripción</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <h6 class="text-muted mt-4 mb-3">Fechas</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="FechaInicio" class="form-label fw-semibold">Fecha Inicio</label>
+                        <input asp-for="FechaInicio" type="date" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="FechaEntregaEstimada" class="form-label fw-semibold">Entrega Estimada</label>
+                        <input asp-for="FechaEntregaEstimada" type="date" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="FechaEntregaReal" class="form-label fw-semibold">Entrega Real</label>
+                        <input asp-for="FechaEntregaReal" type="date" class="form-control" />
+                    </div>
+                </div>
+
+                <h6 class="text-muted mt-4 mb-3">Datos Económicos</h6>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label asp-for="PrecioVenta" class="form-label fw-semibold">Precio Venta</label>
+                        <input asp-for="PrecioVenta" type="number" step="0.01" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="CostoEstimado" class="form-label fw-semibold">Costo Estimado</label>
+                        <input asp-for="CostoEstimado" type="number" step="0.01" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="CostoReal" class="form-label fw-semibold">Costo Real</label>
+                        <input asp-for="CostoReal" type="number" step="0.01" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="Moneda" class="form-label fw-semibold">Moneda</label>
+                        <select asp-for="Moneda" class="form-select">
+                            <option value="PEN">Soles (PEN)</option>
+                            <option value="USD">Dólares (USD)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="IdUsuarioResponsable" class="form-label fw-semibold">Responsable</label>
+                        <select asp-for="IdUsuarioResponsable" class="form-select" asp-items="ViewBag.IdUsuarioResponsable"></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Prioridad" class="form-label fw-semibold">Prioridad</label>
+                        <select asp-for="Prioridad" class="form-select">
+                            <option value="Baja">Baja</option>
+                            <option value="Media">Media</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Urgente">Urgente</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Observaciones" class="form-label fw-semibold">Observaciones</label>
+                        <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

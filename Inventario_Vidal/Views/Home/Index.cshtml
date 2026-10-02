@@ -1,8 +1,213 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Inventario_Vidal.Controllers.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="fw-bold">
+                <i class="bi bi-speedometer2 text-primary"></i> Panel de Control
+            </h3>
+            <p class="text-muted">Bienvenido al sistema logístico de Fabricaciones Vidal E.I.R.L.</p>
+        </div>
+    </div>
+
+    <!-- Tarjetas de KPIs Principales -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #2563eb !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Materiales Activos</p>
+                            <h3 class="fw-bold mb-0">@Model.TotalMateriales</h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                            <i class="bi bi-box-seam text-primary fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #10b981 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Proyectos Activos</p>
+                            <h3 class="fw-bold mb-0">@Model.ProyectosActivos</h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                            <i class="bi bi-folder-fill text-success fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #f59e0b !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Compras Último Mes</p>
+                            <h3 class="fw-bold mb-0">S/ @Model.ComprasUltimoMes.ToString("N2")</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                            <i class="bi bi-cart-check text-warning fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #ef4444 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Alertas de Stock</p>
+                            <h3 class="fw-bold mb-0">@Model.MaterialesStockBajo</h3>
+                        </div>
+                        <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                            <i class="bi bi-exclamation-triangle text-danger fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Últimos Movimientos de Kardex -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="bi bi-journal-text text-primary"></i> Últimos Movimientos de Kardex
+                    </h6>
+                    <a asp-controller="Kardex" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                        Ver Todos <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Material</th>
+                                    <th>Tipo</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var mov in Model.UltimosMovimientos)
+                                {
+                                    <tr>
+                                        <td><small>@mov.FechaMovimiento.ToString("dd/MM/yyyy HH:mm")</small></td>
+                                        <td>@mov.IdMaterialNavigation?.Nombre</td>
+                                        <td>
+                                            <span class="badge @(mov.IdTipoMovimientoNavigation?.Signo == 1 ? "bg-success" : "bg-danger")">
+                                                @mov.IdTipoMovimientoNavigation?.Nombre
+                                            </span>
+                                        </td>
+                                        <td class="text-end fw-bold">@mov.Cantidad.ToString("N2")</td>
+                                        <td><small>@mov.IdUsuarioNavigation?.NombreCompleto</small></td>
+                                    </tr>
+                                }
+                                @if (!Model.UltimosMovimientos.Any())
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                                            No hay movimientos registrados
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accesos Rápidos -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="bi bi-lightning-charge-fill text-warning"></i> Accesos Rápidos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Compras" asp-action="Create" class="btn btn-outline-primary text-start">
+                            <i class="bi bi-cart-plus"></i> Registrar Compra
+                        </a>
+                        <a asp-controller="Materiales" asp-action="Create" class="btn btn-outline-success text-start">
+                            <i class="bi bi-plus-circle"></i> Nuevo Material
+                        </a>
+                        <a asp-controller="Proyectos" asp-action="Create" class="btn btn-outline-warning text-start">
+                            <i class="bi bi-folder-plus"></i> Nuevo Proyecto
+                        </a>
+                        <a asp-controller="Kardex" asp-action="Index" class="btn btn-outline-info text-start">
+                            <i class="bi bi-journal-text"></i> Consultar Kardex
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Materiales con Stock Bajo -->
+    @if (Model.MaterialesAlerta.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Materiales con Stock Bajo
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Material</th>
+                                        <th class="text-end">Stock Actual</th>
+                                        <th class="text-end">Stock Mínimo</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var material in Model.MaterialesAlerta)
+                                    {
+                                        <tr>
+                                            <td><span class="badge bg-secondary">@material.CodigoBarras</span></td>
+                                            <td class="fw-semibold">@material.Nombre</td>
+                                            <td class="text-end text-danger fw-bold">@material.StockActual.ToString("N2")</td>
+                                            <td class="text-end">@material.StockMinimo.ToString("N2")</td>
+                                            <td class="text-center">
+                                                <a asp-controller="Compras" asp-action="Create" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-cart-plus"></i> Comprar
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>

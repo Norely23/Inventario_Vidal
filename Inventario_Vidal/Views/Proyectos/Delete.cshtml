@@ -1,0 +1,49 @@
+﻿@model Inventario_Vidal.Models.Proyecto
+
+@{
+    ViewData["Title"] = "Eliminar Proyecto";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Eliminar Proyecto</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-circle"></i>
+                ¿Estás seguro que deseas eliminar este proyecto?
+                Si tiene movimientos asociados, no podrá eliminarse.
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3 fw-semibold">Código</dt>
+                <dd class="col-sm-9"><span class="badge bg-secondary">@Model.CodigoProyecto</span></dd>
+
+                <dt class="col-sm-3 fw-semibold">Cliente</dt>
+                <dd class="col-sm-9">@Model.IdClienteNavigation?.NombreOrazonSocial</dd>
+
+                <dt class="col-sm-3 fw-semibold">Estado</dt>
+                <dd class="col-sm-9">@Model.IdEstadoNavigation?.Nombre</dd>
+
+                <dt class="col-sm-3 fw-semibold">Descripción</dt>
+                <dd class="col-sm-9">@Model.Descripcion</dd>
+
+                <dt class="col-sm-3 fw-semibold">Fecha Inicio</dt>
+                <dd class="col-sm-9">@Model.FechaInicio.ToString("dd/MM/yyyy")</dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="IdProyecto" />
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirmar Eliminación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

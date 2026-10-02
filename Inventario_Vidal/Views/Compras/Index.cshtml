@@ -1,0 +1,132 @@
+﻿@model IEnumerable<Inventario_Vidal.Models.Compra>
+
+@{
+    ViewData["Title"] = "Compras";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary">
+            <i class="bi bi-cart-check"></i> Gestión de Compras
+        </h2>
+        <a asp-action="Create" class="btn btn-success shadow-sm">
+            <i class="bi bi-plus-circle"></i> Registrar Compra
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-2">
+                <div class="col-md-4">
+                    <input type="text" name="buscar" value="@ViewData["Buscar"]"
+                           class="form-control" placeholder="Buscar por comprobante o proveedor..." />
+                </div>
+                <div class="col-md-3">
+                    <select name="proveedorId" class="form-select" asp-items="ViewBag.Proveedores">
+                        <option value="">-- Todos los proveedores --</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="date" name="desde" value="@ViewData["Desde"]" class="form-control" title="Desde" />
+                </div>
+                <div class="col-md-2">
+                    <input type="date" name="hasta" value="@ViewData["Hasta"]" class="form-control" title="Hasta" />
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Fecha</th>
+                            <th>Comprobante</th>
+                            <th>Proveedor</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">#@item.IdCompra</span></td>
+                                <td>@item.FechaCompra.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <small>
+                                        <strong>@item.TipoComprobante</strong><br />
+                                        @item.NumeroComprobante
+                                    </small>
+                                </td>
+                                <td class="fw-semibold">@item.IdProveedorNavigation?.RazonSocial</td>
+                                <td class="text-end fw-bold">
+                                    @item.Moneda @item.Total.ToString("N2")
+                                </td>
+                                <td class="text-center">
+                                    @if (item.Estado == "Registrada")
+                                    {
+                                        <span class="badge bg-info">Registrada</span>
+                                    }
+                                    else if (item.Estado == "Recibida")
+                                    {
+                                        <span class="badge bg-success">Recibida</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Anulada</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@item.IdCompra" class="btn btn-outline-info" title="Detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        @if (item.Estado != "Anulada")
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@item.IdCompra" class="btn btn-outline-danger" title="Anular">
+                                                <i class="bi bi-x-circle"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center mt-5 text-muted">
+            <i class="bi bi-inbox display-1"></i>
+            <p class="mt-3">No se encontraron compras.</p>
+        </div>
+    }
+</div>
