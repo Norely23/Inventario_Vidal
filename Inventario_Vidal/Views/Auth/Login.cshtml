@@ -1,0 +1,4900 @@
+@model Inventario_Vidal.DTOs.LoginRequestDto
+
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = null;
+
+    var empresaNombre =
+        ViewBag.EmpresaNombre as string
+        ?? "Fabricaciones de Estructuras Metálicas Vidal E.I.R.L.";
+
+    var anioActual =
+        DateTime.Now.Year;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <meta name="theme-color"
+          content="#0b203a" />
+
+    <title>
+        Iniciar sesión - @empresaNombre
+    </title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet" />
+
+    <style>
+
+        /* ============================================================
+           01. TOKENS
+           ============================================================ */
+
+        :root {
+
+            --navy-1000:
+                #061426;
+
+            --navy-950:
+                #081a30;
+
+            --navy-900:
+                #0d2441;
+
+            --navy-850:
+                #102947;
+
+            --navy-800:
+                #12365f;
+
+            --blue-750:
+                #16427c;
+
+            --blue-700:
+                #17488e;
+
+            --blue-650:
+                #1c579f;
+
+            --blue-600:
+                #226cc2;
+
+            --blue-550:
+                #2b78d0;
+
+            --blue-500:
+                #3a88d9;
+
+            --blue-400:
+                #67a8e9;
+
+            --blue-300:
+                #8fc4ff;
+
+            --blue-200:
+                #cbe3fb;
+
+            --blue-100:
+                #eaf3fd;
+
+            --blue-75:
+                #f3f8fd;
+
+            --green-700:
+                #0f724c;
+
+            --green-600:
+                #168957;
+
+            --green-500:
+                #22a36c;
+
+            --green-100:
+                #e9f7f0;
+
+            --red-700:
+                #a73448;
+
+            --red-600:
+                #c93f55;
+
+            --red-100:
+                #fff0f2;
+
+            --amber-700:
+                #946215;
+
+            --amber-600:
+                #b67916;
+
+            --amber-100:
+                #fff6e4;
+
+            --ink-950:
+                #152638;
+
+            --ink-900:
+                #20334a;
+
+            --ink-850:
+                #2a3e55;
+
+            --ink-800:
+                #34485e;
+
+            --ink-700:
+                #4b6075;
+
+            --ink-600:
+                #637689;
+
+            --ink-500:
+                #7d8d9f;
+
+            --ink-450:
+                #8998a7;
+
+            --ink-400:
+                #9aa7b5;
+
+            --line-300:
+                #c8d3df;
+
+            --line-250:
+                #d1dbe5;
+
+            --line-200:
+                #dce4ec;
+
+            --line-150:
+                #e7edf3;
+
+            --surface-100:
+                #eef3f8;
+
+            --surface-75:
+                #f4f7fb;
+
+            --surface-50:
+                #f9fbfd;
+
+            --white:
+                #ffffff;
+
+            --radius-xs:
+                8px;
+
+            --radius-sm:
+                10px;
+
+            --radius-md:
+                14px;
+
+            --radius-lg:
+                18px;
+
+            --radius-xl:
+                22px;
+
+            --radius-pill:
+                999px;
+
+            --shadow-control:
+                0 10px 28px
+                rgba(23, 72, 142, .10);
+
+            --shadow-primary:
+                0 18px 42px
+                rgba(23, 72, 142, .26);
+
+            --ease:
+                cubic-bezier(
+                    .2,
+                    .74,
+                    .2,
+                    1);
+
+            --font:
+                "Inter",
+                "Segoe UI",
+                Roboto,
+                Arial,
+                sans-serif;
+        }
+
+        /* ============================================================
+           02. RESET
+           ============================================================ */
+
+        *,
+        *::before,
+        *::after {
+
+            box-sizing:
+                border-box;
+
+        }
+
+        html,
+        body {
+
+            width:
+                100%;
+
+            min-height:
+                100%;
+
+            margin:
+                0;
+
+            padding:
+                0;
+
+        }
+
+        html {
+
+            background:
+                var(
+                    --navy-950);
+
+        }
+
+        body {
+
+            min-height:
+                100vh;
+
+            overflow:
+                hidden;
+
+            font-family:
+                var(
+                    --font);
+
+            color:
+                var(
+                    --ink-900);
+
+            background:
+                var(
+                    --navy-950);
+
+            -webkit-font-smoothing:
+                antialiased;
+
+            text-rendering:
+                optimizeLegibility;
+
+        }
+
+        button,
+        input {
+
+            font:
+                inherit;
+
+        }
+
+        button {
+
+            -webkit-tap-highlight-color:
+                transparent;
+
+        }
+
+        ::selection {
+
+            color:
+                #fff;
+
+            background:
+                var(
+                    --blue-700);
+
+        }
+
+        /* ============================================================
+           03. LAYOUT GENERAL
+           ============================================================ */
+
+        .login-shell {
+
+            width:
+                100%;
+
+            height:
+                100vh;
+
+            display:
+                grid;
+
+            grid-template-columns:
+                minmax(
+                    0,
+                    66%)
+                minmax(
+                    400px,
+                    34%);
+
+            overflow:
+                hidden;
+
+            background:
+                #fff;
+
+        }
+
+        /* ============================================================
+           04. LADO VISUAL
+           ============================================================ */
+
+        .visual-stage {
+
+            min-width:
+                0;
+
+            height:
+                100vh;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            isolation:
+                isolate;
+
+            color:
+                #fff;
+
+            background:
+                var(
+                    --navy-950);
+
+        }
+
+        /* ============================================================
+           05. SLIDES
+           ============================================================ */
+
+        .visual-slides {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            z-index:
+                -6;
+
+            overflow:
+                hidden;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--navy-950),
+                    var(--blue-700));
+
+        }
+
+        .visual-slide {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            opacity:
+                0;
+
+            visibility:
+                hidden;
+
+            transform:
+                scale(
+                    1.07);
+
+            transition:
+
+                opacity
+                    1.25s
+                    ease,
+
+                visibility
+                    1.25s
+                    ease,
+
+                transform
+                    8s
+                    linear;
+
+            will-change:
+                opacity,
+                transform;
+
+        }
+
+        .visual-slide.is-active {
+
+            opacity:
+                1;
+
+            visibility:
+                visible;
+
+            transform:
+                scale(
+                    1);
+
+        }
+
+        .visual-slide img {
+
+            width:
+                100%;
+
+            height:
+                100%;
+
+            display:
+                block;
+
+            object-fit:
+                cover;
+
+            object-position:
+                center;
+
+            user-select:
+                none;
+
+            pointer-events:
+                none;
+
+        }
+
+        /* ============================================================
+           06. OVERLAY
+           ============================================================ */
+
+        .visual-overlay {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            z-index:
+                -5;
+
+            pointer-events:
+                none;
+
+            background:
+
+                linear-gradient(
+                    92deg,
+                    rgba(
+                        5,
+                        20,
+                        38,
+                        .95)
+                        0%,
+                    rgba(
+                        7,
+                        29,
+                        54,
+                        .82)
+                        36%,
+                    rgba(
+                        10,
+                        48,
+                        91,
+                        .54)
+                        68%,
+                    rgba(
+                        15,
+                        65,
+                        121,
+                        .24)
+                        100%),
+
+                linear-gradient(
+                    to top,
+                    rgba(
+                        5,
+                        20,
+                        38,
+                        .85)
+                        0%,
+                    transparent
+                        52%);
+
+        }
+
+        .visual-glow {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            z-index:
+                -4;
+
+            pointer-events:
+                none;
+
+            background:
+
+                radial-gradient(
+                    circle
+                    at
+                    18%
+                    16%,
+                    rgba(
+                        123,
+                        193,
+                        255,
+                        .17),
+                    transparent
+                        24%),
+
+                radial-gradient(
+                    circle
+                    at
+                    75%
+                    86%,
+                    rgba(
+                        34,
+                        108,
+                        194,
+                        .21),
+                    transparent
+                        35%);
+
+        }
+
+        .visual-grid {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            z-index:
+                -3;
+
+            opacity:
+                .075;
+
+            pointer-events:
+                none;
+
+            background-image:
+
+                linear-gradient(
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        .18)
+                        1px,
+                    transparent
+                        1px),
+
+                linear-gradient(
+                    90deg,
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        .18)
+                        1px,
+                    transparent
+                        1px);
+
+            background-size:
+                62px
+                62px;
+
+            mask-image:
+                linear-gradient(
+                    90deg,
+                    #000
+                        0%,
+                    rgba(
+                        0,
+                        0,
+                        0,
+                        .85)
+                        67%,
+                    transparent
+                        100%);
+
+        }
+
+        /* ============================================================
+           07. ORBITAS
+           ============================================================ */
+
+        .orbit {
+
+            position:
+                absolute;
+
+            z-index:
+                -2;
+
+            border-radius:
+                50%;
+
+            pointer-events:
+                none;
+
+        }
+
+        .orbit-one {
+
+            width:
+                540px;
+
+            height:
+                540px;
+
+            right:
+                -245px;
+
+            top:
+                -225px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .09);
+
+            box-shadow:
+
+                0
+                0
+                0
+                76px
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .024),
+
+                0
+                0
+                0
+                150px
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .013);
+
+            animation:
+                orbitMove
+                10s
+                ease-in-out
+                infinite;
+
+        }
+
+        .orbit-two {
+
+            width:
+                440px;
+
+            height:
+                440px;
+
+            left:
+                -225px;
+
+            bottom:
+                -215px;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(
+                        79,
+                        164,
+                        241,
+                        .30),
+                    transparent
+                        69%);
+
+            animation:
+                orbitMove
+                12s
+                ease-in-out
+                infinite
+                reverse;
+
+        }
+
+        @@keyframes orbitMove {
+
+            0%,
+            100% {
+
+                transform:
+                    translateY(
+                        0);
+
+            }
+
+            50% {
+
+                transform:
+                    translateY(
+                        -20px);
+
+            }
+
+        }
+
+        /* ============================================================
+           08. ESTRUCTURA VISUAL
+           ============================================================ */
+
+        .visual-layout {
+
+            height:
+                100%;
+
+            padding:
+                34px
+                clamp(
+                    32px,
+                    4.5vw,
+                    70px)
+                32px;
+
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+            justify-content:
+                space-between;
+
+            gap:
+                28px;
+
+        }
+
+        /* ============================================================
+           09. BRAND
+           ============================================================ */
+
+        .visual-header {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+
+            gap:
+                18px;
+
+        }
+
+        .company-brand {
+
+            min-width:
+                0;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                15px;
+
+        }
+
+        .company-logo {
+
+            width:
+                82px;
+
+            height:
+                82px;
+
+            flex-shrink:
+                0;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .18);
+
+            border-radius:
+                18px;
+
+            background:
+                rgba(
+                    7,
+                    25,
+                    46,
+                    .55);
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            box-shadow:
+                0
+                14px
+                38px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    .22);
+
+            backdrop-filter:
+                blur(
+                    10px);
+
+        }
+
+        .company-logo img {
+
+            width:
+                100%;
+
+            height:
+                100%;
+
+            display:
+                block;
+
+            object-fit:
+                contain;
+
+            padding:
+                5px;
+
+            filter:
+                drop-shadow(
+                    0
+                    7px
+                    12px
+                    rgba(
+                        0,
+                        0,
+                        0,
+                        .20));
+
+        }
+
+        .company-copy strong,
+        .company-copy span {
+
+            display:
+                block;
+
+        }
+
+        .company-copy strong {
+
+            max-width:
+                430px;
+
+            color:
+                #fff;
+
+            font-size:
+                1.05rem;
+
+            font-weight:
+                850;
+
+            line-height:
+                1.25;
+
+        }
+
+        .company-copy span {
+
+            margin-top:
+                5px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .62);
+
+            font-size:
+                .72rem;
+
+            font-weight:
+                650;
+
+            letter-spacing:
+                .70px;
+
+            text-transform:
+                uppercase;
+
+        }
+
+        .online-pill {
+
+            min-height:
+                42px;
+
+            padding:
+                0
+                14px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .14);
+
+            border-radius:
+                var(
+                    --radius-pill);
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .085);
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                9px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .86);
+
+            font-size:
+                .70rem;
+
+            font-weight:
+                720;
+
+            backdrop-filter:
+                blur(
+                    12px);
+
+        }
+
+        .online-dot {
+
+            width:
+                8px;
+
+            height:
+                8px;
+
+            border-radius:
+                50%;
+
+            background:
+                #63d7a7;
+
+            box-shadow:
+                0
+                0
+                0
+                5px
+                rgba(
+                    99,
+                    215,
+                    167,
+                    .11);
+
+            animation:
+                onlinePulse
+                2.2s
+                ease-in-out
+                infinite;
+
+        }
+
+        @@keyframes onlinePulse {
+
+            0%,
+            100% {
+
+                box-shadow:
+                    0
+                    0
+                    0
+                    5px
+                    rgba(
+                        99,
+                        215,
+                        167,
+                        .11);
+
+            }
+
+            50% {
+
+                box-shadow:
+                    0
+                    0
+                    0
+                    9px
+                    rgba(
+                        99,
+                        215,
+                        167,
+                        .03);
+
+            }
+
+        }
+
+        /* ============================================================
+           10. HERO
+           ============================================================ */
+
+        .visual-copy {
+
+            width:
+                min(
+                    790px,
+                    93%);
+
+            margin:
+                auto
+                0;
+
+        }
+
+        .visual-kicker {
+
+            min-height:
+                36px;
+
+            padding:
+                0
+                13px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .14);
+
+            border-radius:
+                var(
+                    --radius-pill);
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .075);
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                9px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .86);
+
+            font-size:
+                .68rem;
+
+            font-weight:
+                840;
+
+            letter-spacing:
+                .96px;
+
+            backdrop-filter:
+                blur(
+                    10px);
+
+        }
+
+        .visual-kicker-dot {
+
+            width:
+                8px;
+
+            height:
+                8px;
+
+            border-radius:
+                50%;
+
+            background:
+                var(
+                    --blue-300);
+
+            box-shadow:
+                0
+                0
+                0
+                5px
+                rgba(
+                    143,
+                    196,
+                    255,
+                    .10);
+
+        }
+
+        .visual-title {
+
+            max-width:
+                790px;
+
+            margin:
+                20px
+                0
+                0;
+
+            color:
+                #fff;
+
+            font-size:
+                clamp(
+                    2.70rem,
+                    4.35vw,
+                    5.20rem);
+
+            font-weight:
+                880;
+
+            line-height:
+                .98;
+
+            letter-spacing:
+                -2.7px;
+
+            text-wrap:
+                balance;
+
+        }
+
+        .visual-title span {
+
+            color:
+                #acd5ff;
+
+        }
+
+        .visual-description {
+
+            max-width:
+                650px;
+
+            margin:
+                21px
+                0
+                0;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .72);
+
+            font-size:
+                1.03rem;
+
+            font-weight:
+                430;
+
+            line-height:
+                1.72;
+
+        }
+
+        /* ============================================================
+           11. SLIDE INFO
+           ============================================================ */
+
+        .slide-info {
+
+            width:
+                min(
+                    690px,
+                    100%);
+
+            min-height:
+                92px;
+
+            margin-top:
+                30px;
+
+            padding:
+                15px
+                17px;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .12);
+
+            border-radius:
+                16px;
+
+            background:
+                rgba(
+                    7,
+                    27,
+                    49,
+                    .34);
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                15px;
+
+            backdrop-filter:
+                blur(
+                    13px);
+
+        }
+
+        .slide-info::before {
+
+            content:
+                "";
+
+            position:
+                absolute;
+
+            left:
+                0;
+
+            top:
+                0;
+
+            bottom:
+                0;
+
+            width:
+                3px;
+
+            background:
+                linear-gradient(
+                    to bottom,
+                    var(
+                        --blue-300),
+                    var(
+                        --blue-600));
+
+        }
+
+        .slide-number {
+
+            width:
+                48px;
+
+            height:
+                48px;
+
+            flex-shrink:
+                0;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .12);
+
+            border-radius:
+                12px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .10);
+
+            color:
+                #fff;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            font-size:
+                .78rem;
+
+            font-weight:
+                900;
+
+        }
+
+        .slide-copy strong,
+        .slide-copy span {
+
+            display:
+                block;
+
+        }
+
+        .slide-copy strong {
+
+            color:
+                #fff;
+
+            font-size:
+                .82rem;
+
+            font-weight:
+                810;
+
+        }
+
+        .slide-copy span {
+
+            margin-top:
+                4px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .62);
+
+            font-size:
+                .69rem;
+
+            line-height:
+                1.48;
+
+        }
+
+        /* ============================================================
+           12. FOOTER VISUAL
+           ============================================================ */
+
+        .visual-footer {
+
+            display:
+                flex;
+
+            align-items:
+                flex-end;
+
+            justify-content:
+                space-between;
+
+            gap:
+                20px;
+
+        }
+
+        .copyright {
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .48);
+
+            font-size:
+                .64rem;
+
+            line-height:
+                1.5;
+
+        }
+
+        .carousel-controls {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                10px;
+
+        }
+
+        .carousel-button {
+
+            width:
+                42px;
+
+            height:
+                42px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .15);
+
+            border-radius:
+                11px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .075);
+
+            color:
+                #fff;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            cursor:
+                pointer;
+
+            backdrop-filter:
+                blur(
+                    9px);
+
+            transition:
+
+                background
+                    .18s
+                    ease,
+
+                border-color
+                    .18s
+                    ease,
+
+                transform
+                    .18s
+                    ease;
+
+        }
+
+        .carousel-button:hover {
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .15);
+
+            border-color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .26);
+
+            transform:
+                translateY(
+                    -1px);
+
+        }
+
+        .carousel-button svg {
+
+            width:
+                19px;
+
+            height:
+                19px;
+
+            fill:
+                none;
+
+            stroke:
+                currentColor;
+
+            stroke-width:
+                2;
+
+            stroke-linecap:
+                round;
+
+            stroke-linejoin:
+                round;
+
+        }
+
+        .carousel-timeline {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                7px;
+
+        }
+
+        .timeline-item {
+
+            width:
+                40px;
+
+            height:
+                5px;
+
+            padding:
+                0;
+
+            overflow:
+                hidden;
+
+            border:
+                0;
+
+            border-radius:
+                var(
+                    --radius-pill);
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .20);
+
+            cursor:
+                pointer;
+
+        }
+
+        .timeline-item span {
+
+            width:
+                100%;
+
+            height:
+                100%;
+
+            display:
+                block;
+
+            background:
+                #fff;
+
+            border-radius:
+                inherit;
+
+            transform:
+                scaleX(
+                    0);
+
+            transform-origin:
+                left;
+
+        }
+
+        .timeline-item.is-active span {
+
+            animation:
+                timelineFill
+                6s
+                linear
+                forwards;
+
+        }
+
+        @@keyframes timelineFill {
+
+            from {
+
+                transform:
+                    scaleX(
+                        0);
+
+            }
+
+            to {
+
+                transform:
+                    scaleX(
+                        1);
+
+            }
+
+        }
+
+        /* ============================================================
+           13. PANEL DERECHO
+           ============================================================ */
+
+        .auth-panel {
+
+            min-width:
+                0;
+
+            height:
+                100vh;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #fbfcfe
+                        0%,
+                    #f3f7fb
+                        100%);
+
+            display:
+                grid;
+
+            grid-template-rows:
+                1fr
+                auto;
+
+            padding:
+                32px
+                clamp(
+                    34px,
+                    4vw,
+                    58px)
+                28px;
+
+            z-index:
+                4;
+
+            box-shadow:
+                -20px
+                0
+                60px
+                rgba(
+                    5,
+                    25,
+                    47,
+                    .09);
+
+        }
+
+        .auth-panel::before {
+
+            content:
+                "";
+
+            position:
+                absolute;
+
+            width:
+                520px;
+
+            height:
+                520px;
+
+            right:
+                -310px;
+
+            top:
+                -260px;
+
+            border-radius:
+                50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(
+                        34,
+                        108,
+                        194,
+                        .14),
+                    transparent
+                        70%);
+
+            animation:
+                panelGlow
+                11s
+                ease-in-out
+                infinite;
+
+            pointer-events:
+                none;
+
+        }
+
+        .auth-panel::after {
+
+            content:
+                "";
+
+            position:
+                absolute;
+
+            width:
+                420px;
+
+            height:
+                420px;
+
+            left:
+                -285px;
+
+            bottom:
+                -235px;
+
+            border-radius:
+                50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(
+                        88,
+                        158,
+                        226,
+                        .12),
+                    transparent
+                        70%);
+
+            animation:
+                panelGlow
+                13s
+                ease-in-out
+                infinite
+                reverse;
+
+            pointer-events:
+                none;
+
+        }
+
+        @@keyframes panelGlow {
+
+            0%,
+            100% {
+
+                transform:
+                    translateY(
+                        0)
+                    scale(
+                        1);
+
+            }
+
+            50% {
+
+                transform:
+                    translateY(
+                        20px)
+                    scale(
+                        1.07);
+
+            }
+
+        }
+
+        .auth-grid {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            opacity:
+                .40;
+
+            pointer-events:
+                none;
+
+            background-image:
+
+                linear-gradient(
+                    #e8eef4
+                        1px,
+                    transparent
+                        1px),
+
+                linear-gradient(
+                    90deg,
+                    #e8eef4
+                        1px,
+                    transparent
+                        1px);
+
+            background-size:
+                40px
+                40px;
+
+            mask-image:
+                linear-gradient(
+                    to bottom,
+                    rgba(
+                        0,
+                        0,
+                        0,
+                        .15),
+                    transparent
+                        58%);
+
+        }
+
+        /* ============================================================
+           15. CONTENIDO CENTRAL DERECHO
+           ============================================================ */
+
+        .auth-main {
+
+            width:
+                min(
+                    455px,
+                    100%);
+
+            margin:
+                auto;
+
+            padding-top:
+                14px;
+
+            padding-bottom:
+                14px;
+
+            position:
+                relative;
+
+            z-index:
+                2;
+
+            animation:
+                authEnter
+                .72s
+                var(
+                    --ease)
+                both;
+
+        }
+
+        @@keyframes authEnter {
+
+            from {
+
+                opacity:
+                    0;
+
+                transform:
+                    translateX(
+                        24px);
+
+            }
+
+            to {
+
+                opacity:
+                    1;
+
+                transform:
+                    translateX(
+                        0);
+
+            }
+
+        }
+
+        .auth-kicker {
+
+            min-height:
+                34px;
+
+            padding:
+                0
+                12px;
+
+            border-radius:
+                var(
+                    --radius-pill);
+
+            background:
+                #eaf3fd;
+
+            color:
+                var(
+                    --blue-700);
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                8px;
+
+            font-size:
+                .64rem;
+
+            font-weight:
+                850;
+
+            letter-spacing:
+                .85px;
+
+        }
+
+        .auth-kicker span {
+
+            width:
+                7px;
+
+            height:
+                7px;
+
+            border-radius:
+                50%;
+
+            background:
+                var(
+                    --blue-600);
+
+        }
+
+        .auth-title {
+
+            margin:
+                18px
+                0
+                0;
+
+            color:
+                var(
+                    --navy-900);
+
+            font-size:
+                clamp(
+                    2.30rem,
+                    3vw,
+                    3.15rem);
+
+            font-weight:
+                880;
+
+            line-height:
+                1.02;
+
+            letter-spacing:
+                -1.65px;
+
+        }
+
+        .auth-description {
+
+            max-width:
+                470px;
+
+            margin:
+                13px
+                0
+                0;
+
+            color:
+                var(
+                    --ink-500);
+
+            font-size:
+                .93rem;
+
+            line-height:
+                1.65;
+
+        }
+
+        /* ============================================================
+           16. VALIDATION
+           ============================================================ */
+
+        .validation-panel {
+
+            margin-top:
+                20px;
+
+            padding:
+                13px
+                14px;
+
+            border:
+                1px solid
+                #efcfd5;
+
+            border-left:
+                4px solid
+                var(
+                    --red-600);
+
+            border-radius:
+                12px;
+
+            background:
+                #fff4f5;
+
+            color:
+                var(
+                    --red-700);
+
+            font-size:
+                .70rem;
+
+            line-height:
+                1.50;
+
+        }
+
+        .validation-panel ul {
+
+            margin:
+                0;
+
+            padding-left:
+                18px;
+
+        }
+
+        .field-validation-error {
+
+            display:
+                block;
+
+            margin-top:
+                6px;
+
+            color:
+                var(
+                    --red-600);
+
+            font-size:
+                .62rem;
+
+            line-height:
+                1.4;
+
+        }
+
+        /* ============================================================
+           17. FORM
+           ============================================================ */
+
+        .auth-form {
+
+            margin-top:
+                27px;
+
+        }
+
+        .field {
+
+            margin-top:
+                20px;
+
+        }
+
+        .field:first-child {
+
+            margin-top:
+                0;
+
+        }
+
+        .field-head {
+
+            margin-bottom:
+                8px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+
+            gap:
+                12px;
+
+        }
+
+        .field-head label {
+
+            color:
+                #4e6278;
+
+            font-size:
+                .78rem;
+
+            font-weight:
+                800;
+
+        }
+
+        .field-meta {
+
+            color:
+                #96a3b1;
+
+            font-size:
+                .60rem;
+
+            font-weight:
+                760;
+
+            letter-spacing:
+                .48px;
+
+        }
+
+        /* ============================================================
+           18. INPUTS
+           ============================================================ */
+
+        .control {
+
+            min-height:
+                60px;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            border:
+                1px solid
+                #d7e1eb;
+
+            border-radius:
+                15px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .96);
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            box-shadow:
+                0
+                4px
+                15px
+                rgba(
+                    5,
+                    25,
+                    47,
+                    .03);
+
+            transition:
+
+                border-color
+                    .19s
+                    ease,
+
+                box-shadow
+                    .19s
+                    ease,
+
+                transform
+                    .19s
+                    ease;
+
+        }
+
+        .control::after {
+
+            content:
+                "";
+
+            position:
+                absolute;
+
+            left:
+                50%;
+
+            bottom:
+                0;
+
+            width:
+                0;
+
+            height:
+                3px;
+
+            border-radius:
+                var(
+                    --radius-pill);
+
+            background:
+                linear-gradient(
+                    90deg,
+                    var(
+                        --blue-700),
+                    var(
+                        --blue-400));
+
+            transform:
+                translateX(
+                    -50%);
+
+            transition:
+                width
+                    .23s
+                    var(
+                        --ease);
+
+        }
+
+        .control:focus-within {
+
+            border-color:
+                #91b8dd;
+
+            box-shadow:
+                0
+                13px
+                31px
+                rgba(
+                    23,
+                    72,
+                    142,
+                    .12);
+
+            transform:
+                translateY(
+                    -1px);
+
+        }
+
+        .control:focus-within::after {
+
+            width:
+                calc(
+                    100% -
+                    22px);
+
+        }
+
+        .control-icon {
+
+            width:
+                49px;
+
+            height:
+                49px;
+
+            margin-left:
+                5px;
+
+            flex-shrink:
+                0;
+
+            border-radius:
+                12px;
+
+            background:
+                #f2f6fa;
+
+            color:
+                #8193a6;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            transition:
+
+                color
+                    .19s
+                    ease,
+
+                background
+                    .19s
+                    ease,
+
+                transform
+                    .19s
+                    ease;
+
+        }
+
+        .control:focus-within
+        .control-icon {
+
+            color:
+                var(
+                    --blue-700);
+
+            background:
+                #e8f2fd;
+
+            transform:
+                scale(
+                    1.03);
+
+        }
+
+        .control-icon svg {
+
+            width:
+                19px;
+
+            height:
+                19px;
+
+            fill:
+                none;
+
+            stroke:
+                currentColor;
+
+            stroke-width:
+                1.8;
+
+            stroke-linecap:
+                round;
+
+            stroke-linejoin:
+                round;
+
+        }
+
+        .control input {
+
+            width:
+                100%;
+
+            min-width:
+                0;
+
+            height:
+                58px;
+
+            padding:
+                0
+                14px;
+
+            border:
+                0;
+
+            outline:
+                0;
+
+            background:
+                transparent;
+
+            color:
+                var(
+                    --ink-800);
+
+            font-size:
+                .89rem;
+
+            font-weight:
+                520;
+
+        }
+
+        .control input::placeholder {
+
+            color:
+                #a0acb9;
+
+        }
+
+        .password-button {
+
+            width:
+                42px;
+
+            height:
+                42px;
+
+            margin-right:
+                7px;
+
+            flex-shrink:
+                0;
+
+            border:
+                0;
+
+            border-radius:
+                10px;
+
+            background:
+                transparent;
+
+            color:
+                #8091a3;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            cursor:
+                pointer;
+
+            transition:
+
+                color
+                    .18s
+                    ease,
+
+                background
+                    .18s
+                    ease,
+
+                transform
+                    .18s
+                    ease;
+
+        }
+
+        .password-button:hover {
+
+            color:
+                var(
+                    --blue-700);
+
+            background:
+                #edf4fb;
+
+        }
+
+        .password-button:active {
+
+            transform:
+                scale(
+                    .95);
+
+        }
+
+        .password-button svg {
+
+            width:
+                19px;
+
+            height:
+                19px;
+
+            fill:
+                none;
+
+            stroke:
+                currentColor;
+
+            stroke-width:
+                1.8;
+
+            stroke-linecap:
+                round;
+
+            stroke-linejoin:
+                round;
+
+        }
+
+        .caps-warning {
+
+            display:
+                none;
+
+            margin-top:
+                7px;
+
+            padding:
+                7px
+                9px;
+
+            border-radius:
+                8px;
+
+            background:
+                var(
+                    --amber-100);
+
+            color:
+                var(
+                    --amber-700);
+
+            font-size:
+                .62rem;
+
+            font-weight:
+                650;
+
+        }
+
+        .caps-warning.is-visible {
+
+            display:
+                block;
+
+        }
+
+        /* ============================================================
+           19. REMEMBER SESSION
+           ============================================================ */
+
+        .remember-row {
+
+            margin-top:
+                22px;
+
+            padding:
+                14px
+                0;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+
+            gap:
+                16px;
+
+        }
+
+        .remember-left {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                11px;
+
+        }
+
+        .remember-icon {
+
+            width:
+                38px;
+
+            height:
+                38px;
+
+            flex-shrink:
+                0;
+
+            border-radius:
+                10px;
+
+            background:
+                #eaf3fd;
+
+            color:
+                var(
+                    --blue-700);
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+        }
+
+        .remember-icon svg {
+
+            width:
+                17px;
+
+            height:
+                17px;
+
+            fill:
+                none;
+
+            stroke:
+                currentColor;
+
+            stroke-width:
+                1.8;
+
+            stroke-linecap:
+                round;
+
+            stroke-linejoin:
+                round;
+
+        }
+
+        .remember-copy strong,
+        .remember-copy span {
+
+            display:
+                block;
+
+        }
+
+        .remember-copy strong {
+
+            color:
+                #4b6075;
+
+            font-size:
+                .75rem;
+
+            font-weight:
+                800;
+
+        }
+
+        .remember-copy span {
+
+            max-width:
+                300px;
+
+            margin-top:
+                3px;
+
+            color:
+                #8b98a7;
+
+            font-size:
+                .62rem;
+
+            line-height:
+                1.45;
+
+        }
+
+        .remember-switch {
+
+            width:
+                52px;
+
+            height:
+                29px;
+
+            position:
+                relative;
+
+            flex-shrink:
+                0;
+
+        }
+
+        .remember-switch input {
+
+            position:
+                absolute;
+
+            opacity:
+                0;
+
+            pointer-events:
+                none;
+
+        }
+
+        .remember-track {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            border-radius:
+                var(
+                    --radius-pill);
+
+            background:
+                #cbd5df;
+
+            cursor:
+                pointer;
+
+            transition:
+                background
+                    .20s
+                    ease;
+
+        }
+
+        .remember-track::before {
+
+            content:
+                "";
+
+            position:
+                absolute;
+
+            width:
+                23px;
+
+            height:
+                23px;
+
+            left:
+                3px;
+
+            top:
+                3px;
+
+            border-radius:
+                50%;
+
+            background:
+                #fff;
+
+            box-shadow:
+                0
+                2px
+                7px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    .18);
+
+            transition:
+                transform
+                    .20s
+                    ease;
+
+        }
+
+        .remember-switch
+        input:checked
+        +
+        .remember-track {
+
+            background:
+                var(
+                    --blue-700);
+
+        }
+
+        .remember-switch
+        input:checked
+        +
+        .remember-track::before {
+
+            transform:
+                translateX(
+                    23px);
+
+        }
+
+        /* ============================================================
+           20. BUTTON
+           ============================================================ */
+
+        .login-button {
+
+            width:
+                100%;
+
+            min-height:
+                60px;
+
+            margin-top:
+                18px;
+
+            padding:
+                0
+                20px;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            border:
+                0;
+
+            border-radius:
+                15px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(
+                        --navy-850)
+                        0%,
+                    var(
+                        --blue-700)
+                        63%,
+                    var(
+                        --blue-600)
+                        100%);
+
+            color:
+                #fff;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                10px;
+
+            cursor:
+                pointer;
+
+            font-size:
+                .84rem;
+
+            font-weight:
+                850;
+
+            box-shadow:
+                var(
+                    --shadow-primary);
+
+            transition:
+
+                transform
+                    .18s
+                    ease,
+
+                box-shadow
+                    .18s
+                    ease,
+
+                filter
+                    .18s
+                    ease;
+
+        }
+
+        .login-button::before {
+
+            content:
+                "";
+
+            position:
+                absolute;
+
+            top:
+                -70%;
+
+            left:
+                -35%;
+
+            width:
+                32%;
+
+            height:
+                240%;
+
+            transform:
+                rotate(
+                    20deg);
+
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        .23),
+                    transparent);
+
+            transition:
+                left
+                    .58s
+                    ease;
+
+        }
+
+        .login-button:hover {
+
+            transform:
+                translateY(
+                    -2px);
+
+            box-shadow:
+                0
+                24px
+                46px
+                rgba(
+                    23,
+                    72,
+                    142,
+                    .31);
+
+            filter:
+                brightness(
+                    1.02);
+
+        }
+
+        .login-button:hover::before {
+
+            left:
+                108%;
+
+        }
+
+        .login-button:disabled {
+
+            opacity:
+                .82;
+
+            cursor:
+                wait;
+
+            transform:
+                none;
+
+        }
+
+        .login-button svg {
+
+            width:
+                19px;
+
+            height:
+                19px;
+
+            fill:
+                none;
+
+            stroke:
+                currentColor;
+
+            stroke-width:
+                2;
+
+            stroke-linecap:
+                round;
+
+            stroke-linejoin:
+                round;
+
+            transition:
+                transform
+                    .18s
+                    ease;
+
+        }
+
+        .login-button:hover svg {
+
+            transform:
+                translateX(
+                    3px);
+
+        }
+
+        .button-spinner {
+
+            width:
+                18px;
+
+            height:
+                18px;
+
+            border:
+                2px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .35);
+
+            border-top-color:
+                #fff;
+
+            border-radius:
+                50%;
+
+            animation:
+                spin
+                .7s
+                linear
+                infinite;
+
+        }
+
+        @@keyframes spin {
+
+            to {
+
+                transform:
+                    rotate(
+                        360deg);
+
+            }
+
+        }
+
+        /* ============================================================
+           21. FOOTER DERECHO
+           ============================================================ */
+
+        .auth-footer {
+
+            position:
+                relative;
+
+            z-index:
+                2;
+
+            padding-top:
+                18px;
+
+            border-top:
+                1px solid
+                var(
+                    --line-150);
+
+        }
+
+        .security-line {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                18px;
+
+            flex-wrap:
+                wrap;
+
+            color:
+                #7f8f9f;
+
+            font-size:
+                .60rem;
+
+        }
+
+        .security-item {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                6px;
+
+        }
+
+        .security-item svg {
+
+            width:
+                15px;
+
+            height:
+                15px;
+
+            color:
+                var(
+                    --blue-700);
+
+            fill:
+                none;
+
+            stroke:
+                currentColor;
+
+            stroke-width:
+                1.8;
+
+            stroke-linecap:
+                round;
+
+            stroke-linejoin:
+                round;
+
+        }
+
+        .footer-copy {
+
+            margin-top:
+                14px;
+
+            color:
+                #98a5b2;
+
+            text-align:
+                center;
+
+            font-size:
+                .58rem;
+
+            line-height:
+                1.5;
+
+        }
+
+        /* ============================================================
+           23. RESPONSIVE 1280
+           ============================================================ */
+
+        @@media (
+            max-width:
+                1280px) {
+
+            .login-shell {
+
+                grid-template-columns:
+                    minmax(
+                        0,
+                        63%)
+                    minmax(
+                        400px,
+                        37%);
+
+            }
+
+            .visual-layout {
+
+                padding-left:
+                    38px;
+
+                padding-right:
+                    38px;
+
+            }
+
+            .visual-title {
+
+                font-size:
+                    clamp(
+                        2.3rem,
+                        4vw,
+                        4.1rem);
+
+            }
+
+            .auth-panel {
+
+                padding-left:
+                    34px;
+
+                padding-right:
+                    34px;
+
+            }
+
+        }
+
+        /* ============================================================
+           24. RESPONSIVE TABLET
+           ============================================================ */
+
+        @@media (
+            max-width:
+                980px) {
+
+            body {
+
+                overflow-y:
+                    auto;
+
+                background:
+                    var(
+                        --surface-75);
+
+            }
+
+            .login-shell {
+
+                height:
+                    auto;
+
+                min-height:
+                    100vh;
+
+                display:
+                    block;
+
+            }
+
+            .visual-stage {
+
+                height:
+                    340px;
+
+                min-height:
+                    340px;
+
+            }
+
+            .visual-layout {
+
+                height:
+                    340px;
+
+                padding:
+                    24px;
+
+            }
+
+            .company-logo {
+
+                width:
+                    58px;
+
+                height:
+                    58px;
+
+                border-radius:
+                    14px;
+
+            }
+
+            .company-copy strong {
+
+                font-size:
+                    .90rem;
+
+            }
+
+            .online-pill {
+
+                display:
+                    none;
+
+            }
+
+            .visual-copy {
+
+                width:
+                    100%;
+
+                margin:
+                    auto
+                    0
+                    0;
+
+            }
+
+            .visual-kicker {
+
+                min-height:
+                    30px;
+
+                font-size:
+                    .55rem;
+
+            }
+
+            .visual-title {
+
+                margin-top:
+                    12px;
+
+                max-width:
+                    700px;
+
+                font-size:
+                    clamp(
+                        1.8rem,
+                        5vw,
+                        2.8rem);
+
+                letter-spacing:
+                    -1.45px;
+
+            }
+
+            .visual-description,
+            .slide-info {
+
+                display:
+                    none;
+
+            }
+
+            .visual-footer {
+
+                margin-top:
+                    12px;
+
+            }
+
+            .copyright {
+
+                display:
+                    none;
+
+            }
+
+            .carousel-controls {
+
+                margin-left:
+                    auto;
+
+            }
+
+            .auth-panel {
+
+                height:
+                    auto;
+
+                min-height:
+                    calc(
+                        100vh -
+                        312px);
+
+                padding:
+                    30px
+                    24px
+                    30px;
+
+                grid-template-rows:
+                    auto
+                    auto
+                    auto;
+
+                gap:
+                    30px;
+
+                border-radius:
+                    0;
+
+                box-shadow:
+                    0
+                    -18px
+                    50px
+                    rgba(
+                        5,
+                        25,
+                        47,
+                        .09);
+
+            }
+
+            .auth-main {
+
+                width:
+                    min(
+                        560px,
+                        100%);
+
+                margin:
+                    0
+                    auto;
+
+            }
+
+            .auth-footer {
+
+                width:
+                    min(
+                        560px,
+                        100%);
+
+                margin-left:
+                    auto;
+
+                margin-right:
+                    auto;
+
+            }
+
+        }
+
+        /* ============================================================
+           25. RESPONSIVE PHONE
+           ============================================================ */
+
+        @@media (
+            max-width:
+                580px) {
+
+            .visual-stage {
+
+                height:
+                    255px;
+
+                min-height:
+                    255px;
+
+            }
+
+            .visual-layout {
+
+                height:
+                    255px;
+
+                padding:
+                    18px;
+
+            }
+
+            .company-logo {
+
+                width:
+                    48px;
+
+                height:
+                    48px;
+
+                border-radius:
+                    12px;
+
+            }
+
+            .company-copy strong {
+
+                max-width:
+                    240px;
+
+                font-size:
+                    .78rem;
+
+            }
+
+            .company-copy span {
+
+                font-size:
+                    .52rem;
+
+            }
+
+            .visual-kicker {
+
+                display:
+                    none;
+
+            }
+
+            .visual-title {
+
+                width:
+                    96%;
+
+                font-size:
+                    1.75rem;
+
+                letter-spacing:
+                    -1.05px;
+
+            }
+
+            .carousel-button {
+
+                width:
+                    35px;
+
+                height:
+                    35px;
+
+            }
+
+            .timeline-item {
+
+                width:
+                    28px;
+
+            }
+
+            .auth-panel {
+
+                padding:
+                    25px
+                    17px
+                    28px;
+
+                gap:
+                    24px;
+
+            }
+
+            .secure-badge {
+
+                display:
+                    none;
+
+            }
+
+            .auth-logo {
+
+                width:
+                    54px;
+
+                height:
+                    54px;
+
+            }
+
+            .auth-brand-copy strong {
+
+                font-size:
+                    .75rem;
+
+            }
+
+            .auth-title {
+
+                font-size:
+                    2rem;
+
+            }
+
+            .auth-description {
+
+                font-size:
+                    .80rem;
+
+            }
+
+            .control input {
+
+                font-size:
+                    16px;
+
+            }
+
+            .remember-copy span {
+
+                max-width:
+                    215px;
+
+            }
+
+            .security-line {
+
+                gap:
+                    12px;
+
+            }
+
+        }
+
+        /* ============================================================
+           26. ALTURA BAJA
+           ============================================================ */
+
+        @@media (
+            min-width:
+                981px)
+            and
+            (
+                max-height:
+                    790px) {
+
+            .visual-layout {
+
+                padding-top:
+                    24px;
+
+                padding-bottom:
+                    24px;
+
+            }
+
+            .company-logo {
+
+                width:
+                    68px;
+
+                height:
+                    68px;
+
+            }
+
+            .visual-copy {
+
+                margin-top:
+                    20px;
+
+                margin-bottom:
+                    20px;
+
+            }
+
+            .visual-title {
+
+                font-size:
+                    clamp(
+                        2.25rem,
+                        3.6vw,
+                        4rem);
+
+            }
+
+            .visual-description {
+
+                margin-top:
+                    13px;
+
+                font-size:
+                    .84rem;
+
+            }
+
+            .slide-info {
+
+                min-height:
+                    72px;
+
+                margin-top:
+                    18px;
+
+            }
+
+            .auth-panel {
+
+                padding-top:
+                    22px;
+
+                padding-bottom:
+                    22px;
+
+            }
+
+            .auth-logo {
+
+                width:
+                    54px;
+
+                height:
+                    54px;
+
+            }
+
+            .auth-main {
+
+                padding-top:
+                    4px;
+
+                padding-bottom:
+                    4px;
+
+            }
+
+            .auth-title {
+
+                font-size:
+                    2.15rem;
+
+            }
+
+            .auth-description {
+
+                font-size:
+                    .78rem;
+
+            }
+
+            .auth-form {
+
+                margin-top:
+                    18px;
+
+            }
+
+            .field {
+
+                margin-top:
+                    14px;
+
+            }
+
+            .control {
+
+                min-height:
+                    54px;
+
+            }
+
+            .control input {
+
+                height:
+                    52px;
+
+            }
+
+            .control-icon {
+
+                width:
+                    44px;
+
+                height:
+                    44px;
+
+            }
+
+            .remember-row {
+
+                margin-top:
+                    14px;
+
+                padding-top:
+                    9px;
+
+                padding-bottom:
+                    9px;
+
+            }
+
+            .login-button {
+
+                min-height:
+                    54px;
+
+                margin-top:
+                    12px;
+
+            }
+
+            .auth-footer {
+
+                padding-top:
+                    12px;
+
+            }
+
+        }
+
+        /* ============================================================
+           27. REDUCED MOTION
+           ============================================================ */
+
+        @@media (
+            prefers-reduced-motion:
+                reduce) {
+
+            *,
+            *::before,
+            *::after {
+
+                animation-duration:
+                    .01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                transition-duration:
+                    .01ms !important;
+
+                scroll-behavior:
+                    auto !important;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="login-shell">
+
+        <!-- ========================================================
+             PANEL VISUAL
+             ======================================================== -->
+
+        <section class="visual-stage">
+
+            <div class="visual-slides"
+                 id="visualSlides">
+
+                <div class="visual-slide is-active"
+                     data-title="Fabricación especializada"
+                     data-caption="Tolvas y soluciones metálicas para operaciones de alta exigencia.">
+
+                    <img src="/images/tolvas-graneleras.jpg"
+                         alt="Tolvas graneleras VIDAL"
+                         draggable="false"
+                         onerror="handleSlideError(this)" />
+
+                </div>
+
+                <div class="visual-slide"
+                     data-title="Estructuras con trazabilidad"
+                     data-caption="Controla materiales desde el ingreso hasta su utilización en cada proyecto.">
+
+                    <img src="/images/estructuras-metalicas.jpg"
+                         alt="Estructuras metálicas VIDAL"
+                         draggable="false"
+                         onerror="handleSlideError(this)" />
+
+                </div>
+
+                <div class="visual-slide"
+                     data-title="Operación industrial integrada"
+                     data-caption="Inventario, compras y proyectos conectados en un mismo flujo de trabajo.">
+
+                    <img src="/images/plataformas-industriales.jpg"
+                         alt="Plataformas industriales VIDAL"
+                         draggable="false"
+                         onerror="handleSlideError(this)" />
+
+                </div>
+
+                <div class="visual-slide"
+                     data-title="Soluciones a medida"
+                     data-caption="Información disponible para identificar materiales y controlar movimientos.">
+
+                    <img src="/images/carrocerias-camionetas.jpg"
+                         alt="Carrocerías VIDAL"
+                         draggable="false"
+                         onerror="handleSlideError(this)" />
+
+                </div>
+
+            </div>
+
+            <div class="visual-overlay"></div>
+
+            <div class="visual-glow"></div>
+
+            <div class="visual-grid"></div>
+
+            <div class="orbit orbit-one"></div>
+
+            <div class="orbit orbit-two"></div>
+
+            <div class="visual-layout">
+
+                <!-- HEADER -->
+
+                <header class="visual-header">
+
+                    <div class="company-brand">
+
+                        <div class="company-logo">
+
+                            <img src="/images/Logo_Vidal.png"
+                                 alt="Logo Fabricaciones Vidal"
+                                 draggable="false" />
+
+                        </div>
+
+                        <div class="company-copy">
+
+                            <strong>
+                                Fabricaciones de Estructuras
+                                Metálicas Vidal E.I.R.L.
+                            </strong>
+
+                            <span>
+                                Sistema logístico integral
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="online-pill">
+
+                        <span class="online-dot"></span>
+
+                        Plataforma operativa
+
+                    </div>
+
+                </header>
+
+                <!-- HERO -->
+
+                <main class="visual-copy">
+
+                    <div class="visual-kicker">
+
+                        <span class="visual-kicker-dot"></span>
+
+                        GESTIÓN · CONTROL · TRAZABILIDAD
+
+                    </div>
+
+                    <h1 class="visual-title">
+
+                        La operación de VIDAL,
+
+                        <span>
+                            conectada de principio a fin.
+                        </span>
+
+                    </h1>
+
+                    <p class="visual-description">
+
+                        Una plataforma central para gestionar
+                        materiales, presentaciones, proveedores,
+                        compras, existencias, proyectos y movimientos
+                        con información organizada y trazable.
+
+                    </p>
+
+                    <div class="slide-info">
+
+                        <div class="slide-number"
+                             id="slideNumber">
+                            01
+                        </div>
+
+                        <div class="slide-copy">
+
+                            <strong id="slideTitle">
+                                Fabricación especializada
+                            </strong>
+
+                            <span id="slideCaption">
+                                Tolvas y soluciones metálicas para
+                                operaciones de alta exigencia.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </main>
+
+                <!-- FOOTER -->
+
+                <footer class="visual-footer">
+
+                    <div class="copyright">
+
+                        © @anioActual Fabricaciones Vidal
+
+                        <br />
+
+                        Plataforma logística empresarial
+
+                    </div>
+
+                    <div class="carousel-controls">
+
+                        <button type="button"
+                                class="carousel-button"
+                                id="btnPrevious"
+                                aria-label="Imagen anterior">
+
+                            <svg viewBox="0 0 24 24">
+
+                                <path d="M15 18l-6-6 6-6"></path>
+
+                            </svg>
+
+                        </button>
+
+                        <div class="carousel-timeline">
+
+                            <button type="button"
+                                    class="timeline-item is-active"
+                                    data-index="0"
+                                    aria-label="Ver imagen 1">
+                                <span></span>
+                            </button>
+
+                            <button type="button"
+                                    class="timeline-item"
+                                    data-index="1"
+                                    aria-label="Ver imagen 2">
+                                <span></span>
+                            </button>
+
+                            <button type="button"
+                                    class="timeline-item"
+                                    data-index="2"
+                                    aria-label="Ver imagen 3">
+                                <span></span>
+                            </button>
+
+                            <button type="button"
+                                    class="timeline-item"
+                                    data-index="3"
+                                    aria-label="Ver imagen 4">
+                                <span></span>
+                            </button>
+
+                        </div>
+
+                        <button type="button"
+                                class="carousel-button"
+                                id="btnNext"
+                                aria-label="Imagen siguiente">
+
+                            <svg viewBox="0 0 24 24">
+
+                                <path d="M9 18l6-6-6-6"></path>
+
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+                </footer>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================================
+             PANEL LOGIN
+             ======================================================== -->
+
+        <section class="auth-panel">
+
+            <div class="auth-grid"></div>
+
+            <!-- FORMULARIO CENTRAL -->
+
+            <main class="auth-main">
+
+                <div class="auth-kicker">
+
+                    <span></span>
+
+                    ACCESO AL SISTEMA
+
+                </div>
+
+                <h2 class="auth-title">
+                    Bienvenido nuevamente
+                </h2>
+
+                <p class="auth-description">
+
+                    Identifícate para continuar con la gestión
+                    logística y acceder a las herramientas
+                    disponibles según tu rol.
+
+                </p>
+
+                @if (
+                    !ViewData.ModelState.IsValid &&
+                    ViewData.ModelState.Values
+                        .Any(
+                            value =>
+                                value.Errors.Count > 0))
+                {
+                    <div class="validation-panel">
+
+                        @Html.ValidationSummary(
+                            true,
+                            "",
+                            new
+                            {
+                                @class =
+                                    "mb-0"
+                            })
+
+                    </div>
+                }
+
+                <form asp-action="Login"
+                      asp-controller="Auth"
+                      method="post"
+                      class="auth-form"
+                      id="loginForm">
+
+                    @Html.AntiForgeryToken()
+
+                    <input asp-for="ReturnUrl"
+                           type="hidden" />
+
+                    <!-- USUARIO -->
+
+                    <div class="field">
+
+                        <div class="field-head">
+
+                            <label asp-for="Username">
+                                Usuario
+                            </label>
+
+                            <span class="field-meta">
+                                OBLIGATORIO
+                            </span>
+
+                        </div>
+
+                        <div class="control">
+
+                            <div class="control-icon">
+
+                                <svg viewBox="0 0 24 24">
+
+                                    <circle cx="12"
+                                            cy="8"
+                                            r="4"></circle>
+
+                                    <path d="M4.5 20c.8-4 3.2-6 7.5-6s6.7 2 7.5 6"></path>
+
+                                </svg>
+
+                            </div>
+
+                            <input asp-for="Username"
+                                   id="Username"
+                                   autocomplete="username"
+                                   autocapitalize="none"
+                                   spellcheck="false"
+                                   placeholder="Ingresa tu usuario"
+                                   autofocus />
+
+                        </div>
+
+                        <span asp-validation-for="Username"
+                              class="field-validation-error">
+                        </span>
+
+                    </div>
+
+                    <!-- CONTRASEÑA -->
+
+                    <div class="field">
+
+                        <div class="field-head">
+
+                            <label asp-for="Password">
+                                Contraseña
+                            </label>
+
+                            <span class="field-meta">
+                                OBLIGATORIO
+                            </span>
+
+                        </div>
+
+                        <div class="control">
+
+                            <div class="control-icon">
+
+                                <svg viewBox="0 0 24 24">
+
+                                    <rect x="5"
+                                          y="10"
+                                          width="14"
+                                          height="10"
+                                          rx="2"></rect>
+
+                                    <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+
+                                </svg>
+
+                            </div>
+
+                            <input asp-for="Password"
+                                   id="Password"
+                                   type="password"
+                                   autocomplete="current-password"
+                                   placeholder="Ingresa tu contraseña" />
+
+                            <button type="button"
+                                    class="password-button"
+                                    id="btnTogglePassword"
+                                    aria-label="Mostrar contraseña"
+                                    title="Mostrar u ocultar contraseña">
+
+                                <svg viewBox="0 0 24 24">
+
+                                    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+
+                                    <circle cx="12"
+                                            cy="12"
+                                            r="2.7"></circle>
+
+                                </svg>
+
+                            </button>
+
+                        </div>
+
+                        <div class="caps-warning"
+                             id="capsLockWarning">
+
+                            Bloq Mayús está activado.
+
+                        </div>
+
+                        <span asp-validation-for="Password"
+                              class="field-validation-error">
+                        </span>
+
+                    </div>
+
+                    <!-- RECORDAR -->
+
+                    <div class="remember-row">
+
+                        <div class="remember-left">
+
+                            <div class="remember-icon">
+
+                                <svg viewBox="0 0 24 24">
+
+                                    <path d="M7 4h10a2 2 0 0 1 2 2v14l-7-4-7 4V6a2 2 0 0 1 2-2Z"></path>
+
+                                </svg>
+
+                            </div>
+
+                            <div class="remember-copy">
+
+                                <strong>
+                                    Recordar sesión
+                                </strong>
+
+                                <span>
+                                    Mantén el acceso en este dispositivo
+                                    durante 30 días.
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <label class="remember-switch">
+
+                            <input asp-for="RecordarSesion"
+                                   id="RecordarSesion" />
+
+                            <span class="remember-track"></span>
+
+                        </label>
+
+                    </div>
+
+                    <!-- BOTÓN -->
+
+                    <button type="submit"
+                            class="login-button"
+                            id="btnLogin">
+
+                        <span>
+                            Ingresar al sistema
+                        </span>
+
+                        <svg viewBox="0 0 24 24">
+
+                            <path d="M5 12h14"></path>
+
+                            <path d="M13 6l6 6-6 6"></path>
+
+                        </svg>
+
+                    </button>
+
+                </form>
+
+            </main>
+
+            <!-- FOOTER -->
+
+            <footer class="auth-footer">
+
+                <div class="security-line">
+
+                    <span class="security-item">
+
+                        <svg viewBox="0 0 24 24">
+
+                            <path d="M12 3l7 3v5c0 4.8-2.8 8.2-7 10-4.2-1.8-7-5.2-7-10V6l7-3Z"></path>
+
+                        </svg>
+
+                        Acceso protegido
+
+                    </span>
+
+                    <span class="security-item">
+
+                        <svg viewBox="0 0 24 24">
+
+                            <circle cx="12"
+                                    cy="12"
+                                    r="9"></circle>
+
+                            <path d="M12 8v4l2.5 2"></path>
+
+                        </svg>
+
+                        Sesión controlada
+
+                    </span>
+
+                    <span class="security-item">
+
+                        <svg viewBox="0 0 24 24">
+
+                            <path d="M4 19V8l8-4 8 4v11"></path>
+
+                            <path d="M8 19v-5h8v5"></path>
+
+                        </svg>
+
+                        Uso empresarial
+
+                    </span>
+
+                </div>
+
+                <div class="footer-copy">
+
+                    Fabricaciones de Estructuras Metálicas
+                    Vidal E.I.R.L. · Sistema Logístico
+                    · @anioActual
+
+                </div>
+
+            </footer>
+
+        </section>
+
+    </div>
+
+    <script>
+
+        // ============================================================
+        // FALLBACK IMÁGENES
+        // ============================================================
+
+        function handleSlideError(
+            image)
+        {
+            const slide =
+                image.closest(
+                    '.visual-slide');
+
+            image.style.display =
+                'none';
+
+            if (slide)
+            {
+                slide.style.background =
+                    'linear-gradient(135deg,#07182c,#102947 55%,#17488e)';
+            }
+        }
+
+        // ============================================================
+        // APP
+        // ============================================================
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function ()
+            {
+                const slides =
+                    Array.from(
+                        document.querySelectorAll(
+                            '.visual-slide'));
+
+                const timelineItems =
+                    Array.from(
+                        document.querySelectorAll(
+                            '.timeline-item'));
+
+                const previousButton =
+                    document.getElementById(
+                        'btnPrevious');
+
+                const nextButton =
+                    document.getElementById(
+                        'btnNext');
+
+                const slideNumber =
+                    document.getElementById(
+                        'slideNumber');
+
+                const slideTitle =
+                    document.getElementById(
+                        'slideTitle');
+
+                const slideCaption =
+                    document.getElementById(
+                        'slideCaption');
+
+                const password =
+                    document.getElementById(
+                        'Password');
+
+                const togglePassword =
+                    document.getElementById(
+                        'btnTogglePassword');
+
+                const capsWarning =
+                    document.getElementById(
+                        'capsLockWarning');
+
+                const loginForm =
+                    document.getElementById(
+                        'loginForm');
+
+                const loginButton =
+                    document.getElementById(
+                        'btnLogin');
+
+                const reducedMotion =
+                    window.matchMedia(
+                        '(prefers-reduced-motion: reduce)')
+                        .matches;
+
+                const SLIDE_TIME =
+                    reducedMotion
+                        ? 12000
+                        : 6000;
+
+                let currentSlide =
+                    0;
+
+                let carouselTimer =
+                    null;
+
+                // ====================================================
+                // PRELOAD
+                // ====================================================
+
+                slides.forEach(
+                    function (slide)
+                    {
+                        const source =
+                            slide.querySelector(
+                                'img')
+                                ?.src;
+
+                        if (!source)
+                            return;
+
+                        const preloaded =
+                            new Image();
+
+                        preloaded.src =
+                            source;
+                    });
+
+                // ====================================================
+                // INFORMACIÓN SLIDE
+                // ====================================================
+
+                function updateSlideInfo(
+                    index)
+                {
+                    const slide =
+                        slides[index];
+
+                    if (!slide)
+                        return;
+
+                    slideNumber.textContent =
+                        String(
+                            index + 1)
+                            .padStart(
+                                2,
+                                '0');
+
+                    slideTitle.textContent =
+                        slide.dataset.title
+                        ?? '';
+
+                    slideCaption.textContent =
+                        slide.dataset.caption
+                        ?? '';
+                }
+
+                // ====================================================
+                // TIMELINE
+                // ====================================================
+
+                function updateTimeline(
+                    index)
+                {
+                    timelineItems.forEach(
+                        function (
+                            item,
+                            itemIndex)
+                        {
+                            item.classList.remove(
+                                'is-active');
+
+                            if (
+                                itemIndex ===
+                                index)
+                            {
+                                void item.offsetWidth;
+
+                                item.classList.add(
+                                    'is-active');
+                            }
+                        });
+                }
+
+                // ====================================================
+                // TIMER
+                // ====================================================
+
+                function clearTimer()
+                {
+                    if (!carouselTimer)
+                        return;
+
+                    window.clearTimeout(
+                        carouselTimer);
+
+                    carouselTimer =
+                        null;
+                }
+
+                function scheduleNext()
+                {
+                    clearTimer();
+
+                    if (
+                        slides.length <= 1 ||
+                        document.hidden)
+                    {
+                        return;
+                    }
+
+                    carouselTimer =
+                        window.setTimeout(
+                            function ()
+                            {
+                                showSlide(
+                                    currentSlide + 1);
+                            },
+                            SLIDE_TIME);
+                }
+
+                // ====================================================
+                // MOSTRAR SLIDE
+                // ====================================================
+
+                function showSlide(
+                    index)
+                {
+                    if (!slides.length)
+                        return;
+
+                    currentSlide =
+                        (
+                            index +
+                            slides.length
+                        ) %
+                        slides.length;
+
+                    slides.forEach(
+                        function (
+                            slide,
+                            slideIndex)
+                        {
+                            slide.classList.toggle(
+                                'is-active',
+                                slideIndex ===
+                                    currentSlide);
+                        });
+
+                    updateSlideInfo(
+                        currentSlide);
+
+                    updateTimeline(
+                        currentSlide);
+
+                    scheduleNext();
+                }
+
+                // ====================================================
+                // BOTONES
+                // ====================================================
+
+                previousButton
+                    ?.addEventListener(
+                        'click',
+                        function ()
+                        {
+                            showSlide(
+                                currentSlide - 1);
+                        });
+
+                nextButton
+                    ?.addEventListener(
+                        'click',
+                        function ()
+                        {
+                            showSlide(
+                                currentSlide + 1);
+                        });
+
+                timelineItems.forEach(
+                    function (item)
+                    {
+                        item.addEventListener(
+                            'click',
+                            function ()
+                            {
+                                const index =
+                                    Number(
+                                        item.dataset.index);
+
+                                if (
+                                    Number.isNaN(
+                                        index))
+                                {
+                                    return;
+                                }
+
+                                showSlide(
+                                    index);
+                            });
+                    });
+
+                // ====================================================
+                // VISIBILITY
+                // ====================================================
+
+                document.addEventListener(
+                    'visibilitychange',
+                    function ()
+                    {
+                        if (document.hidden)
+                        {
+                            clearTimer();
+                        }
+                        else
+                        {
+                            scheduleNext();
+                        }
+                    });
+
+                // ====================================================
+                // PASSWORD
+                // ====================================================
+
+                togglePassword
+                    ?.addEventListener(
+                        'click',
+                        function ()
+                        {
+                            if (!password)
+                                return;
+
+                            const visible =
+                                password.type ===
+                                'text';
+
+                            password.type =
+                                visible
+                                    ? 'password'
+                                    : 'text';
+
+                            togglePassword
+                                .setAttribute(
+                                    'aria-label',
+                                    visible
+                                        ? 'Mostrar contraseña'
+                                        : 'Ocultar contraseña');
+
+                            password.focus();
+                        });
+
+                // ====================================================
+                // CAPS LOCK
+                // ====================================================
+
+                function updateCapsLock(
+                    event)
+                {
+                    if (!capsWarning)
+                        return;
+
+                    const active =
+                        event.getModifierState &&
+                        event.getModifierState(
+                            'CapsLock');
+
+                    capsWarning
+                        .classList
+                        .toggle(
+                            'is-visible',
+                            Boolean(
+                                active));
+                }
+
+                password
+                    ?.addEventListener(
+                        'keydown',
+                        updateCapsLock);
+
+                password
+                    ?.addEventListener(
+                        'keyup',
+                        updateCapsLock);
+
+                password
+                    ?.addEventListener(
+                        'blur',
+                        function ()
+                        {
+                            capsWarning
+                                ?.classList
+                                .remove(
+                                    'is-visible');
+                        });
+
+                // ====================================================
+                // SUBMIT
+                // ====================================================
+                // No mostramos una pantalla intermedia.
+                // El POST va directo al AuthController y, si las
+                // credenciales son correctas, abre Bienvenida.
+
+                loginForm
+                    ?.addEventListener(
+                        'submit',
+                        function ()
+                        {
+                            if (loginButton)
+                            {
+                                loginButton.disabled = true;
+                            }
+                        });
+
+                // ====================================================
+                // INICIO
+                // ====================================================
+
+                updateSlideInfo(
+                    currentSlide);
+
+                updateTimeline(
+                    currentSlide);
+
+                scheduleNext();
+            });
+
+    </script>
+
+</body>
+
+</html>

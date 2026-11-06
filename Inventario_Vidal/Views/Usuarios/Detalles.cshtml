@@ -1,0 +1,2212 @@
+@using Inventario_Vidal.DTOs
+@model UsuarioDetailDto
+
+@{
+    ViewData["Title"] = "Detalles del Usuario";
+    ViewBag.Subtitle = "Información y actividad de la cuenta";
+
+    var tieneActividad =
+        Model.ActividadesRecientes != null &&
+        Model.ActividadesRecientes.Any();
+}
+
+<div class="user-detail-page">
+
+    <!-- ============================================================
+    HERO
+    ============================================================ -->
+    <section class="detail-hero">
+
+        <div class="hero-left">
+
+            <div class="hero-avatar">
+                @Model.Iniciales
+            </div>
+
+            <div>
+
+                <div class="hero-title-row">
+
+                    <h1>
+                        @Model.NombreCompleto
+                    </h1>
+
+                    @if (Model.EstaBloqueado)
+                    {
+                        <span class="hero-status blocked">
+
+                            <span class="status-dot"></span>
+
+                            Bloqueado
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="hero-status @(Model.Activo ? "active" : "inactive")">
+
+                            <span class="status-dot"></span>
+
+                            @Model.EstadoTexto
+
+                        </span>
+                    }
+
+                </div>
+
+                <div class="hero-subtitle">
+
+                    <span>
+                        @@Model.NombreUsuario
+                    </span>
+
+                    <span class="separator">
+                        ·
+                    </span>
+
+                    <span>
+                        @Model.NombreRol
+                    </span>
+
+                    <span class="hero-id">
+                        ID #@Model.IdUsuario
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="hero-actions">
+
+            <a asp-action="Index"
+               class="hero-button outline">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-arrow-left"></use>
+                </svg>
+
+                Volver
+
+            </a>
+
+            <a asp-action="Editar"
+               asp-route-id="@Model.IdUsuario"
+               class="hero-button light">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-edit"></use>
+                </svg>
+
+                Editar usuario
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- ============================================================
+    ESTADÍSTICAS
+    ============================================================ -->
+    <section class="stats-grid">
+
+        <article class="stat-card">
+
+            <div class="stat-icon blue">
+
+                <svg class="icon">
+                    <use href="#icon-folder"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Proyectos
+                </span>
+
+                <strong>
+                    @Model.TotalProyectosCreados
+                </strong>
+
+                <small>
+                    Como responsable
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="stat-card">
+
+            <div class="stat-icon purple">
+
+                <svg class="icon">
+                    <use href="#icon-history"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Movimientos
+                </span>
+
+                <strong>
+                    @Model.TotalMovimientosKardex
+                </strong>
+
+                <small>
+                    Registros Kardex
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="stat-card">
+
+            <div class="stat-icon gold">
+
+                <svg class="icon">
+                    <use href="#icon-shopping-cart"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Compras
+                </span>
+
+                <strong>
+                    @Model.TotalComprasRegistradas
+                </strong>
+
+                <small>
+                    Registradas
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="stat-card">
+
+            <div class="stat-icon green">
+
+                <svg class="icon">
+                    <use href="#icon-lock"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Sesiones activas
+                </span>
+
+                <strong>
+                    @Model.SesionesActivas
+                </strong>
+
+                <small>
+                    Actualmente
+                </small>
+
+            </div>
+
+        </article>
+
+    </section>
+
+    <!-- ============================================================
+    LAYOUT
+    ============================================================ -->
+    <div class="detail-layout">
+
+        <!-- ========================================================
+        PRINCIPAL
+        ======================================================== -->
+        <main>
+
+            <!-- ====================================================
+            INFORMACIÓN DE CUENTA
+            ==================================================== -->
+            <section class="detail-card">
+
+                <div class="card-header">
+
+                    <div class="section-icon blue">
+
+                        <svg class="icon">
+                            <use href="#icon-user"></use>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            INFORMACIÓN
+                        </span>
+
+                        <h2>
+                            Datos de la cuenta
+                        </h2>
+
+                        <p>
+                            Información registrada para identificar al usuario.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="information-grid">
+
+                        <!-- NOMBRE -->
+                        <div class="information-item">
+
+                            <div class="information-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-user"></use>
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Nombre completo
+                                </span>
+
+                                <strong>
+                                    @Model.NombreCompleto
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                        <!-- USUARIO -->
+                        <div class="information-item">
+
+                            <div class="information-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-user"></use>
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Nombre de usuario
+                                </span>
+
+                                <strong>
+                                    @@Model.NombreUsuario
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                        <!-- CORREO -->
+                        <div class="information-item">
+
+                            <div class="information-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-mail"></use>
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Correo electrónico
+                                </span>
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                        Model.CorreoElectronico))
+                                {
+                                    <strong>
+                                        @Model.CorreoElectronico
+                                    </strong>
+                                }
+                                else
+                                {
+                                    <strong class="empty-value">
+                                        Sin correo registrado
+                                    </strong>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <!-- ROL -->
+                        <div class="information-item">
+
+                            <div class="information-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-shield"></use>
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Rol
+                                </span>
+
+                                <strong>
+                                    @Model.NombreRol
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                        <!-- REGISTRO -->
+                        <div class="information-item">
+
+                            <div class="information-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-calendar"></use>
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Fecha de registro
+                                </span>
+
+                                <strong>
+                                    @Model.FechaCreacion.ToString("dd/MM/yyyy")
+                                </strong>
+
+                                <small>
+                                    @Model.FechaCreacion.ToString("HH:mm")
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ULTIMO ACCESO -->
+                        <div class="information-item">
+
+                            <div class="information-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-history"></use>
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Último acceso
+                                </span>
+
+                                @if (Model.UltimoAcceso.HasValue)
+                                {
+                                    <strong>
+                                        @Model.UltimoAcceso.Value.ToString("dd/MM/yyyy")
+                                    </strong>
+
+                                    <small>
+                                        @Model.UltimoAcceso.Value.ToString("HH:mm")
+                                    </small>
+                                }
+                                else
+                                {
+                                    <strong class="empty-value">
+                                        Nunca
+                                    </strong>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ====================================================
+            SEGURIDAD
+            ==================================================== -->
+            <section class="detail-card mt-card">
+
+                <div class="card-header">
+
+                    <div class="section-icon red">
+
+                        <svg class="icon">
+                            <use href="#icon-lock"></use>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            SEGURIDAD
+                        </span>
+
+                        <h2>
+                            Estado de acceso
+                        </h2>
+
+                        <p>
+                            Estado actual, bloqueos e intentos fallidos.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="security-grid">
+
+                        <!-- ESTADO -->
+                        <div class="security-box">
+
+                            <div class="security-box-header">
+
+                                <span>
+                                    Estado de la cuenta
+                                </span>
+
+                                <svg class="icon">
+                                    <use href="#icon-@(Model.Activo ? "check-circle" : "x-circle")"></use>
+                                </svg>
+
+                            </div>
+
+                            <strong class="account-state @(Model.Activo ? "active" : "inactive")">
+
+                                <span class="status-dot"></span>
+
+                                @Model.EstadoTexto
+
+                            </strong>
+
+                            <p>
+                                @(Model.Activo
+                                    ? "La cuenta está habilitada para utilizar el sistema."
+                                    : "La cuenta está deshabilitada y no debe permitir acceso.")
+                            </p>
+
+                        </div>
+
+                        <!-- BLOQUEO -->
+                        <div class="security-box">
+
+                            <div class="security-box-header">
+
+                                <span>
+                                    Bloqueo de seguridad
+                                </span>
+
+                                <svg class="icon">
+                                    <use href="#icon-lock"></use>
+                                </svg>
+
+                            </div>
+
+                            @if (Model.EstaBloqueado)
+                            {
+                                <strong class="account-state blocked">
+
+                                    <span class="status-dot"></span>
+
+                                    Bloqueado
+
+                                </strong>
+
+                                <p>
+                                    Bloqueado hasta
+                                    @Model.BloqueadoHastaFormateado.
+                                </p>
+                            }
+                            else
+                            {
+                                <strong class="account-state active">
+
+                                    <span class="status-dot"></span>
+
+                                    Sin bloqueo
+
+                                </strong>
+
+                                <p>
+                                    No existe un bloqueo temporal vigente.
+                                </p>
+                            }
+
+                        </div>
+
+                        <!-- INTENTOS -->
+                        <div class="security-box">
+
+                            <div class="security-box-header">
+
+                                <span>
+                                    Intentos fallidos
+                                </span>
+
+                                <svg class="icon">
+                                    <use href="#icon-alert-triangle"></use>
+                                </svg>
+
+                            </div>
+
+                            <strong class="security-number @(Model.IntentosFallidos > 0 ? "warning" : "")">
+                                @Model.IntentosFallidos
+                            </strong>
+
+                            <p>
+                                @(Model.IntentosFallidos == 0
+                                    ? "No se registran intentos fallidos."
+                                    : "Se registran intentos de acceso fallidos para esta cuenta.")
+                            </p>
+
+                        </div>
+
+                        <!-- SESIONES -->
+                        <div class="security-box">
+
+                            <div class="security-box-header">
+
+                                <span>
+                                    Sesiones activas
+                                </span>
+
+                                <svg class="icon">
+                                    <use href="#icon-monitor"></use>
+                                </svg>
+
+                            </div>
+
+                            <strong class="security-number">
+                                @Model.SesionesActivas
+                            </strong>
+
+                            <p>
+                                @(Model.SesionesActivas == 1
+                                    ? "Existe una sesión activa asociada a la cuenta."
+                                    : $"Existen {Model.SesionesActivas} sesiones activas asociadas a la cuenta.")
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ====================================================
+            ACTIVIDAD
+            ==================================================== -->
+            <section class="detail-card mt-card">
+
+                <div class="card-header">
+
+                    <div class="section-icon purple">
+
+                        <svg class="icon">
+                            <use href="#icon-history"></use>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            TRAZABILIDAD
+                        </span>
+
+                        <h2>
+                            Actividad reciente
+                        </h2>
+
+                        <p>
+                            Historial reciente relacionado con esta cuenta.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    @if (tieneActividad)
+                    {
+                        <div class="activity-list">
+
+                            @foreach (
+                                var actividad in Model.ActividadesRecientes
+                                    .OrderByDescending(a => a.FechaHora))
+                            {
+                                <article class="activity-item">
+
+                                    <div class="activity-marker">
+
+                                        <svg class="icon icon-sm">
+                                            <use href="#icon-history"></use>
+                                        </svg>
+
+                                    </div>
+
+                                    <div class="activity-content">
+
+                                        <div class="activity-title">
+
+                                            <strong>
+                                                @actividad.Accion
+                                            </strong>
+
+                                            <span>
+                                                @actividad.TiempoTranscurrido
+                                            </span>
+
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                                actividad.Descripcion))
+                                        {
+                                            <p>
+                                                @actividad.Descripcion
+                                            </p>
+                                        }
+
+                                        <div class="activity-meta">
+
+                                            <span>
+                                                @actividad.Tabla
+                                            </span>
+
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                    actividad.IdRegistro))
+                                            {
+                                                <span>
+                                                    Registro #@actividad.IdRegistro
+                                                </span>
+                                            }
+
+                                            <span>
+                                                @actividad.FechaFormateada
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </article>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="activity-empty">
+
+                            <div class="empty-icon">
+
+                                <svg class="icon icon-xl">
+                                    <use href="#icon-history"></use>
+                                </svg>
+
+                            </div>
+
+                            <strong>
+                                Sin actividad detallada disponible
+                            </strong>
+
+                            <span>
+                                El detalle de actividades recientes aún no está cargado para esta vista.
+                            </span>
+
+                            @if (Model.UltimaActividad.HasValue)
+                            {
+                                <small>
+                                    Última actividad registrada:
+                                    @Model.UltimaActividad.Value.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- ========================================================
+        ASIDE
+        ======================================================== -->
+        <aside>
+
+            <!-- ====================================================
+            PERFIL
+            ==================================================== -->
+            <section class="profile-card">
+
+                <div class="profile-avatar">
+                    @Model.Iniciales
+                </div>
+
+                <h2>
+                    @Model.NombreCompleto
+                </h2>
+
+                <span class="profile-username">
+                    @@Model.NombreUsuario
+                </span>
+
+                @if (Model.EstaBloqueado)
+                {
+                    <span class="profile-status blocked">
+
+                        <span class="status-dot"></span>
+
+                        Bloqueado
+
+                    </span>
+                }
+                else
+                {
+                    <span class="profile-status @(Model.Activo ? "active" : "inactive")">
+
+                        <span class="status-dot"></span>
+
+                        @Model.EstadoTexto
+
+                    </span>
+                }
+
+                <div class="profile-divider"></div>
+
+                <div class="profile-role">
+
+                    <span>
+                        Rol asignado
+                    </span>
+
+                    <strong>
+                        @Model.NombreRol
+                    </strong>
+
+                </div>
+
+                <div class="profile-divider"></div>
+
+                <div class="profile-details">
+
+                    <div>
+
+                        <span>
+                            ID
+                        </span>
+
+                        <strong>
+                            #@Model.IdUsuario
+                        </strong>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Registrado
+                        </span>
+
+                        <strong>
+                            @Model.FechaCreacion.ToString("dd/MM/yyyy")
+                        </strong>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Último acceso
+                        </span>
+
+                        <strong>
+                            @(Model.UltimoAcceso.HasValue
+                                ? Model.UltimoAcceso.Value.ToString("dd/MM/yyyy HH:mm")
+                                : "Nunca")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <a asp-action="Editar"
+                   asp-route-id="@Model.IdUsuario"
+                   class="profile-edit">
+
+                    <svg class="icon icon-sm">
+                        <use href="#icon-edit"></use>
+                    </svg>
+
+                    Editar usuario
+
+                </a>
+
+            </section>
+
+            <!-- ====================================================
+            ÚLTIMA ACTIVIDAD
+            ==================================================== -->
+            <section class="side-card">
+
+                <div class="side-card-title">
+
+                    <svg class="icon">
+                        <use href="#icon-history"></use>
+                    </svg>
+
+                    <strong>
+                        Última actividad
+                    </strong>
+
+                </div>
+
+                @if (Model.UltimaActividad.HasValue)
+                {
+                    <strong class="last-activity-date">
+                        @Model.UltimaActividad.Value.ToString("dd/MM/yyyy")
+                    </strong>
+
+                    <span>
+                        @Model.UltimaActividad.Value.ToString("HH:mm")
+                    </span>
+                }
+                else
+                {
+                    <strong class="last-activity-date muted">
+                        Sin registro
+                    </strong>
+
+                    <span>
+                        No se encontró actividad de auditoría.
+                    </span>
+                }
+
+            </section>
+
+            <!-- ====================================================
+            ADMINISTRACIÓN
+            ==================================================== -->
+            <section class="side-card">
+
+                <div class="side-card-title">
+
+                    <svg class="icon">
+                        <use href="#icon-settings"></use>
+                    </svg>
+
+                    <strong>
+                        Administración
+                    </strong>
+
+                </div>
+
+                <p>
+                    Puedes modificar los datos del usuario o cambiar el estado de la cuenta.
+                </p>
+
+                <form asp-action="ToggleActivo"
+                      asp-route-id="@Model.IdUsuario"
+                      method="post"
+                      id="toggleForm">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="state-button @(Model.Activo ? "disable" : "enable")"
+                            id="btnToggle"
+                            data-active="@Model.Activo.ToString().ToLowerInvariant()">
+
+                        <svg class="icon icon-sm">
+                            <use href="#icon-@(Model.Activo ? "x-circle" : "check-circle")"></use>
+                        </svg>
+
+                        @(Model.Activo
+                            ? "Desactivar usuario"
+                            : "Activar usuario")
+
+                    </button>
+
+                </form>
+
+            </section>
+
+        </aside>
+
+    </div>
+
+</div>
+
+<!-- ============================================================
+CONFIRMACIÓN CAMBIO DE ESTADO
+============================================================ -->
+<div class="confirm-overlay"
+     id="confirmOverlay"
+     style="display:none;">
+
+    <div class="confirm-modal">
+
+        <div class="confirm-icon">
+
+            <svg class="icon icon-lg">
+                <use href="#icon-user"></use>
+            </svg>
+
+        </div>
+
+        <h3 id="confirmTitle">
+            Confirmar cambio
+        </h3>
+
+        <p id="confirmText">
+        </p>
+
+        <div class="confirm-actions">
+
+            <button type="button"
+                    class="secondary-button"
+                    id="btnCancel">
+
+                Cancelar
+
+            </button>
+
+            <button type="button"
+                    class="confirm-button"
+                    id="btnConfirm">
+
+                Confirmar
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
+
+                // ========================================================
+                // ALERTAS AUTOMATICAS
+                // ========================================================
+
+                document
+                    .querySelectorAll(
+                        '.page-alert')
+                    .forEach(
+                        function(alert) {
+
+                            setTimeout(
+                                function() {
+
+                                    if (!alert.isConnected) {
+                                        return;
+                                    }
+
+                                    alert.classList.add(
+                                        'closing');
+
+                                    setTimeout(
+                                        function() {
+
+                                            if (alert.isConnected) {
+                                                alert.remove();
+                                            }
+
+                                        },
+                                        350);
+
+                                },
+                                6000);
+                        });
+
+                // ========================================================
+                // CONFIRMACIÓN TOGGLE
+                // ========================================================
+
+                const form =
+                    document.getElementById(
+                        'toggleForm');
+
+                const overlay =
+                    document.getElementById(
+                        'confirmOverlay');
+
+                const title =
+                    document.getElementById(
+                        'confirmTitle');
+
+                const text =
+                    document.getElementById(
+                        'confirmText');
+
+                const btnCancel =
+                    document.getElementById(
+                        'btnCancel');
+
+                const btnConfirm =
+                    document.getElementById(
+                        'btnConfirm');
+
+                if (!form ||
+                    !overlay) {
+
+                    return;
+                }
+
+                form.addEventListener(
+                    'submit',
+                    function(event) {
+
+                        event.preventDefault();
+
+                        const active =
+                            document
+                                .getElementById(
+                                    'btnToggle')
+                                .dataset.active ===
+                            'true';
+
+                        title.textContent =
+                            active
+                                ? 'Desactivar usuario'
+                                : 'Activar usuario';
+
+                        text.textContent =
+                            active
+                                ? '¿Deseas desactivar esta cuenta? El usuario dejará de tener acceso al sistema.'
+                                : '¿Deseas activar esta cuenta y permitir nuevamente el acceso al sistema?';
+
+                        btnConfirm.textContent =
+                            active
+                                ? 'Desactivar'
+                                : 'Activar';
+
+                        btnConfirm.className =
+                            active
+                                ? 'confirm-button danger'
+                                : 'confirm-button success';
+
+                        overlay.style.display =
+                            'flex';
+                    });
+
+                btnCancel.addEventListener(
+                    'click',
+                    function() {
+
+                        overlay.style.display =
+                            'none';
+                    });
+
+                btnConfirm.addEventListener(
+                    'click',
+                    function() {
+
+                        overlay.style.display =
+                            'none';
+
+                        form.submit();
+                    });
+
+                overlay.addEventListener(
+                    'click',
+                    function(event) {
+
+                        if (event.target ===
+                            overlay) {
+
+                            overlay.style.display =
+                                'none';
+                        }
+                    });
+
+            });
+
+    </script>
+}
+
+<style>
+
+    /* ================================================================
+           BASE
+           ================================================================ */
+
+    .user-detail-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #344357;
+        --muted: #7d8999;
+        --success: #168957;
+        --danger: #d1475b;
+        --warning: #d99a24;
+    }
+
+    /* ================================================================
+           HERO
+           ================================================================ */
+
+    .detail-hero {
+        min-height: 120px;
+        padding: 24px 30px;
+        margin-bottom: 17px;
+        border-radius: 20px;
+        background: linear-gradient( 100deg, #102947 0%, #17488e 49%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .detail-hero::after {
+            content: "";
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            top: -140px;
+            right: -85px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-left {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-avatar {
+        width: 62px;
+        height: 62px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.13);
+        border: 1px solid rgba(255,255,255,.15);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 850;
+        flex-shrink: 0;
+    }
+
+    .hero-title-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+    }
+
+        .hero-title-row h1 {
+            margin: 0;
+            font-size: 1.55rem;
+            font-weight: 800;
+        }
+
+    .hero-status {
+        padding: 4px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .56rem;
+        font-weight: 800;
+    }
+
+        .hero-status.active {
+            background: rgba(62,199,132,.16);
+            color: #d7f8e8;
+        }
+
+        .hero-status.inactive {
+            background: rgba(255,255,255,.1);
+            color: rgba(255,255,255,.76);
+        }
+
+        .hero-status.blocked {
+            background: rgba(231,91,111,.19);
+            color: #ffe6ea;
+        }
+
+    .hero-subtitle {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        color: rgba(255,255,255,.72);
+        font-size: .72rem;
+    }
+
+    .separator {
+        opacity: .5;
+    }
+
+    .hero-id {
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.1);
+        color: rgba(255,255,255,.86);
+        font-size: .54rem;
+        font-weight: 750;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-button {
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .68rem;
+        font-weight: 750;
+    }
+
+        .hero-button.light {
+            background: white;
+            color: var(--navy);
+            border: 1px solid white;
+        }
+
+        .hero-button.outline {
+            background: rgba(255,255,255,.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,.28);
+        }
+
+        .hero-button.light:hover {
+            color: var(--navy);
+            background: #f3f7fb;
+        }
+
+        .hero-button.outline:hover {
+            color: white;
+            background: rgba(255,255,255,.12);
+        }
+
+    /* ================================================================
+           ALERT
+           ================================================================ */
+
+    .page-alert {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        border-radius: 11px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        transition: opacity .35s ease, transform .35s ease;
+    }
+
+        .page-alert.success {
+            background: #edf9f3;
+            color: #146f48;
+            border-left: 4px solid var(--success);
+        }
+
+        .page-alert.danger {
+            background: #fff1f3;
+            color: #a73547;
+            border-left: 4px solid var(--danger);
+        }
+
+        .page-alert > div {
+            flex: 1;
+        }
+
+        .page-alert strong,
+        .page-alert span {
+            display: block;
+        }
+
+        .page-alert strong {
+            font-size: .7rem;
+        }
+
+        .page-alert span {
+            margin-top: 2px;
+            font-size: .62rem;
+        }
+
+        .page-alert.closing {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+    .alert-close {
+        border: none;
+        padding: 2px;
+        background: transparent;
+        color: currentColor;
+        cursor: pointer;
+        opacity: .65;
+    }
+
+    /* ================================================================
+           STATS
+           ================================================================ */
+
+    .stats-grid {
+        margin-bottom: 17px;
+        display: grid;
+        grid-template-columns: repeat( 4, minmax(0,1fr));
+        gap: 12px;
+    }
+
+    .stat-card {
+        min-height: 87px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow: 0 4px 15px rgba(16,41,71,.035);
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .stat-icon.blue {
+            background: #eaf2fb;
+            color: #306ca7;
+        }
+
+        .stat-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+        .stat-icon.gold {
+            background: #fff7e5;
+            color: #a47517;
+        }
+
+        .stat-icon.green {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+    .stat-card span {
+        display: block;
+        color: #8995a5;
+        font-size: .54rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .45px;
+    }
+
+    .stat-card strong {
+        display: block;
+        margin-top: 2px;
+        color: var(--navy);
+        font-size: 1.22rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .stat-card small {
+        display: block;
+        margin-top: 4px;
+        color: #99a3b0;
+        font-size: .5rem;
+    }
+
+    /* ================================================================
+           LAYOUT
+           ================================================================ */
+
+    .detail-layout {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) 300px;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .detail-card,
+    .profile-card,
+    .side-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+    }
+
+    .mt-card {
+        margin-top: 16px;
+    }
+
+    /* ================================================================
+           HEADER CARD
+           ================================================================ */
+
+    .card-header {
+        padding: 17px 19px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .section-icon {
+        width: 37px;
+        height: 37px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .section-icon.blue {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .section-icon.red {
+            background: #fff0f2;
+            color: #c34d5f;
+        }
+
+        .section-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+    .card-header span {
+        display: block;
+        color: #929dab;
+        font-size: .51rem;
+        font-weight: 800;
+        letter-spacing: .75px;
+    }
+
+    .card-header h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .88rem;
+        font-weight: 800;
+    }
+
+    .card-header p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .59rem;
+    }
+
+    .card-body {
+        padding: 19px;
+    }
+
+    /* ================================================================
+           INFORMATION
+           ================================================================ */
+
+    .information-grid {
+        display: grid;
+        grid-template-columns: repeat( 2, minmax(0,1fr));
+        gap: 11px;
+    }
+
+    .information-item {
+        min-height: 72px;
+        padding: 12px;
+        border: 1px solid #e5ebf1;
+        border-radius: 10px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .information-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #edf3f8;
+        color: #587693;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .information-item span {
+        display: block;
+        color: #8995a4;
+        font-size: .53rem;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: .35px;
+    }
+
+    .information-item strong {
+        display: block;
+        margin-top: 2px;
+        color: #405066;
+        font-size: .67rem;
+    }
+
+    .information-item small {
+        display: block;
+        margin-top: 1px;
+        color: #959fab;
+        font-size: .51rem;
+    }
+
+    .empty-value {
+        color: #919ca9 !important;
+        font-style: italic;
+        font-weight: 600 !important;
+    }
+
+    /* ================================================================
+           SECURITY
+           ================================================================ */
+
+    .security-grid {
+        display: grid;
+        grid-template-columns: repeat( 2, minmax(0,1fr));
+        gap: 11px;
+    }
+
+    .security-box {
+        min-height: 125px;
+        padding: 13px;
+        border: 1px solid #e5ebf1;
+        border-radius: 10px;
+        background: #fafbfd;
+    }
+
+    .security-box-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 9px;
+        color: #778597;
+    }
+
+        .security-box-header span {
+            font-size: .55rem;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: .35px;
+        }
+
+        .security-box-header .icon {
+            width: 17px;
+            height: 17px;
+        }
+
+    .account-state {
+        margin-top: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .68rem;
+        font-weight: 800;
+    }
+
+        .account-state.active {
+            color: #168957;
+        }
+
+        .account-state.inactive {
+            color: #687587;
+        }
+
+        .account-state.blocked {
+            color: #c2495c;
+        }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .security-number {
+        display: block;
+        margin-top: 10px;
+        color: var(--navy);
+        font-size: 1.28rem;
+        font-weight: 800;
+    }
+
+        .security-number.warning {
+            color: #bb7c16;
+        }
+
+    .security-box p {
+        margin: 5px 0 0;
+        color: #8793a3;
+        font-size: .56rem;
+        line-height: 1.45;
+    }
+
+    /* ================================================================
+           ACTIVITY
+           ================================================================ */
+
+    .activity-list {
+        display: grid;
+        gap: 0;
+    }
+
+    .activity-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+        .activity-item:first-child {
+            padding-top: 0;
+        }
+
+        .activity-item:last-child {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+    .activity-marker {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: #edf3f8;
+        color: #597896;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .activity-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+        .activity-title strong {
+            color: #435267;
+            font-size: .64rem;
+        }
+
+        .activity-title span {
+            color: #929dab;
+            font-size: .52rem;
+            white-space: nowrap;
+        }
+
+    .activity-content p {
+        margin: 3px 0 0;
+        color: #7d8999;
+        font-size: .56rem;
+        line-height: 1.45;
+    }
+
+    .activity-meta {
+        margin-top: 5px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+        .activity-meta span {
+            padding: 2px 5px;
+            border-radius: 999px;
+            background: #f0f3f7;
+            color: #7e8b9b;
+            font-size: .48rem;
+        }
+
+    .activity-empty {
+        min-height: 190px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        background: #edf3f8;
+        color: #7891a9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .activity-empty strong {
+        margin-top: 11px;
+        color: #46556a;
+        font-size: .69rem;
+    }
+
+    .activity-empty span {
+        max-width: 390px;
+        margin-top: 3px;
+        color: #8995a4;
+        font-size: .57rem;
+        line-height: 1.45;
+    }
+
+    .activity-empty small {
+        margin-top: 8px;
+        color: #66798d;
+        font-size: .53rem;
+    }
+
+    /* ================================================================
+           PROFILE
+           ================================================================ */
+
+    .profile-card {
+        padding: 21px;
+        text-align: center;
+        position: sticky;
+        top: 90px;
+    }
+
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto;
+        border-radius: 18px;
+        background: #e8f1f9;
+        color: #326b9f;
+        border: 1px solid #d8e6f2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 850;
+    }
+
+    .profile-card h2 {
+        margin: 12px 0 0;
+        color: #314156;
+        font-size: .85rem;
+        font-weight: 800;
+    }
+
+    .profile-username {
+        display: block;
+        margin-top: 3px;
+        color: #8a96a6;
+        font-size: .57rem;
+    }
+
+    .profile-status {
+        margin-top: 10px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .54rem;
+        font-weight: 800;
+    }
+
+        .profile-status.active {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+        .profile-status.inactive {
+            background: #edf0f4;
+            color: #687587;
+        }
+
+        .profile-status.blocked {
+            background: #fff0f2;
+            color: #c2495c;
+        }
+
+    .profile-divider {
+        height: 1px;
+        margin: 15px 0;
+        background: #edf1f5;
+    }
+
+    .profile-role span {
+        display: block;
+        color: #929dab;
+        font-size: .52rem;
+    }
+
+    .profile-role strong {
+        display: block;
+        margin-top: 3px;
+        color: #435267;
+        font-size: .68rem;
+    }
+
+    .profile-details {
+        display: grid;
+        gap: 8px;
+        text-align: left;
+    }
+
+        .profile-details > div {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .profile-details span {
+            color: #8995a4;
+            font-size: .52rem;
+        }
+
+        .profile-details strong {
+            max-width: 160px;
+            color: #4c5b6e;
+            font-size: .53rem;
+            text-align: right;
+        }
+
+    .profile-edit {
+        width: 100%;
+        min-height: 37px;
+        margin-top: 17px;
+        border-radius: 8px;
+        background: linear-gradient( 135deg, #102947, #17488e);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .61rem;
+        font-weight: 750;
+    }
+
+        .profile-edit:hover {
+            color: white;
+        }
+
+    /* ================================================================
+           SIDE CARD
+           ================================================================ */
+
+    .side-card {
+        margin-top: 13px;
+        padding: 13px;
+    }
+
+    .side-card-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #55718d;
+    }
+
+        .side-card-title strong {
+            color: #344357;
+            font-size: .62rem;
+        }
+
+    .last-activity-date {
+        display: block;
+        margin-top: 10px;
+        color: #435267;
+        font-size: .68rem;
+    }
+
+        .last-activity-date.muted {
+            color: #8995a4;
+        }
+
+    .side-card > span {
+        display: block;
+        margin-top: 2px;
+        color: #8995a4;
+        font-size: .54rem;
+    }
+
+    .side-card p {
+        margin: 7px 0 0;
+        color: #7f8c9d;
+        font-size: .55rem;
+        line-height: 1.45;
+    }
+
+    .state-button {
+        width: 100%;
+        min-height: 35px;
+        margin-top: 10px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .58rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+        .state-button.disable {
+            border: 1px solid #efd0d6;
+            background: #fff2f4;
+            color: #bc4558;
+        }
+
+        .state-button.enable {
+            border: 1px solid #cce7da;
+            background: #eefaf4;
+            color: #168957;
+        }
+
+    /* ================================================================
+           MODAL
+           ================================================================ */
+
+    .confirm-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 11000;
+        padding: 20px;
+        background: rgba(12,26,45,.58);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-modal {
+        width: min( 390px, 100%);
+        padding: 24px;
+        border-radius: 15px;
+        background: white;
+        box-shadow: 0 20px 60px rgba(11,27,48,.2);
+        text-align: center;
+    }
+
+    .confirm-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto;
+        border-radius: 13px;
+        background: #edf4fa;
+        color: #496f95;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-modal h3 {
+        margin: 14px 0 0;
+        color: #2f4054;
+        font-size: .85rem;
+        font-weight: 800;
+    }
+
+    .confirm-modal p {
+        margin: 6px 0 0;
+        color: #7c8898;
+        font-size: .63rem;
+        line-height: 1.5;
+    }
+
+    .confirm-actions {
+        margin-top: 18px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .secondary-button,
+    .confirm-button {
+        min-height: 37px;
+        padding: 0 14px;
+        border-radius: 8px;
+        font-size: .62rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+    .secondary-button {
+        border: 1px solid #d8e0e9;
+        background: white;
+        color: #576678;
+    }
+
+    .confirm-button {
+        border: none;
+        color: white;
+    }
+
+        .confirm-button.danger {
+            background: #c8475a;
+        }
+
+        .confirm-button.success {
+            background: #168957;
+        }
+
+    /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+
+    @@media (max-width: 1000px) {
+
+        .detail-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-card {
+            position: static;
+        }
+    }
+
+    @@media (max-width: 850px) {
+
+        .stats-grid {
+            grid-template-columns: repeat( 2, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 720px) {
+
+        .detail-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-button {
+            flex: 1;
+        }
+
+        .information-grid,
+        .security-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 520px) {
+
+        .detail-hero {
+            padding: 20px;
+        }
+
+        .hero-left {
+            align-items: flex-start;
+        }
+
+        .hero-avatar {
+            width: 52px;
+            height: 52px;
+        }
+
+        .hero-title-row h1 {
+            font-size: 1.25rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-button {
+            width: 100%;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .confirm-actions {
+            flex-direction: column-reverse;
+        }
+
+            .confirm-actions button {
+                width: 100%;
+            }
+    }
+
+</style>

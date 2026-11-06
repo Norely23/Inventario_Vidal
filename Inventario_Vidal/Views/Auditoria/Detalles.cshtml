@@ -1,0 +1,1554 @@
+@using Inventario_Vidal.DTOs
+@model RolPermisosDto
+
+@{
+    ViewData["Title"] = "Permisos del rol";
+    ViewBag.Subtitle = $"Configuración de accesos para {Model.NombreRol}";
+
+    var permisos = Model.Permisos ?? new List<PermisoDto>();
+
+    var totalPermisos = permisos.Count;
+    var asignados = permisos.Count(p => p.Asignado);
+
+    var modulos = permisos
+        .GroupBy(p => string.IsNullOrWhiteSpace(p.Modulo)
+            ? "General"
+            : p.Modulo)
+        .OrderBy(g => g.Key)
+        .ToList();
+
+    string IconoModulo(string? modulo)
+    {
+        return modulo?.Trim().ToLowerInvariant() switch
+        {
+            "seguridad" => "shield",
+            "inventario" => "box",
+            "compras" => "shopping-cart",
+            "proyectos" => "folder",
+            "reportes" => "chart-bar",
+            "usuarios" => "users",
+            "configuracion" => "settings",
+            "configuración" => "settings",
+            _ => "key"
+        };
+    }
+}
+
+<div class="security-page">
+
+    <section class="page-hero">
+        <div class="hero-left">
+            <div class="hero-icon">
+                <svg class="icon icon-xl">
+                    <use href="#icon-key"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span class="hero-eyebrow">
+                    SEGURIDAD Y ACCESOS
+                </span>
+
+                <h1>Permisos del rol</h1>
+
+                <p>
+                    Configura las operaciones autorizadas para
+                    <strong>@Model.NombreRol</strong>.
+                </p>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a asp-action="Detalles"
+               asp-route-id="@Model.IdRol"
+               class="hero-btn outline">
+                <svg class="icon icon-sm">
+                    <use href="#icon-arrow-left"></use>
+                </svg>
+                Volver al rol
+            </a>
+
+            <button type="submit"
+                    form="permisosForm"
+                    class="hero-btn light"
+                    id="btnGuardarHero">
+                <svg class="icon icon-sm">
+                    <use href="#icon-save"></use>
+                </svg>
+                Guardar permisos
+            </button>
+        </div>
+    </section>
+
+    <section class="summary-grid">
+        <article class="summary-card">
+            <div class="summary-icon blue">
+                <svg class="icon">
+                    <use href="#icon-key"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span>Total permisos</span>
+                <strong>@totalPermisos</strong>
+                <small>Permisos activos del sistema</small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon green">
+                <svg class="icon">
+                    <use href="#icon-check-circle"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span>Asignados</span>
+                <strong id="statAsignados">@asignados</strong>
+                <small>Permisos concedidos al rol</small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon purple">
+                <svg class="icon">
+                    <use href="#icon-list"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span>Módulos</span>
+                <strong>@modulos.Count</strong>
+                <small>Áreas con permisos disponibles</small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon gold">
+                <svg class="icon">
+                    <use href="#icon-shield"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span>Rol</span>
+                <strong>@Model.NombreRol</strong>
+                <small>ID #@Model.IdRol</small>
+            </div>
+        </article>
+    </section>
+
+    <form asp-action="Permisos"
+          asp-route-id="@Model.IdRol"
+          method="post"
+          id="permisosForm">
+        @Html.AntiForgeryToken()
+
+        <section class="panel-card">
+            <div class="panel-heading">
+                <div class="heading-left">
+                    <div class="heading-icon gold">
+                        <svg class="icon">
+                            <use href="#icon-key"></use>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <span>CONFIGURACIÓN</span>
+                        <h2>Permisos por módulo</h2>
+                        <p>
+                            Marca únicamente las operaciones que este rol necesita.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="heading-tools">
+                    <button type="button"
+                            class="secondary-btn"
+                            id="btnSeleccionarTodos">
+                        Seleccionar todos
+                    </button>
+
+                    <button type="button"
+                            class="secondary-btn"
+                            id="btnLimpiar">
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+
+            @if (modulos.Any())
+            {
+                <div class="permission-modules">
+                    @foreach (var modulo in modulos)
+                    {
+                        var permisosModulo = modulo.ToList();
+                        var asignadosModulo = permisosModulo.Count(p => p.Asignado);
+
+                        <article class="permission-module">
+                            <div class="module-heading">
+                                <div class="module-title">
+                                    <div class="module-icon">
+                                        <svg class="icon">
+                                            <use href="#icon-@IconoModulo(modulo.Key)"></use>
+                                        </svg>
+                                    </div>
+
+                                    <div>
+                                        <span>MÓDULO</span>
+                                        <strong>@modulo.Key</strong>
+                                    </div>
+                                </div>
+
+                                <div class="module-actions">
+                                    <span class="module-count">
+                                        <span class="module-assigned">
+                                            @asignadosModulo
+                                        </span>
+                                        / @permisosModulo.Count
+                                    </span>
+
+                                    <button type="button"
+                                            class="module-toggle"
+                                            data-module="@modulo.Key">
+                                        Marcar módulo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="permission-grid">
+                                @foreach (var permiso in permisosModulo)
+                                {
+                                    <label class="permission-item">
+                                        <div class="permission-item-main">
+                                            <div class="permission-item-icon">
+                                                <svg class="icon icon-sm">
+                                                    <use href="#icon-key"></use>
+                                                </svg>
+                                            </div>
+
+                                            <div>
+                                                <strong>@permiso.Nombre</strong>
+
+                                                @if (!string.IsNullOrWhiteSpace(permiso.Descripcion))
+                                                {
+                                                    <span>@permiso.Descripcion</span>
+                                                }
+
+                                                @if (!string.IsNullOrWhiteSpace(permiso.Categoria))
+                                                {
+                                                    <small>@permiso.Categoria</small>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <span class="permission-switch">
+                                            <input type="checkbox"
+                                                   name="permisosSeleccionados"
+                                                   value="@permiso.IdPermiso"
+                                                   data-module="@modulo.Key"
+                                                   @(permiso.Asignado ? "checked" : null) />
+
+                                            <span class="permission-slider"></span>
+                                        </span>
+                                    </label>
+                                }
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg class="icon icon-xl">
+                            <use href="#icon-key"></use>
+                        </svg>
+                    </div>
+
+                    <h3>No hay permisos activos</h3>
+                    <p>
+                        No existen permisos disponibles para asignar.
+                    </p>
+                </div>
+            }
+        </section>
+
+        <div class="permission-footer">
+            <div>
+                <svg class="icon icon-sm">
+                    <use href="#icon-info"></use>
+                </svg>
+
+                <span>
+                    Se guardarán exactamente los permisos marcados.
+                </span>
+            </div>
+
+            <div class="permission-footer-actions">
+                <a asp-action="Detalles"
+                   asp-route-id="@Model.IdRol"
+                   class="secondary-btn">
+                    Cancelar
+                </a>
+
+                <button type="submit"
+                        class="primary-btn"
+                        id="btnGuardar">
+                    <svg class="icon icon-sm">
+                        <use href="#icon-save"></use>
+                    </svg>
+                    Guardar permisos
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts
+{
+    <script>
+        document.addEventListener(
+            'DOMContentLoaded',
+            function () {
+
+                const form =
+                    document.getElementById('permisosForm');
+
+                const checkboxes =
+                    [...form.querySelectorAll(
+                        'input[name="permisosSeleccionados"]')];
+
+                const statAsignados =
+                    document.getElementById('statAsignados');
+
+                const btnGuardar =
+                    document.getElementById('btnGuardar');
+
+                const btnGuardarHero =
+                    document.getElementById('btnGuardarHero');
+
+                function actualizarConteos() {
+                    const totalAsignados =
+                        checkboxes.filter(
+                            checkbox => checkbox.checked)
+                            .length;
+
+                    statAsignados.textContent =
+                        totalAsignados;
+
+                    document
+                        .querySelectorAll('.permission-module')
+                        .forEach(module => {
+
+                            const moduleCheckboxes =
+                                [...module.querySelectorAll(
+                                    'input[name="permisosSeleccionados"]')];
+
+                            const assigned =
+                                moduleCheckboxes.filter(
+                                    checkbox => checkbox.checked)
+                                    .length;
+
+                            const counter =
+                                module.querySelector(
+                                    '.module-assigned');
+
+                            if (counter)
+                                counter.textContent =
+                                    assigned;
+                        });
+                }
+
+                checkboxes.forEach(
+                    checkbox =>
+                        checkbox.addEventListener(
+                            'change',
+                            actualizarConteos));
+
+                document
+                    .getElementById('btnSeleccionarTodos')
+                    ?.addEventListener(
+                        'click',
+                        function () {
+                            checkboxes.forEach(
+                                checkbox =>
+                                    checkbox.checked = true);
+
+                            actualizarConteos();
+                        });
+
+                document
+                    .getElementById('btnLimpiar')
+                    ?.addEventListener(
+                        'click',
+                        function () {
+                            checkboxes.forEach(
+                                checkbox =>
+                                    checkbox.checked = false);
+
+                            actualizarConteos();
+                        });
+
+                document
+                    .querySelectorAll('.module-toggle')
+                    .forEach(button => {
+                        button.addEventListener(
+                            'click',
+                            function () {
+
+                                const module =
+                                    this.dataset.module;
+
+                                const moduleCheckboxes =
+                                    checkboxes.filter(
+                                        checkbox =>
+                                            checkbox.dataset.module === module);
+
+                                const allChecked =
+                                    moduleCheckboxes.every(
+                                        checkbox => checkbox.checked);
+
+                                moduleCheckboxes.forEach(
+                                    checkbox =>
+                                        checkbox.checked = !allChecked);
+
+                                actualizarConteos();
+                            });
+                    });
+
+                form.addEventListener(
+                    'submit',
+                    function () {
+
+                        const html =
+                            '<svg class="icon icon-sm"><use href="#icon-refresh"></use></svg> Guardando...';
+
+                        if (btnGuardar) {
+                            btnGuardar.disabled = true;
+                            btnGuardar.innerHTML = html;
+                        }
+
+                        if (btnGuardarHero) {
+                            btnGuardarHero.disabled = true;
+                            btnGuardarHero.innerHTML = html;
+                        }
+                    });
+
+                actualizarConteos();
+            });
+    </script>
+}
+
+<style>
+    .permission-modules {
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .permission-module {
+        overflow: hidden;
+        border: 1px solid #dce4ec;
+        border-radius: 11px;
+        background: #fff;
+    }
+
+    .module-heading {
+        padding: 11px 13px;
+        border-bottom: 1px solid #edf1f5;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .module-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .module-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #edf3f8;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .module-title span,
+    .module-title strong {
+        display: block;
+    }
+
+    .module-title span {
+        color: #8a97a7;
+        font-size: .54rem;
+        font-weight: 800;
+        letter-spacing: .5px;
+    }
+
+    .module-title strong {
+        margin-top: 2px;
+        color: #43566e;
+        font-size: .69rem;
+    }
+
+    .module-actions {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .module-count {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #65778c;
+        font-size: .56rem;
+        font-weight: 800;
+    }
+
+    .module-toggle {
+        min-height: 32px;
+        padding: 0 9px;
+        border: 1px solid #d6dee7;
+        border-radius: 7px;
+        background: #fff;
+        color: #59697b;
+        font-size: .57rem;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .permission-grid {
+        padding: 11px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .permission-item {
+        min-height: 72px;
+        padding: 10px;
+        border: 1px solid #e3e9ef;
+        border-radius: 9px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    .permission-item:hover {
+        background: #fafcfe;
+        border-color: #cfdde9;
+    }
+
+    .permission-item-main {
+        min-width: 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .permission-item-icon {
+        width: 31px;
+        height: 31px;
+        border-radius: 8px;
+        background: #f0f4f7;
+        color: #607890;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .permission-item-main strong,
+    .permission-item-main span,
+    .permission-item-main small {
+        display: block;
+    }
+
+    .permission-item-main strong {
+        color: #43566e;
+        font-size: .62rem;
+    }
+
+    .permission-item-main span {
+        margin-top: 2px;
+        color: #8794a4;
+        font-size: .55rem;
+        line-height: 1.35;
+    }
+
+    .permission-item-main small {
+        margin-top: 4px;
+        color: #a47517;
+        font-size: .52rem;
+        font-weight: 800;
+    }
+
+    .permission-switch {
+        position: relative;
+        width: 42px;
+        height: 23px;
+        flex-shrink: 0;
+    }
+
+    .permission-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .permission-slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #c8d0da;
+        transition: .2s;
+    }
+
+    .permission-slider::before {
+        content: "";
+        position: absolute;
+        width: 17px;
+        height: 17px;
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        background: #fff;
+        transition: .2s;
+        box-shadow: 0 1px 4px rgba(0,0,0,.18);
+    }
+
+    .permission-switch input:checked + .permission-slider {
+        background: #168957;
+    }
+
+    .permission-switch input:checked + .permission-slider::before {
+        transform: translateX(19px);
+    }
+
+    .permission-footer {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border: 1px solid #dce4ec;
+        border-radius: 10px;
+        background: #fafbfd;
+        color: #758599;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: .6rem;
+    }
+
+    .permission-footer > div:first-child {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .permission-footer-actions {
+        display: flex;
+        gap: 7px;
+    }
+
+    @@media (max-width: 900px) {
+        .permission-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 650px) {
+        .module-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .module-actions {
+            width: 100%;
+        }
+
+        .module-toggle {
+            flex: 1;
+        }
+
+        .permission-footer {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .permission-footer-actions {
+            width: 100%;
+        }
+
+        .permission-footer-actions .primary-btn,
+        .permission-footer-actions .secondary-btn {
+            flex: 1;
+        }
+    }
+</style>
+
+<style>
+    .security-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue2: #226cc2;
+        --border: #dce3eb;
+        --muted: #7d8b9c;
+        --success: #168957;
+        --danger: #c93f55;
+        --warning: #b67916;
+        --surface: #ffffff;
+    }
+
+    .security-page * {
+        box-sizing: border-box;
+    }
+
+    .page-hero {
+        min-height: 120px;
+        margin-bottom: 16px;
+        padding: 24px 30px;
+        border-radius: 20px;
+        background: linear-gradient(100deg, #102947, #17488e 52%, #226cc2);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(16, 41, 71, .12);
+    }
+
+    .page-hero::after {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        right: -95px;
+        top: -145px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.05);
+        pointer-events: none;
+    }
+
+    .hero-left,
+    .hero-actions {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-left {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .hero-icon {
+        width: 62px;
+        height: 62px;
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 15px;
+        background: rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-icon .icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .hero-eyebrow {
+        display: block;
+        color: rgba(255,255,255,.64);
+        font-size: .62rem;
+        font-weight: 800;
+        letter-spacing: .85px;
+    }
+
+    .page-hero h1 {
+        margin: 3px 0 0;
+        color: #fff;
+        font-size: 1.45rem;
+        line-height: 1.15;
+    }
+
+    .page-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.76);
+        font-size: .72rem;
+        line-height: 1.45;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .hero-btn {
+        min-height: 40px;
+        padding: 0 13px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: .68rem;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .hero-btn.light {
+        border: 1px solid #fff;
+        background: #fff;
+        color: var(--navy);
+    }
+
+    .hero-btn.outline {
+        border: 1px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.05);
+        color: #fff;
+    }
+
+    .summary-grid {
+        margin-bottom: 16px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .summary-card {
+        min-height: 104px;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .summary-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .summary-icon.blue {
+        background: #eaf2fb;
+        color: #356fa7;
+    }
+
+    .summary-icon.green {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .summary-icon.red {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .summary-icon.purple {
+        background: #f0ebf8;
+        color: #7554aa;
+    }
+
+    .summary-icon.gold {
+        background: #fff6e4;
+        color: #a47517;
+    }
+
+    .summary-card span,
+    .summary-card strong,
+    .summary-card small {
+        display: block;
+    }
+
+    .summary-card span {
+        color: #8995a5;
+        font-size: .58rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+    }
+
+    .summary-card strong {
+        margin-top: 3px;
+        color: var(--navy);
+        font-size: .92rem;
+    }
+
+    .summary-card small {
+        margin-top: 2px;
+        color: #97a2af;
+        font-size: .55rem;
+    }
+
+    .panel-card {
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .panel-heading {
+        padding: 14px 16px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .heading-left {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .heading-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .heading-icon.green {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .heading-icon.gold {
+        background: #fff6e4;
+        color: #a47517;
+    }
+
+    .heading-icon.purple {
+        background: #f0ebf8;
+        color: #7554aa;
+    }
+
+    .heading-left span {
+        display: block;
+        color: #929dab;
+        font-size: .55rem;
+        font-weight: 800;
+        letter-spacing: .6px;
+    }
+
+    .heading-left h2 {
+        margin: 2px 0 0;
+        color: var(--navy);
+        font-size: .82rem;
+    }
+
+    .heading-left p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .62rem;
+    }
+
+    .heading-tools {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .record-count {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #687b90;
+        font-size: .57rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .search-box {
+        width: 235px;
+        min-height: 37px;
+        padding: 0 9px;
+        border: 1px solid #dce3eb;
+        border-radius: 8px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .search-box input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #46566a;
+        font-size: .63rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .vidal-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .vidal-table th {
+        padding: 10px 12px;
+        border-bottom: 1px solid #dfe5eb;
+        background: #f6f8fa;
+        color: #68788b;
+        font-size: .55rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .vidal-table td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #edf1f5;
+        color: #4a596c;
+        font-size: .62rem;
+        vertical-align: middle;
+    }
+
+    .vidal-table tbody tr:hover {
+        background: #fafcfe;
+    }
+
+    .entity-cell {
+        min-width: 190px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .entity-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: .67rem;
+        font-weight: 900;
+    }
+
+    .entity-cell strong,
+    .entity-cell span,
+    .stack-cell strong,
+    .stack-cell span {
+        display: block;
+    }
+
+    .entity-cell strong,
+    .stack-cell strong {
+        color: #425267;
+        font-size: .64rem;
+    }
+
+    .entity-cell span,
+    .stack-cell span {
+        margin-top: 2px;
+        color: #929dab;
+        font-size: .55rem;
+    }
+
+    .status-badge {
+        padding: 6px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .56rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .status-badge.active {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .status-badge.inactive {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .action-group {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .action-btn.info {
+        border: 1px solid #cdddec;
+        background: #f2f7fb;
+        color: #4779a8;
+    }
+
+    .action-btn.edit {
+        border: 1px solid #d8cff0;
+        background: #f7f3ff;
+        color: #7856af;
+    }
+
+    .action-btn.key {
+        border: 1px solid #eadab4;
+        background: #fff9ed;
+        color: #9a6c18;
+    }
+
+    .action-btn.disable {
+        border: 1px solid #efcbd1;
+        background: #fff3f5;
+        color: #c64055;
+    }
+
+    .action-btn.enable {
+        border: 1px solid #cce8d9;
+        background: #edf9f3;
+        color: #168957;
+    }
+
+    .table-footer {
+        padding: 10px 14px;
+        border-top: 1px solid #edf1f5;
+        background: #fafbfd;
+        color: #7f8d9e;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: .56rem;
+    }
+
+    .empty-state {
+        min-height: 240px;
+        padding: 28px;
+        color: #8794a4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 15px;
+        background: #f0f4f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state h3 {
+        margin: 11px 0 0;
+        color: #506075;
+        font-size: .78rem;
+    }
+
+    .empty-state p {
+        margin: 5px 0 13px;
+        font-size: .62rem;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+        min-height: 39px;
+        padding: 0 12px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .63rem;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .primary-btn {
+        border: 0;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: #fff;
+    }
+
+    .secondary-btn {
+        border: 1px solid #d6dee7;
+        background: #fff;
+        color: #59697b;
+    }
+
+    .form-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.65fr) minmax(280px, .75fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .form-body {
+        padding: 16px;
+    }
+
+    .field-group {
+        margin-bottom: 14px;
+    }
+
+    .field-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .field-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #526276;
+        font-size: .64rem;
+        font-weight: 800;
+    }
+
+    .vidal-control {
+        width: 100%;
+        min-height: 41px;
+        padding: 0 10px;
+        border: 1px solid #dce3eb;
+        border-radius: 8px;
+        background: #fafbfd;
+        color: #46566a;
+        outline: none;
+        font-size: .66rem;
+    }
+
+    textarea.vidal-control {
+        min-height: 110px;
+        padding: 10px;
+        resize: vertical;
+    }
+
+    .vidal-control:focus {
+        border-color: #86acd0;
+        box-shadow: 0 0 0 3px rgba(53,111,167,.08);
+        background: #fff;
+    }
+
+    .field-help,
+    .field-counter {
+        margin-top: 5px;
+        color: #8995a4;
+        font-size: .57rem;
+        line-height: 1.4;
+    }
+
+    .field-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .validation-text {
+        color: #c93f55;
+        font-size: .58rem;
+    }
+
+    .status-box {
+        padding: 12px;
+        border: 1px solid #e1e7ee;
+        border-radius: 10px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-box-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        background: #e9f7f0;
+        color: #168957;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .status-box-content {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .status-box-content strong,
+    .status-box-content span {
+        display: block;
+    }
+
+    .status-box-content strong {
+        color: #43566e;
+        font-size: .65rem;
+    }
+
+    .status-box-content span {
+        margin-top: 2px;
+        color: #8491a0;
+        font-size: .57rem;
+        line-height: 1.4;
+    }
+
+    .switch {
+        position: relative;
+        width: 42px;
+        height: 23px;
+        flex-shrink: 0;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .switch-slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #c8d0da;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .switch-slider::before {
+        content: "";
+        position: absolute;
+        width: 17px;
+        height: 17px;
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        background: #fff;
+        transition: .2s;
+        box-shadow: 0 1px 4px rgba(0,0,0,.18);
+    }
+
+    .switch input:checked + .switch-slider {
+        background: #168957;
+    }
+
+    .switch input:checked + .switch-slider::before {
+        transform: translateX(19px);
+    }
+
+    .preview-card {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .preview-header {
+        padding: 13px 14px;
+        border-bottom: 1px solid #edf1f5;
+        color: #607286;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: .64rem;
+        font-weight: 800;
+    }
+
+    .preview-body {
+        padding: 18px;
+        text-align: center;
+    }
+
+    .preview-avatar {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto;
+        border-radius: 15px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .preview-body h3 {
+        margin: 10px 0 3px;
+        color: #33465e;
+        font-size: .8rem;
+    }
+
+    .preview-body p {
+        margin: 0;
+        color: #8794a4;
+        font-size: .61rem;
+        line-height: 1.5;
+    }
+
+    .preview-status {
+        margin-top: 11px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .59rem;
+        font-weight: 800;
+    }
+
+    .preview-status.active {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .preview-status.inactive {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .form-actions {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid #edf1f5;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .model-errors {
+        margin-bottom: 14px;
+        padding: 11px 13px;
+        border: 1px solid #efcbd1;
+        border-left: 4px solid #c93f55;
+        border-radius: 10px;
+        background: #fff3f5;
+        color: #a73547;
+        font-size: .61rem;
+    }
+
+    @@media (max-width: 1050px) {
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .form-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 760px) {
+        .page-hero {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-btn {
+            flex: 1;
+        }
+
+        .panel-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .heading-tools {
+            width: 100%;
+        }
+
+        .search-box {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 560px) {
+        .page-hero {
+            padding: 20px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-btn {
+            width: 100%;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .primary-btn,
+        .secondary-btn {
+            width: 100%;
+        }
+    }
+</style>

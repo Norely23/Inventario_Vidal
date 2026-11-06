@@ -1,0 +1,1399 @@
+@using Inventario_Vidal.DTOs
+@model List<AuditoriaDto>
+
+@{
+    ViewData["Title"] = "Historial de Auditoría";
+    ViewBag.Subtitle = "Trazabilidad completa de un registro";
+
+    var registros =
+        Model ?? new List<AuditoriaDto>();
+
+    string tabla =
+        ViewBag.Tabla?.ToString()
+        ?? string.Empty;
+
+    string idRegistro =
+        ViewBag.IdRegistro?.ToString()
+        ?? string.Empty;
+
+    int pagina =
+        ViewBag.Page is int pageValue && pageValue > 0
+            ? pageValue
+            : 1;
+
+    const int pageSize = 20;
+
+    bool puedeAnterior =
+        pagina > 1;
+
+    bool puedeSiguiente =
+        registros.Count >= pageSize;
+
+    var creaciones =
+        registros.Count(r =>
+            new[]
+            {
+                "crear",
+                "insert",
+                "insertar"
+            }
+            .Contains(
+                r.Accion?.Trim().ToLowerInvariant()));
+
+    var modificaciones =
+        registros.Count(r =>
+            new[]
+            {
+                "editar",
+                "update",
+                "actualizar"
+            }
+            .Contains(
+                r.Accion?.Trim().ToLowerInvariant()));
+
+    var eliminaciones =
+        registros.Count(r =>
+            new[]
+            {
+                "eliminar",
+                "delete",
+                "borrar"
+            }
+            .Contains(
+                r.Accion?.Trim().ToLowerInvariant()));
+
+    string ClaseAccion(string? accion)
+    {
+        return accion?
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "crear"
+            or "insert"
+            or "insertar"
+                => "create",
+
+            "editar"
+            or "update"
+            or "actualizar"
+                => "update",
+
+            "eliminar"
+            or "delete"
+            or "borrar"
+                => "delete",
+
+            "activar"
+                => "activate",
+
+            "desactivar"
+                => "deactivate",
+
+            _ => "other"
+        };
+    }
+
+    string IconoAccion(string? accion)
+    {
+        return accion?
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "crear"
+            or "insert"
+            or "insertar"
+                => "plus-circle",
+
+            "editar"
+            or "update"
+            or "actualizar"
+                => "edit",
+
+            "eliminar"
+            or "delete"
+            or "borrar"
+                => "trash",
+
+            "activar"
+                => "check-circle",
+
+            "desactivar"
+                => "x-circle",
+
+            _ => "history"
+        };
+    }
+
+    string ObtenerIniciales(string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+            return "S";
+
+        var partes =
+            nombre
+                .Trim()
+                .Split(
+                    ' ',
+                    StringSplitOptions.RemoveEmptyEntries);
+
+        if (partes.Length == 1)
+        {
+            return partes[0]
+                .Substring(0, 1)
+                .ToUpperInvariant();
+        }
+
+        return (
+            partes[0].Substring(0, 1) +
+            partes[^1].Substring(0, 1))
+            .ToUpperInvariant();
+    }
+}
+
+<div class="audit-history-page">
+
+    <!-- ============================================================ -->
+    <!-- HERO -->
+    <!-- ============================================================ -->
+
+    <section class="history-hero">
+
+        <div class="hero-main">
+
+            <div class="hero-icon">
+
+                <svg class="icon icon-xl">
+                    <use href="#icon-history"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span class="hero-eyebrow">
+                    AUDITORÍA Y TRAZABILIDAD
+                </span>
+
+                <h1>
+                    Historial del registro
+                </h1>
+
+                <p>
+                    Consulta todas las operaciones registradas
+                    sobre el mismo elemento.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="hero-actions">
+
+            <a asp-action="Index"
+               class="hero-btn outline">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-arrow-left"></use>
+                </svg>
+
+                Volver a auditoría
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- IDENTIFICACIÓN -->
+    <!-- ============================================================ -->
+
+    <section class="record-card">
+
+        <div class="record-icon">
+
+            <svg class="icon">
+                <use href="#icon-file-text"></use>
+            </svg>
+
+        </div>
+
+        <div class="record-info">
+
+            <span>
+                REGISTRO AUDITADO
+            </span>
+
+            <strong>
+                @tabla
+            </strong>
+
+            <small>
+                ID afectado: @idRegistro
+            </small>
+
+        </div>
+
+        <span class="page-badge">
+            Página @pagina
+        </span>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- RESUMEN -->
+    <!-- ============================================================ -->
+
+    <section class="summary-grid">
+
+        <article class="summary-card">
+
+            <div class="summary-icon blue">
+
+                <svg class="icon">
+                    <use href="#icon-history"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>Visibles</span>
+
+                <strong>
+                    @registros.Count
+                </strong>
+
+                <small>
+                    Registros en esta página
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="summary-card">
+
+            <div class="summary-icon green">
+
+                <svg class="icon">
+                    <use href="#icon-plus-circle"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>Creaciones</span>
+
+                <strong>
+                    @creaciones
+                </strong>
+
+                <small>
+                    En esta página
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="summary-card">
+
+            <div class="summary-icon gold">
+
+                <svg class="icon">
+                    <use href="#icon-edit"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>Modificaciones</span>
+
+                <strong>
+                    @modificaciones
+                </strong>
+
+                <small>
+                    En esta página
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="summary-card">
+
+            <div class="summary-icon red">
+
+                <svg class="icon">
+                    <use href="#icon-trash"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>Eliminaciones</span>
+
+                <strong>
+                    @eliminaciones
+                </strong>
+
+                <small>
+                    En esta página
+                </small>
+
+            </div>
+
+        </article>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- HISTORIAL -->
+    <!-- ============================================================ -->
+
+    <section class="history-panel">
+
+        <div class="panel-heading">
+
+            <div class="heading-left">
+
+                <div class="heading-icon">
+
+                    <svg class="icon">
+                        <use href="#icon-list"></use>
+                    </svg>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        TRAZABILIDAD
+                    </span>
+
+                    <h2>
+                        Operaciones registradas
+                    </h2>
+
+                    <p>
+                        Ordenadas desde la operación más reciente.
+                    </p>
+
+                </div>
+
+            </div>
+
+            @if (registros.Any())
+            {
+                <div class="local-search">
+
+                    <svg class="icon icon-sm">
+                        <use href="#icon-search"></use>
+                    </svg>
+
+                    <input type="search"
+                           id="localSearch"
+                           placeholder="Buscar en esta página..."
+                           autocomplete="off" />
+
+                </div>
+            }
+
+        </div>
+
+        @if (registros.Any())
+        {
+            <div class="timeline"
+                 id="historyTimeline">
+
+                @foreach (var item in registros)
+                {
+                    var clase =
+                        ClaseAccion(item.Accion);
+
+                    <article class="timeline-item"
+                             data-search="@($"{item.Accion} {item.UsuarioNombre} {item.NombreTabla} {item.IdRegistroAfectado} {item.ResumenCambio}").ToLowerInvariant()">
+
+                        <div class="timeline-axis">
+
+                            <div class="timeline-dot @clase">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-@IconoAccion(item.Accion)"></use>
+                                </svg>
+
+                            </div>
+
+                            <div class="timeline-line"></div>
+
+                        </div>
+
+                        <div class="timeline-card">
+
+                            <div class="timeline-head">
+
+                                <div class="event-main">
+
+                                    <span class="action-badge @clase">
+                                        @item.AccionTexto
+                                    </span>
+
+                                    <div>
+
+                                        <strong>
+                                            @item.ResumenCambio
+                                        </strong>
+
+                                        <span>
+                                            @item.FechaFormateada
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <a asp-action="Detalles"
+                                   asp-route-id="@item.IdAuditoria"
+                                   class="detail-btn"
+                                   title="Ver detalle">
+
+                                    <svg class="icon icon-sm">
+                                        <use href="#icon-eye"></use>
+                                    </svg>
+
+                                    Ver detalle
+
+                                </a>
+
+                            </div>
+
+                            <div class="timeline-meta">
+
+                                <div>
+
+                                    <span>
+                                        Usuario
+                                    </span>
+
+                                    <strong>
+                                        <span class="user-avatar">
+                                            @ObtenerIniciales(item.UsuarioNombre)
+                                        </span>
+
+                                        @(string.IsNullOrWhiteSpace(item.UsuarioNombre)
+                                            ? "Sistema"
+                                            : item.UsuarioNombre)
+                                    </strong>
+
+                                </div>
+
+                                <div>
+
+                                    <span>
+                                        Tabla
+                                    </span>
+
+                                    <strong>
+                                        @item.NombreTabla
+                                    </strong>
+
+                                </div>
+
+                                <div>
+
+                                    <span>
+                                        Registro
+                                    </span>
+
+                                    <strong>
+                                        @(string.IsNullOrWhiteSpace(item.IdRegistroAfectado)
+                                            ? "Sin referencia"
+                                            : item.IdRegistroAfectado)
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+                }
+
+            </div>
+
+            <div id="noSearchResults"
+                 class="empty-state d-none">
+
+                <div class="empty-icon">
+
+                    <svg class="icon icon-xl">
+                        <use href="#icon-search"></use>
+                    </svg>
+
+                </div>
+
+                <h3>
+                    Sin coincidencias
+                </h3>
+
+                <p>
+                    No hay eventos que coincidan con tu búsqueda.
+                </p>
+
+            </div>
+
+            <div class="history-footer">
+
+                <span>
+                    @registros.Count
+                    @(registros.Count == 1
+                        ? "registro visible"
+                        : "registros visibles")
+                </span>
+
+                <div class="pagination-actions">
+
+                    @if (puedeAnterior)
+                    {
+                        <a asp-action="Historial"
+                           asp-route-tabla="@tabla"
+                           asp-route-idRegistro="@idRegistro"
+                           asp-route-page="@(pagina - 1)"
+                           class="page-btn">
+
+                            <svg class="icon icon-sm">
+                                <use href="#icon-chevron-left"></use>
+                            </svg>
+
+                            Anterior
+
+                        </a>
+                    }
+
+                    <span class="current-page">
+                        Página @pagina
+                    </span>
+
+                    @if (puedeSiguiente)
+                    {
+                        <a asp-action="Historial"
+                           asp-route-tabla="@tabla"
+                           asp-route-idRegistro="@idRegistro"
+                           asp-route-page="@(pagina + 1)"
+                           class="page-btn">
+
+                            Siguiente
+
+                            <svg class="icon icon-sm">
+                                <use href="#icon-chevron-right"></use>
+                            </svg>
+
+                        </a>
+                    }
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+
+                <div class="empty-icon">
+
+                    <svg class="icon icon-xl">
+                        <use href="#icon-history"></use>
+                    </svg>
+
+                </div>
+
+                <h3>
+                    No hay historial disponible
+                </h3>
+
+                <p>
+                    No se encontraron operaciones auditadas
+                    para este registro en la página solicitada.
+                </p>
+
+                <a asp-action="Index"
+                   class="primary-btn">
+
+                    Volver a auditoría
+
+                </a>
+
+            </div>
+        }
+
+    </section>
+
+</div>
+
+@section Scripts
+{
+    <script>
+        document.addEventListener(
+            'DOMContentLoaded',
+            function () {
+
+                const search =
+                    document.getElementById(
+                        'localSearch');
+
+                const items =
+                    [...document.querySelectorAll(
+                        '.timeline-item')];
+
+                const empty =
+                    document.getElementById(
+                        'noSearchResults');
+
+                search?.addEventListener(
+                    'input',
+                    function () {
+
+                        const term =
+                            this.value
+                                .trim()
+                                .toLowerCase();
+
+                        let visible = 0;
+
+                        items.forEach(
+                            item => {
+
+                                const show =
+                                    !term ||
+                                    item.dataset.search
+                                        .includes(term);
+
+                                item.style.display =
+                                    show
+                                        ? ''
+                                        : 'none';
+
+                                if (show)
+                                    visible++;
+                            });
+
+                        empty?.classList.toggle(
+                            'd-none',
+                            visible > 0);
+                    });
+            });
+    </script>
+}
+
+<style>
+    .audit-history-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue2: #226cc2;
+        --border: #dce3eb;
+        --muted: #8390a0;
+        --success: #168957;
+        --danger: #c93f55;
+        --warning: #b67916;
+    }
+
+    .history-hero {
+        min-height: 120px;
+        margin-bottom: 16px;
+        padding: 24px 30px;
+        border-radius: 20px;
+        background:
+            linear-gradient(
+                100deg,
+                #102947,
+                #17488e 52%,
+                #226cc2);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow:
+            0 8px 22px
+            rgba(16, 41, 71, .12);
+    }
+
+    .history-hero::after {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        right: -90px;
+        top: -150px;
+        border-radius: 50%;
+        background:
+            rgba(255,255,255,.05);
+    }
+
+    .hero-main,
+    .hero-actions {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-main {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .hero-icon {
+        width: 62px;
+        height: 62px;
+        border: 1px solid
+            rgba(255,255,255,.16);
+        border-radius: 15px;
+        background:
+            rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-eyebrow {
+        display: block;
+        color:
+            rgba(255,255,255,.64);
+        font-size: .62rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+    }
+
+    .history-hero h1 {
+        margin: 3px 0 0;
+        color: #fff;
+        font-size: 1.45rem;
+    }
+
+    .history-hero p {
+        margin: 5px 0 0;
+        color:
+            rgba(255,255,255,.76);
+        font-size: .7rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .hero-btn {
+        min-height: 40px;
+        padding: 0 13px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .66rem;
+        font-weight: 800;
+    }
+
+    .hero-btn.outline {
+        border: 1px solid
+            rgba(255,255,255,.3);
+        background:
+            rgba(255,255,255,.05);
+        color: #fff;
+    }
+
+    .record-card {
+        margin-bottom: 16px;
+        padding: 13px 15px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow:
+            0 4px 17px
+            rgba(16,41,71,.04);
+    }
+
+    .record-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .record-info {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .record-info span,
+    .record-info strong,
+    .record-info small {
+        display: block;
+    }
+
+    .record-info span {
+        color: #8b97a6;
+        font-size: .56rem;
+        font-weight: 800;
+        letter-spacing: .5px;
+    }
+
+    .record-info strong {
+        margin-top: 2px;
+        color: #40536a;
+        font-size: .72rem;
+    }
+
+    .record-info small {
+        margin-top: 2px;
+        color: #8794a4;
+        font-size: .58rem;
+    }
+
+    .page-badge {
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #63778c;
+        font-size: .58rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .summary-grid {
+        margin-bottom: 16px;
+        display: grid;
+        grid-template-columns:
+            repeat(4, minmax(0,1fr));
+        gap: 12px;
+    }
+
+    .summary-card {
+        min-height: 103px;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow:
+            0 4px 17px
+            rgba(16,41,71,.04);
+    }
+
+    .summary-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .summary-icon.blue {
+        background: #eaf2fb;
+        color: #356fa7;
+    }
+
+    .summary-icon.green {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .summary-icon.gold {
+        background: #fff6e4;
+        color: #a47517;
+    }
+
+    .summary-icon.red {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .summary-card span,
+    .summary-card strong,
+    .summary-card small {
+        display: block;
+    }
+
+    .summary-card span {
+        color: #8995a5;
+        font-size: .57rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .summary-card strong {
+        margin-top: 3px;
+        color: var(--navy);
+        font-size: .9rem;
+    }
+
+    .summary-card small {
+        margin-top: 2px;
+        color: #97a2af;
+        font-size: .54rem;
+    }
+
+    .history-panel {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow:
+            0 4px 17px
+            rgba(16,41,71,.04);
+    }
+
+    .panel-heading {
+        padding: 14px 16px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .heading-left {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .heading-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .heading-left span {
+        display: block;
+        color: #929dab;
+        font-size: .55rem;
+        font-weight: 800;
+        letter-spacing: .6px;
+    }
+
+    .heading-left h2 {
+        margin: 2px 0 0;
+        color: var(--navy);
+        font-size: .82rem;
+    }
+
+    .heading-left p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .61rem;
+    }
+
+    .local-search {
+        width: 235px;
+        min-height: 37px;
+        padding: 0 9px;
+        border: 1px solid #dce3eb;
+        border-radius: 8px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .local-search input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #46566a;
+        font-size: .62rem;
+    }
+
+    .timeline {
+        padding: 16px;
+    }
+
+    .timeline-item {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .timeline-axis {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .timeline-dot {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        z-index: 2;
+    }
+
+    .timeline-dot.create {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .timeline-dot.update {
+        background: #fff6e4;
+        color: #a47517;
+    }
+
+    .timeline-dot.delete {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .timeline-dot.activate {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .timeline-dot.deactivate {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .timeline-dot.other {
+        background: #eaf2fb;
+        color: #356fa7;
+    }
+
+    .timeline-line {
+        width: 2px;
+        min-height: 22px;
+        flex: 1;
+        background: #e5ebf1;
+    }
+
+    .timeline-item:last-child
+    .timeline-line {
+        display: none;
+    }
+
+    .timeline-card {
+        margin-bottom: 13px;
+        padding: 12px;
+        border: 1px solid #e2e8ee;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .timeline-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .event-main {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .event-main strong,
+    .event-main span {
+        display: block;
+    }
+
+    .event-main strong {
+        color: #41546b;
+        font-size: .67rem;
+    }
+
+    .event-main span {
+        margin-top: 2px;
+        color: #8995a4;
+        font-size: .56rem;
+    }
+
+    .action-badge {
+        padding: 5px 7px;
+        border-radius: 999px;
+        font-size: .52rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .action-badge.create,
+    .action-badge.activate {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .action-badge.update {
+        background: #fff6e4;
+        color: #9b6a13;
+    }
+
+    .action-badge.delete,
+    .action-badge.deactivate {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .action-badge.other {
+        background: #eaf2fb;
+        color: #356fa7;
+    }
+
+    .detail-btn {
+        min-height: 33px;
+        padding: 0 9px;
+        border: 1px solid #cdddec;
+        border-radius: 8px;
+        background: #f2f7fb;
+        color: #4779a8;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .57rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .timeline-meta {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #edf1f5;
+        display: grid;
+        grid-template-columns:
+            repeat(3, minmax(0,1fr));
+        gap: 8px;
+    }
+
+    .timeline-meta > div {
+        padding: 8px;
+        border-radius: 8px;
+        background: #fafbfd;
+    }
+
+    .timeline-meta span,
+    .timeline-meta strong {
+        display: block;
+    }
+
+    .timeline-meta > div > span {
+        color: #8995a4;
+        font-size: .52rem;
+    }
+
+    .timeline-meta > div > strong {
+        margin-top: 3px;
+        color: #4b5e74;
+        font-size: .59rem;
+    }
+
+    .user-avatar {
+        width: 23px;
+        height: 23px;
+        margin-right: 4px;
+        border-radius: 6px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        font-size: .49rem;
+        font-weight: 900;
+        vertical-align: middle;
+    }
+
+    .history-footer {
+        padding: 11px 14px;
+        border-top: 1px solid #edf1f5;
+        background: #fafbfd;
+        color: #7f8d9e;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: .57rem;
+    }
+
+    .pagination-actions {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .page-btn {
+        min-height: 33px;
+        padding: 0 9px;
+        border: 1px solid #d6dee7;
+        border-radius: 7px;
+        background: #fff;
+        color: #59697b;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .57rem;
+        font-weight: 800;
+    }
+
+    .current-page {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #62758a;
+        font-weight: 800;
+    }
+
+    .empty-state {
+        min-height: 230px;
+        padding: 28px;
+        color: #8794a4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 15px;
+        background: #f0f4f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state h3 {
+        margin: 11px 0 0;
+        color: #506075;
+        font-size: .76rem;
+    }
+
+    .empty-state p {
+        margin: 5px 0 13px;
+        font-size: .6rem;
+    }
+
+    .primary-btn {
+        min-height: 38px;
+        padding: 0 12px;
+        border-radius: 8px;
+        background:
+            linear-gradient(
+                135deg,
+                #102947,
+                #17488e);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: .6rem;
+        font-weight: 800;
+    }
+
+    .d-none {
+        display: none !important;
+    }
+
+    @@media (max-width: 980px) {
+        .summary-grid {
+            grid-template-columns:
+                repeat(2, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 760px) {
+        .history-hero {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .panel-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .local-search {
+            width: 100%;
+        }
+
+        .timeline-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .history-footer {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .pagination-actions {
+            justify-content: space-between;
+        }
+    }
+
+    @@media (max-width: 560px) {
+        .history-hero {
+            padding: 20px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .timeline {
+            padding: 10px;
+        }
+
+        .timeline-item {
+            grid-template-columns: 34px minmax(0,1fr);
+            gap: 7px;
+        }
+
+        .timeline-dot {
+            width: 30px;
+            height: 30px;
+        }
+
+        .timeline-head {
+            flex-direction: column;
+        }
+
+        .detail-btn {
+            width: 100%;
+        }
+    }
+</style>

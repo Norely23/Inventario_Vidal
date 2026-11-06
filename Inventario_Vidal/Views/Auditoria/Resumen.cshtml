@@ -1,0 +1,2045 @@
+@using Inventario_Vidal.DTOs
+@model AuditoriaResumenDto
+
+@{
+    ViewData["Title"] = "Resumen de Auditoría";
+    ViewBag.Subtitle = "Estadísticas y métricas de actividad del sistema";
+
+    var porTabla =
+        Model.RegistrosPorTabla
+        ?? new Dictionary<string, int>();
+
+    var porAccion =
+        Model.RegistrosPorAccion
+        ?? new Dictionary<string, int>();
+
+    var porUsuario =
+        Model.RegistrosPorUsuario
+        ?? new Dictionary<string, int>();
+
+    var maxTabla =
+        porTabla.Any()
+            ? porTabla.Values.Max()
+            : 0;
+
+    var maxAccion =
+        porAccion.Any()
+            ? porAccion.Values.Max()
+            : 0;
+
+    var maxUsuario =
+        porUsuario.Any()
+            ? porUsuario.Values.Max()
+            : 0;
+
+    var usuariosConActividad =
+        porUsuario.Count;
+
+    string ClaseAccion(string? accion)
+    {
+        return accion?
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "crear"
+            or "insert"
+            or "insertar"
+                => "create",
+
+            "editar"
+            or "update"
+            or "actualizar"
+                => "update",
+
+            "eliminar"
+            or "delete"
+            or "borrar"
+                => "delete",
+
+            "activar"
+                => "activate",
+
+            "desactivar"
+                => "deactivate",
+
+            "login"
+            or "iniciar sesion"
+            or "iniciar sesión"
+                => "login",
+
+            "logout"
+            or "cerrar sesion"
+            or "cerrar sesión"
+                => "logout",
+
+            _ => "other"
+        };
+    }
+
+    string IconoAccion(string? accion)
+    {
+        return accion?
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "crear"
+            or "insert"
+            or "insertar"
+                => "plus-circle",
+
+            "editar"
+            or "update"
+            or "actualizar"
+                => "edit",
+
+            "eliminar"
+            or "delete"
+            or "borrar"
+                => "trash",
+
+            "activar"
+                => "check-circle",
+
+            "desactivar"
+                => "x-circle",
+
+            "login"
+            or "iniciar sesion"
+            or "iniciar sesión"
+                => "log-in",
+
+            "logout"
+            or "cerrar sesion"
+            or "cerrar sesión"
+                => "log-out",
+
+            _ => "info"
+        };
+    }
+
+    string ObtenerIniciales(string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+            return "S";
+
+        var partes =
+            nombre
+                .Trim()
+                .Split(
+                    ' ',
+                    StringSplitOptions.RemoveEmptyEntries);
+
+        if (partes.Length == 1)
+        {
+            return partes[0]
+                .Substring(0, 1)
+                .ToUpperInvariant();
+        }
+
+        return (
+            partes[0].Substring(0, 1) +
+            partes[^1].Substring(0, 1))
+            .ToUpperInvariant();
+    }
+}
+
+<div class="audit-summary-page">
+
+    <!-- ============================================================
+         HERO
+         ============================================================ -->
+
+    <section class="summary-hero">
+
+        <div class="hero-main">
+
+            <div class="hero-icon">
+
+                <svg class="icon icon-xl">
+                    <use href="#icon-chart-bar"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <div class="hero-eyebrow">
+                    AUDITORÍA Y CONTROL
+                </div>
+
+                <h1>
+                    Resumen de Auditoría
+                </h1>
+
+                <p>
+                    Estadísticas generales de actividad
+                    registrada en el sistema.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="hero-actions">
+
+            <a asp-action="Index"
+               class="hero-button outline">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-arrow-left"></use>
+                </svg>
+
+                Volver al historial
+
+            </a>
+
+            <button type="button"
+                    class="hero-button outline"
+                    onclick="window.location.reload()">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-refresh"></use>
+                </svg>
+
+                Actualizar
+
+            </button>
+
+            <button type="button"
+                    class="hero-button light"
+                    onclick="window.print()">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-print"></use>
+                </svg>
+
+                Imprimir
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- ============================================================
+         ALERTAS
+         ============================================================ -->
+    @if (TempData["MensajeExito"] != null)
+    {
+        <div class="audit-alert success">
+
+            <svg class="icon">
+                <use href="#icon-check-circle"></use>
+            </svg>
+
+            <div>
+
+                <strong>
+                    Operación completada
+                </strong>
+
+                <span>
+                    @TempData["MensajeExito"]
+                </span>
+
+            </div>
+
+            <button type="button"
+                    class="alert-close">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-x"></use>
+                </svg>
+
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="audit-alert danger">
+
+            <svg class="icon">
+                <use href="#icon-x-circle"></use>
+            </svg>
+
+            <div>
+
+                <strong>
+                    No se pudo cargar el resumen
+                </strong>
+
+                <span>
+                    @TempData["MensajeError"]
+                </span>
+
+            </div>
+
+            <button type="button"
+                    class="alert-close">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-x"></use>
+                </svg>
+
+            </button>
+
+        </div>
+    }
+
+    <!-- ============================================================
+         MÉTRICAS PRINCIPALES
+         ============================================================ -->
+
+    <section class="metrics-grid">
+
+        <article class="metric-card">
+
+            <div class="metric-icon blue">
+
+                <svg class="icon">
+                    <use href="#icon-clipboard-list"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Total registros
+                </span>
+
+                <strong>
+                    @Model.TotalRegistros.ToString("N0")
+                </strong>
+
+                <small>
+                    Auditorías acumuladas
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="metric-card">
+
+            <div class="metric-icon green">
+
+                <svg class="icon">
+                    <use href="#icon-calendar"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Hoy
+                </span>
+
+                <strong>
+                    @Model.RegistrosHoy.ToString("N0")
+                </strong>
+
+                <small>
+                    Registros del día
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="metric-card">
+
+            <div class="metric-icon gold">
+
+                <svg class="icon">
+                    <use href="#icon-calendar"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Esta semana
+                </span>
+
+                <strong>
+                    @Model.RegistrosSemana.ToString("N0")
+                </strong>
+
+                <small>
+                    Actividad semanal
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="metric-card">
+
+            <div class="metric-icon purple">
+
+                <svg class="icon">
+                    <use href="#icon-calendar"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Este mes
+                </span>
+
+                <strong>
+                    @Model.RegistrosMes.ToString("N0")
+                </strong>
+
+                <small>
+                    Actividad mensual
+                </small>
+
+            </div>
+
+        </article>
+
+    </section>
+
+    <!-- ============================================================
+         RESUMEN OPERATIVO
+         ============================================================ -->
+
+    <section class="overview-grid">
+
+        <article class="overview-card">
+
+            <div class="overview-icon">
+
+                <svg class="icon">
+                    <use href="#icon-database"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Tablas auditadas
+                </span>
+
+                <strong>
+                    @porTabla.Count
+                </strong>
+
+            </div>
+
+        </article>
+
+        <article class="overview-card">
+
+            <div class="overview-icon">
+
+                <svg class="icon">
+                    <use href="#icon-tag"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Tipos de acción
+                </span>
+
+                <strong>
+                    @porAccion.Count
+                </strong>
+
+            </div>
+
+        </article>
+
+        <article class="overview-card">
+
+            <div class="overview-icon">
+
+                <svg class="icon">
+                    <use href="#icon-users"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Usuarios con actividad
+                </span>
+
+                <strong>
+                    @usuariosConActividad
+                </strong>
+
+            </div>
+
+        </article>
+
+        <article class="overview-card last">
+
+            <div class="overview-icon">
+
+                <svg class="icon">
+                    <use href="#icon-clock"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Último registro
+                </span>
+
+                @if (Model.UltimoRegistro.HasValue)
+                {
+                    <strong>
+                        @Model.UltimoRegistro.Value.ToString("dd/MM/yyyy")
+                    </strong>
+
+                    <small>
+                        @Model.UltimoRegistro.Value.ToString("HH:mm:ss")
+                    </small>
+                }
+                else
+                {
+                    <strong>
+                        Sin registros
+                    </strong>
+
+                    <small>
+                        —
+                    </small>
+                }
+
+            </div>
+
+        </article>
+
+    </section>
+
+    <!-- ============================================================
+         DISTRIBUCIÓN
+         ============================================================ -->
+
+    <div class="summary-layout">
+
+        <!-- ========================================================
+             TABLAS AUDITADAS
+             ======================================================== -->
+
+        <section class="summary-card-large">
+
+            <div class="card-header">
+
+                <div class="card-heading">
+
+                    <div class="section-icon blue">
+
+                        <svg class="icon">
+                            <use href="#icon-database"></use>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            DISTRIBUCIÓN
+                        </span>
+
+                        <h2>
+                            Registros por tabla
+                        </h2>
+
+                        <p>
+                            Módulos con mayor cantidad
+                            de operaciones auditadas.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span class="header-count">
+                    @porTabla.Count
+                    @(porTabla.Count == 1
+                        ? "tabla"
+                        : "tablas")
+                </span>
+
+            </div>
+
+            <div class="card-body">
+
+                @if (porTabla.Any())
+                {
+                    <div class="ranking-list">
+
+                        @{
+                            var posicionTabla = 0;
+                        }
+
+                        @foreach (
+                            var item in porTabla
+                                .OrderByDescending(x => x.Value))
+                        {
+                            posicionTabla++;
+
+                            var porcentaje =
+                                Model.TotalRegistros > 0
+                                    ? Math.Round(
+                                        (decimal)item.Value /
+                                        Model.TotalRegistros *
+                                        100,
+                                        1)
+                                    : 0;
+
+                            var ancho =
+                                maxTabla > 0
+                                    ? Math.Round(
+                                        (decimal)item.Value /
+                                        maxTabla *
+                                        100,
+                                        1)
+                                    : 0;
+
+                            <article class="ranking-item">
+
+                                <div class="ranking-position">
+                                    @posicionTabla
+                                </div>
+
+                                <div class="ranking-content">
+
+                                    <div class="ranking-title">
+
+                                        <div>
+
+                                            <strong>
+                                                @item.Key
+                                            </strong>
+
+                                            <span>
+                                                @item.Value.ToString("N0")
+                                                @(item.Value == 1
+                                                    ? "registro"
+                                                    : "registros")
+                                            </span>
+
+                                        </div>
+
+                                        <strong class="ranking-percent">
+                                            @porcentaje.ToString("0.#")%
+                                        </strong>
+
+                                    </div>
+
+                                    <div class="progress-track">
+
+                                        <div class="progress-value blue"
+                                             style="width:@ancho.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%">
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </article>
+                        }
+
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+
+                            <svg class="icon icon-xl">
+                                <use href="#icon-database"></use>
+                            </svg>
+
+                        </div>
+
+                        <strong>
+                            Sin datos por tabla
+                        </strong>
+
+                        <span>
+                            Aún no existen registros suficientes
+                            para generar esta distribución.
+                        </span>
+
+                    </div>
+                }
+
+            </div>
+
+        </section>
+
+        <!-- ========================================================
+             ACCIONES
+             ======================================================== -->
+
+        <section class="summary-card-large">
+
+            <div class="card-header">
+
+                <div class="card-heading">
+
+                    <div class="section-icon gold">
+
+                        <svg class="icon">
+                            <use href="#icon-tag"></use>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            OPERACIONES
+                        </span>
+
+                        <h2>
+                            Registros por acción
+                        </h2>
+
+                        <p>
+                            Distribución según el tipo
+                            de operación registrada.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span class="header-count">
+                    @porAccion.Count
+                    @(porAccion.Count == 1
+                        ? "acción"
+                        : "acciones")
+                </span>
+
+            </div>
+
+            <div class="card-body">
+
+                @if (porAccion.Any())
+                {
+                    <div class="action-grid">
+
+                        @foreach (
+                            var item in porAccion
+                                .OrderByDescending(x => x.Value))
+                        {
+                            var porcentaje =
+                                Model.TotalRegistros > 0
+                                    ? Math.Round(
+                                        (decimal)item.Value /
+                                        Model.TotalRegistros *
+                                        100,
+                                        1)
+                                    : 0;
+
+                            var ancho =
+                                maxAccion > 0
+                                    ? Math.Round(
+                                        (decimal)item.Value /
+                                        maxAccion *
+                                        100,
+                                        1)
+                                    : 0;
+
+                            var clase =
+                                ClaseAccion(item.Key);
+
+                            <article class="action-stat @clase">
+
+                                <div class="action-stat-top">
+
+                                    <div class="action-stat-icon">
+
+                                        <svg class="icon">
+                                            <use href="#icon-@IconoAccion(item.Key)"></use>
+                                        </svg>
+
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            @item.Key.ToUpperInvariant()
+                                        </strong>
+
+                                        <span>
+                                            @item.Value.ToString("N0")
+                                            @(item.Value == 1
+                                                ? "registro"
+                                                : "registros")
+                                        </span>
+
+                                    </div>
+
+                                    <b>
+                                        @porcentaje.ToString("0.#")%
+                                    </b>
+
+                                </div>
+
+                                <div class="progress-track">
+
+                                    <div class="progress-value action"
+                                         style="width:@ancho.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%">
+                                    </div>
+
+                                </div>
+
+                            </article>
+                        }
+
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+
+                            <svg class="icon icon-xl">
+                                <use href="#icon-tag"></use>
+                            </svg>
+
+                        </div>
+
+                        <strong>
+                            Sin datos por acción
+                        </strong>
+
+                        <span>
+                            No existen operaciones auditadas
+                            para mostrar.
+                        </span>
+
+                    </div>
+                }
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- ============================================================
+         USUARIOS
+         ============================================================ -->
+
+    <section class="users-summary-card">
+
+        <div class="card-header">
+
+            <div class="card-heading">
+
+                <div class="section-icon purple">
+
+                    <svg class="icon">
+                        <use href="#icon-users"></use>
+                    </svg>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        ACTIVIDAD
+                    </span>
+
+                    <h2>
+                        Registros por usuario
+                    </h2>
+
+                    <p>
+                        Participación de los usuarios
+                        en operaciones auditadas.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <span class="header-count">
+                @usuariosConActividad
+                @(usuariosConActividad == 1
+                    ? "usuario"
+                    : "usuarios")
+            </span>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (porUsuario.Any())
+            {
+                <div class="users-ranking">
+
+                    @{
+                        var posicionUsuario = 0;
+                    }
+
+                    @foreach (
+                        var item in porUsuario
+                            .OrderByDescending(x => x.Value))
+                    {
+                        posicionUsuario++;
+
+                        var porcentaje =
+                            Model.TotalRegistros > 0
+                                ? Math.Round(
+                                    (decimal)item.Value /
+                                    Model.TotalRegistros *
+                                    100,
+                                    1)
+                                : 0;
+
+                        var ancho =
+                            maxUsuario > 0
+                                ? Math.Round(
+                                    (decimal)item.Value /
+                                    maxUsuario *
+                                    100,
+                                    1)
+                                : 0;
+
+                        <article class="user-stat-row">
+
+                            <div class="user-position">
+                                @posicionUsuario
+                            </div>
+
+                            <div class="user-avatar">
+                                @ObtenerIniciales(item.Key)
+                            </div>
+
+                            <div class="user-stat-main">
+
+                                <div class="user-stat-title">
+
+                                    <div>
+
+                                        <strong>
+                                            @item.Key
+                                        </strong>
+
+                                        <span>
+                                            @item.Value.ToString("N0")
+                                            @(item.Value == 1
+                                                ? "operación registrada"
+                                                : "operaciones registradas")
+                                        </span>
+
+                                    </div>
+
+                                    <strong class="user-percent">
+                                        @porcentaje.ToString("0.#")%
+                                    </strong>
+
+                                </div>
+
+                                <div class="progress-track">
+
+                                    <div class="progress-value purple"
+                                         style="width:@ancho.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%">
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+
+                        <svg class="icon icon-xl">
+                            <use href="#icon-users"></use>
+                        </svg>
+
+                    </div>
+
+                    <strong>
+                        Sin actividad por usuario
+                    </strong>
+
+                    <span>
+                        No hay usuarios asociados a registros
+                        de auditoría actualmente.
+                    </span>
+
+                </div>
+            }
+
+        </div>
+
+    </section>
+
+    <!-- ============================================================
+         INTERPRETACIÓN DEL RESUMEN
+         ============================================================ -->
+
+    <section class="info-note">
+
+        <div class="info-note-icon">
+
+            <svg class="icon">
+                <use href="#icon-info"></use>
+            </svg>
+
+        </div>
+
+        <div>
+
+            <strong>
+                Alcance de estas métricas
+            </strong>
+
+            <p>
+                Los valores mostrados corresponden a los
+                registros almacenados actualmente en la tabla
+                de auditoría. Las cifras de hoy, semana y mes
+                se calculan directamente a partir de la fecha
+                de cada evento.
+            </p>
+
+        </div>
+
+    </section>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
+
+                // ========================================================
+                // ALERTAS
+                // ========================================================
+
+                document
+                    .querySelectorAll(
+                        '.alert-close')
+                    .forEach(
+                        function(button) {
+
+                            button.addEventListener(
+                                'click',
+                                function() {
+
+                                    const alert =
+                                        button.closest(
+                                            '.audit-alert');
+
+                                    if (alert) {
+                                        alert.remove();
+                                    }
+                                });
+                        });
+
+                document
+                    .querySelectorAll(
+                        '.audit-alert')
+                    .forEach(
+                        function(alert) {
+
+                            setTimeout(
+                                function() {
+
+                                    if (!alert.isConnected) {
+                                        return;
+                                    }
+
+                                    alert.classList.add(
+                                        'closing');
+
+                                    setTimeout(
+                                        function() {
+
+                                            if (alert.isConnected) {
+                                                alert.remove();
+                                            }
+
+                                        },
+                                        350);
+
+                                },
+                                6000);
+                        });
+
+            });
+
+    </script>
+}
+
+<style>
+
+    /* ================================================================
+           BASE
+           ================================================================ */
+
+    .audit-summary-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #344357;
+        --muted: #7d8999;
+        --success: #168957;
+        --danger: #d1475b;
+        --warning: #c58918;
+    }
+
+    /* ================================================================
+           HERO
+           ================================================================ */
+
+    .summary-hero {
+        min-height: 118px;
+        padding: 23px 30px;
+        margin-bottom: 17px;
+        border-radius: 20px;
+        background: linear-gradient( 100deg, #102947 0%, #17488e 49%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .summary-hero::after {
+            content: "";
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            top: -145px;
+            right: -85px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-main {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.11);
+        border: 1px solid rgba(255,255,255,.13);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-eyebrow {
+        margin-bottom: 3px;
+        color: rgba(255,255,255,.55);
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .summary-hero h1 {
+        margin: 0;
+        font-size: 1.55rem;
+        font-weight: 800;
+    }
+
+    .summary-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.72);
+        font-size: .73rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-button {
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .66rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+        .hero-button.light {
+            border: 1px solid white;
+            background: white;
+            color: var(--navy);
+        }
+
+        .hero-button.outline {
+            border: 1px solid rgba(255,255,255,.28);
+            background: rgba(255,255,255,.05);
+            color: white;
+        }
+
+        .hero-button.light:hover {
+            color: var(--navy);
+            background: #f3f7fb;
+        }
+
+        .hero-button.outline:hover {
+            color: white;
+            background: rgba(255,255,255,.12);
+        }
+
+    /* ================================================================
+           ALERTAS
+           ================================================================ */
+
+    .audit-alert {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        border-radius: 11px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        transition: opacity .35s ease, transform .35s ease;
+    }
+
+        .audit-alert.success {
+            background: #edf9f3;
+            color: #146f48;
+            border-left: 4px solid var(--success);
+        }
+
+        .audit-alert.danger {
+            background: #fff1f3;
+            color: #a73547;
+            border-left: 4px solid var(--danger);
+        }
+
+        .audit-alert > div {
+            flex: 1;
+        }
+
+        .audit-alert strong,
+        .audit-alert span {
+            display: block;
+        }
+
+        .audit-alert strong {
+            font-size: .69rem;
+        }
+
+        .audit-alert span {
+            margin-top: 2px;
+            font-size: .61rem;
+        }
+
+        .audit-alert.closing {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+    .alert-close {
+        border: none;
+        padding: 2px;
+        background: transparent;
+        color: currentColor;
+        opacity: .65;
+        cursor: pointer;
+    }
+
+    /* ================================================================
+           METRICAS
+           ================================================================ */
+
+    .metrics-grid {
+        margin-bottom: 13px;
+        display: grid;
+        grid-template-columns: repeat( 4, minmax(0,1fr));
+        gap: 12px;
+    }
+
+    .metric-card {
+        min-height: 87px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow: 0 4px 15px rgba(16,41,71,.035);
+    }
+
+    .metric-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .metric-icon.blue {
+            background: #eaf2fb;
+            color: #306ca7;
+        }
+
+        .metric-icon.green {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+        .metric-icon.gold {
+            background: #fff7e5;
+            color: #a47517;
+        }
+
+        .metric-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+    .metric-card span {
+        display: block;
+        color: #8995a5;
+        font-size: .54rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .45px;
+    }
+
+    .metric-card strong {
+        display: block;
+        margin-top: 2px;
+        color: var(--navy);
+        font-size: 1.25rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .metric-card small {
+        display: block;
+        margin-top: 4px;
+        color: #99a3b0;
+        font-size: .5rem;
+    }
+
+    /* ================================================================
+           OVERVIEW
+           ================================================================ */
+
+    .overview-grid {
+        margin-bottom: 17px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: white;
+        display: grid;
+        grid-template-columns: repeat( 4, minmax(0,1fr));
+        box-shadow: 0 4px 15px rgba(16,41,71,.03);
+    }
+
+    .overview-card {
+        min-height: 65px;
+        padding: 8px 13px;
+        border-right: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+        .overview-card.last {
+            border-right: none;
+        }
+
+    .overview-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #f0f4f8;
+        color: #5b7692;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .overview-card span {
+        display: block;
+        color: #8995a4;
+        font-size: .52rem;
+    }
+
+    .overview-card strong {
+        display: block;
+        margin-top: 2px;
+        color: #3f4f64;
+        font-size: .72rem;
+    }
+
+    .overview-card small {
+        display: block;
+        margin-top: 1px;
+        color: #9aa3af;
+        font-size: .49rem;
+    }
+
+    /* ================================================================
+           LAYOUT
+           ================================================================ */
+
+    .summary-layout {
+        margin-bottom: 17px;
+        display: grid;
+        grid-template-columns: repeat( 2, minmax(0,1fr));
+        gap: 17px;
+    }
+
+    .summary-card-large,
+    .users-summary-card,
+    .info-note {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+    }
+
+    /* ================================================================
+           CARD HEADER
+           ================================================================ */
+
+    .card-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .card-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .section-icon.blue {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .section-icon.gold {
+            background: #fff7e5;
+            color: #a47517;
+        }
+
+        .section-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+    .card-heading span {
+        display: block;
+        color: #929dab;
+        font-size: .5rem;
+        font-weight: 800;
+        letter-spacing: .75px;
+    }
+
+    .card-heading h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .86rem;
+        font-weight: 800;
+    }
+
+    .card-heading p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .57rem;
+    }
+
+    .header-count {
+        padding: 4px 7px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #5b7188;
+        font-size: .52rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .card-body {
+        padding: 17px;
+    }
+
+    /* ================================================================
+           RANKING
+           ================================================================ */
+
+    .ranking-list {
+        display: grid;
+        gap: 0;
+    }
+
+    .ranking-item {
+        padding: 11px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: grid;
+        grid-template-columns: 30px 1fr;
+        gap: 9px;
+        align-items: center;
+    }
+
+        .ranking-item:first-child {
+            padding-top: 0;
+        }
+
+        .ranking-item:last-child {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+    .ranking-position {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #edf3f8;
+        color: #58728e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .56rem;
+        font-weight: 850;
+    }
+
+    .ranking-content {
+        min-width: 0;
+    }
+
+    .ranking-title {
+        margin-bottom: 6px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+        .ranking-title strong {
+            display: block;
+            color: #425166;
+            font-size: .62rem;
+        }
+
+        .ranking-title span {
+            display: block;
+            margin-top: 1px;
+            color: #929dab;
+            font-size: .51rem;
+        }
+
+    .ranking-percent {
+        color: #356fa7 !important;
+        font-size: .58rem !important;
+        white-space: nowrap;
+    }
+
+    /* ================================================================
+           PROGRESO
+           ================================================================ */
+
+    .progress-track {
+        width: 100%;
+        height: 6px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e8edf3;
+    }
+
+    .progress-value {
+        height: 100%;
+        border-radius: inherit;
+        transition: width .25s ease;
+    }
+
+        .progress-value.blue {
+            background: linear-gradient( 90deg, #17488e, #226cc2);
+        }
+
+        .progress-value.purple {
+            background: linear-gradient( 90deg, #69509c, #8a6bbb);
+        }
+
+    /* ================================================================
+           ACTION GRID
+           ================================================================ */
+
+    .action-grid {
+        display: grid;
+        gap: 9px;
+    }
+
+    .action-stat {
+        padding: 11px;
+        border: 1px solid #e4eaf0;
+        border-radius: 9px;
+        background: #fafbfd;
+    }
+
+    .action-stat-top {
+        margin-bottom: 8px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .action-stat-icon {
+        width: 31px;
+        height: 31px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-stat strong {
+        display: block;
+        color: #435267;
+        font-size: .59rem;
+    }
+
+    .action-stat span {
+        display: block;
+        margin-top: 1px;
+        color: #929dab;
+        font-size: .5rem;
+    }
+
+    .action-stat b {
+        font-size: .56rem;
+    }
+
+    .action-stat.create .action-stat-icon,
+    .action-stat.activate .action-stat-icon {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .action-stat.create b,
+    .action-stat.activate b {
+        color: #168957;
+    }
+
+    .action-stat.create .progress-value.action,
+    .action-stat.activate .progress-value.action {
+        background: #168957;
+    }
+
+    .action-stat.update .action-stat-icon {
+        background: #fff7e5;
+        color: #a47517;
+    }
+
+    .action-stat.update b {
+        color: #a47517;
+    }
+
+    .action-stat.update .progress-value.action {
+        background: #d39a2a;
+    }
+
+    .action-stat.delete .action-stat-icon,
+    .action-stat.deactivate .action-stat-icon {
+        background: #fff0f2;
+        color: #c34d5f;
+    }
+
+    .action-stat.delete b,
+    .action-stat.deactivate b {
+        color: #c34d5f;
+    }
+
+    .action-stat.delete .progress-value.action,
+    .action-stat.deactivate .progress-value.action {
+        background: #c34d5f;
+    }
+
+    .action-stat.login .action-stat-icon {
+        background: #eaf2fb;
+        color: #356fa7;
+    }
+
+    .action-stat.login b {
+        color: #356fa7;
+    }
+
+    .action-stat.login .progress-value.action {
+        background: #356fa7;
+    }
+
+    .action-stat.logout .action-stat-icon,
+    .action-stat.other .action-stat-icon {
+        background: #edf0f4;
+        color: #687587;
+    }
+
+    .action-stat.logout b,
+    .action-stat.other b {
+        color: #687587;
+    }
+
+    .action-stat.logout .progress-value.action,
+    .action-stat.other .progress-value.action {
+        background: #7c8897;
+    }
+
+    /* ================================================================
+           USUARIOS
+           ================================================================ */
+
+    .users-summary-card {
+        margin-bottom: 17px;
+    }
+
+    .users-ranking {
+        display: grid;
+    }
+
+    .user-stat-row {
+        padding: 11px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: grid;
+        grid-template-columns: 28px 36px 1fr;
+        gap: 9px;
+        align-items: center;
+    }
+
+        .user-stat-row:first-child {
+            padding-top: 0;
+        }
+
+        .user-stat-row:last-child {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+    .user-position {
+        width: 27px;
+        height: 27px;
+        border-radius: 8px;
+        background: #f0ebf8;
+        color: #7554aa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .53rem;
+        font-weight: 850;
+    }
+
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356c9f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .56rem;
+        font-weight: 850;
+    }
+
+    .user-stat-main {
+        min-width: 0;
+    }
+
+    .user-stat-title {
+        margin-bottom: 6px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+        .user-stat-title strong {
+            display: block;
+            color: #435267;
+            font-size: .61rem;
+        }
+
+        .user-stat-title span {
+            display: block;
+            margin-top: 1px;
+            color: #929dab;
+            font-size: .5rem;
+        }
+
+    .user-percent {
+        color: #7554aa !important;
+        font-size: .57rem !important;
+        white-space: nowrap;
+    }
+
+    /* ================================================================
+           EMPTY
+           ================================================================ */
+
+    .empty-state {
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: #edf3f8;
+        color: #7790a8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state strong {
+        margin-top: 10px;
+        color: #435267;
+        font-size: .66rem;
+    }
+
+    .empty-state span {
+        max-width: 340px;
+        margin-top: 3px;
+        color: #8995a4;
+        font-size: .55rem;
+        line-height: 1.45;
+    }
+
+    /* ================================================================
+           NOTA
+           ================================================================ */
+
+    .info-note {
+        padding: 13px 15px;
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+    }
+
+    .info-note-icon {
+        width: 33px;
+        height: 33px;
+        border-radius: 8px;
+        background: #eef5fd;
+        color: #49709a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .info-note strong {
+        display: block;
+        color: #405066;
+        font-size: .61rem;
+    }
+
+    .info-note p {
+        margin: 3px 0 0;
+        color: #7f8c9d;
+        font-size: .53rem;
+        line-height: 1.45;
+    }
+
+    /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+
+    @@media (max-width: 1000px) {
+
+        .summary-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .overview-grid {
+            grid-template-columns: repeat( 2, minmax(0,1fr));
+        }
+
+        .overview-card:nth-child(2) {
+            border-right: none;
+        }
+
+        .overview-card:nth-child(-n+2) {
+            border-bottom: 1px solid #edf1f5;
+        }
+    }
+
+    @@media (max-width: 850px) {
+
+        .metrics-grid {
+            grid-template-columns: repeat( 2, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 720px) {
+
+        .summary-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .hero-button {
+            flex: 1;
+        }
+    }
+
+    @@media (max-width: 520px) {
+
+        .summary-hero {
+            padding: 20px;
+        }
+
+        .hero-main {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .summary-hero h1 {
+            font-size: 1.28rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-button {
+            width: 100%;
+        }
+
+        .metrics-grid,
+        .overview-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .overview-card {
+            border-right: none;
+            border-bottom: 1px solid #edf1f5;
+        }
+
+            .overview-card.last {
+                border-bottom: none;
+            }
+
+        .user-stat-row {
+            grid-template-columns: 28px 35px 1fr;
+        }
+
+        .card-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+
+    /* ================================================================
+           PRINT
+           ================================================================ */
+
+    @@media print {
+
+        .hero-actions,
+        .audit-alert {
+            display: none !important;
+        }
+
+        .summary-hero {
+            background: white !important;
+            color: #102947 !important;
+            border: 1px solid #dce3eb;
+        }
+
+            .hero-eyebrow,
+            .summary-hero p {
+                color: #748196 !important;
+            }
+
+        .metric-card,
+        .overview-grid,
+        .summary-card-large,
+        .users-summary-card,
+        .info-note {
+            box-shadow: none !important;
+        }
+
+        .summary-layout {
+            grid-template-columns: repeat( 2, minmax(0,1fr));
+        }
+    }
+
+</style>

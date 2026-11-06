@@ -1,0 +1,2303 @@
+@using Inventario_Vidal.DTOs
+@model List<AuditoriaDto>
+
+@{
+    ViewData["Title"] = "Auditoría del Sistema";
+    ViewBag.Subtitle = "Trazabilidad de cambios y actividades";
+
+    var registros =
+        Model ?? new List<AuditoriaDto>();
+
+    var filtro =
+        ViewBag.Filtro as AuditoriaFiltroDto
+        ?? new AuditoriaFiltroDto();
+
+    var totalPagina =
+        registros.Count;
+
+    var registrosCreacion =
+        registros.Count(r =>
+            new[]
+            {
+                "crear",
+                "insert",
+                "insertar"
+            }
+            .Contains(
+                r.Accion?.ToLowerInvariant()));
+
+    var registrosModificacion =
+        registros.Count(r =>
+            new[]
+            {
+                "editar",
+                "update",
+                "actualizar"
+            }
+            .Contains(
+                r.Accion?.ToLowerInvariant()));
+
+    var registrosEliminacion =
+        registros.Count(r =>
+            new[]
+            {
+                "eliminar",
+                "delete",
+                "borrar"
+            }
+            .Contains(
+                r.Accion?.ToLowerInvariant()));
+
+    var usuariosPagina =
+        registros
+            .Where(r =>
+                r.IdUsuario.HasValue)
+            .Select(r => r.IdUsuario)
+            .Distinct()
+            .Count();
+
+    var paginaActual =
+        filtro.Page <= 0
+            ? 1
+            : filtro.Page;
+
+    var pageSize =
+        filtro.PageSize <= 0
+            ? 30
+            : filtro.PageSize;
+
+    var puedeAvanzar =
+        registros.Count >= pageSize;
+
+    string ObtenerIniciales(
+        string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+            return "S";
+
+        var partes =
+            nombre
+                .Trim()
+                .Split(
+                    ' ',
+                    StringSplitOptions
+                        .RemoveEmptyEntries);
+
+        if (partes.Length == 1)
+        {
+            return partes[0]
+                .Substring(0, 1)
+                .ToUpperInvariant();
+        }
+
+        return (
+            partes[0].Substring(0, 1) +
+            partes[^1].Substring(0, 1))
+            .ToUpperInvariant();
+    }
+
+    string ClaseAccion(
+        string? accion)
+    {
+        return accion?
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "crear"
+            or "insert"
+            or "insertar"
+                => "create",
+
+            "editar"
+            or "update"
+            or "actualizar"
+                => "update",
+
+            "eliminar"
+            or "delete"
+            or "borrar"
+                => "delete",
+
+            "activar"
+                => "activate",
+
+            "desactivar"
+                => "deactivate",
+
+            "login"
+            or "iniciar sesion"
+            or "iniciar sesión"
+                => "login",
+
+            "logout"
+            or "cerrar sesion"
+            or "cerrar sesión"
+                => "logout",
+
+            _ => "other"
+        };
+    }
+
+    string IconoAccion(
+        string? accion)
+    {
+        return accion?
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "crear"
+            or "insert"
+            or "insertar"
+                => "plus",
+
+            "editar"
+            or "update"
+            or "actualizar"
+                => "edit",
+
+            "eliminar"
+            or "delete"
+            or "borrar"
+                => "trash",
+
+            "activar"
+                => "check-circle",
+
+            "desactivar"
+                => "x-circle",
+
+            "login"
+            or "iniciar sesion"
+            or "iniciar sesión"
+                => "user",
+
+            "logout"
+            or "cerrar sesion"
+            or "cerrar sesión"
+                => "user",
+
+            _ => "info"
+        };
+    }
+}
+
+<div class="audit-page">
+
+    <!-- ============================================================
+         HERO
+         ============================================================ -->
+
+    <section class="audit-hero">
+
+        <div class="hero-main">
+
+            <div class="hero-icon">
+
+                <svg class="icon icon-xl">
+                    <use href="#icon-history"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <div class="hero-eyebrow">
+                    SEGURIDAD Y TRAZABILIDAD
+                </div>
+
+                <h1>
+                    Auditoría del Sistema
+                </h1>
+
+                <p>
+                    Consulta los cambios y operaciones
+                    registrados dentro del sistema logístico.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="hero-actions">
+
+            <a asp-action="Resumen"
+               class="hero-btn light">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-chart-bar"></use>
+                </svg>
+
+                Ver resumen
+
+            </a>
+
+            <button type="button"
+                    class="hero-btn outline"
+                    onclick="window.location.reload()">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-refresh"></use>
+                </svg>
+
+                Actualizar
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- ============================================================
+         ALERTAS
+         ============================================================ -->
+    @if (TempData["MensajeExito"] != null)
+    {
+        <div class="audit-alert success">
+
+            <svg class="icon">
+                <use href="#icon-check-circle"></use>
+            </svg>
+
+            <div>
+
+                <strong>
+                    Operación completada
+                </strong>
+
+                <span>
+                    @TempData["MensajeExito"]
+                </span>
+
+            </div>
+
+            <button type="button"
+                    class="alert-close">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-x"></use>
+                </svg>
+
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="audit-alert danger">
+
+            <svg class="icon">
+                <use href="#icon-x-circle"></use>
+            </svg>
+
+            <div>
+
+                <strong>
+                    No se pudo completar la operación
+                </strong>
+
+                <span>
+                    @TempData["MensajeError"]
+                </span>
+
+            </div>
+
+            <button type="button"
+                    class="alert-close">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-x"></use>
+                </svg>
+
+            </button>
+
+        </div>
+    }
+
+    <!-- ============================================================
+         MÉTRICAS DE LA PÁGINA ACTUAL
+         ============================================================ -->
+
+    <section class="metrics-grid">
+
+        <article class="metric-card">
+
+            <div class="metric-icon blue">
+
+                <svg class="icon">
+                    <use href="#icon-list"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Registros mostrados
+                </span>
+
+                <strong>
+                    @totalPagina
+                </strong>
+
+                <small>
+                    Página actual
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="metric-card">
+
+            <div class="metric-icon green">
+
+                <svg class="icon">
+                    <use href="#icon-plus"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Creaciones
+                </span>
+
+                <strong>
+                    @registrosCreacion
+                </strong>
+
+                <small>
+                    En esta página
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="metric-card">
+
+            <div class="metric-icon gold">
+
+                <svg class="icon">
+                    <use href="#icon-edit"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Modificaciones
+                </span>
+
+                <strong>
+                    @registrosModificacion
+                </strong>
+
+                <small>
+                    En esta página
+                </small>
+
+            </div>
+
+        </article>
+
+        <article class="metric-card">
+
+            <div class="metric-icon purple">
+
+                <svg class="icon">
+                    <use href="#icon-users"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Usuarios
+                </span>
+
+                <strong>
+                    @usuariosPagina
+                </strong>
+
+                <small>
+                    Con actividad visible
+                </small>
+
+            </div>
+
+        </article>
+
+    </section>
+
+    <!-- ============================================================
+         FILTROS
+         ============================================================ -->
+
+    <section class="filter-card">
+
+        <div class="filter-header">
+
+            <div class="filter-title">
+
+                <div class="section-icon">
+
+                    <svg class="icon">
+                        <use href="#icon-search"></use>
+                    </svg>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        CONSULTA
+                    </span>
+
+                    <h2>
+                        Filtros de auditoría
+                    </h2>
+
+                    <p>
+                        Limita los registros por módulo,
+                        acción, usuario o fecha.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <button type="button"
+                    class="filter-toggle"
+                    id="btnToggleFilters">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-search"></use>
+                </svg>
+
+                Filtros
+
+            </button>
+
+        </div>
+
+        <form asp-action="Index"
+              method="get"
+              id="filterForm"
+              class="filter-body">
+
+            <input type="hidden"
+                   name="page"
+                   value="1" />
+
+            <!-- TABLA -->
+
+            <div class="filter-field">
+
+                <label for="tabla">
+                    Tabla / módulo
+                </label>
+
+                <select id="tabla"
+                        name="tabla"
+                        class="audit-control">
+
+                    <option value="">
+                        Todas las tablas
+                    </option>
+
+                    @foreach (
+                        var tabla in filtro
+                            .TablasDisponibles)
+                    {
+                        <option value="@tabla"
+                                selected="@(filtro.Tabla == tabla)">
+
+                            @tabla
+
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+            <!-- ACCIÓN -->
+
+            <div class="filter-field">
+
+                <label for="accion">
+                    Acción
+                </label>
+
+                <select id="accion"
+                        name="accion"
+                        class="audit-control">
+
+                    <option value="">
+                        Todas las acciones
+                    </option>
+
+                    @foreach (
+                        var accion in filtro
+                            .AccionesDisponibles)
+                    {
+                        <option value="@accion"
+                                selected="@(filtro.Accion == accion)">
+
+                            @accion
+
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+            <!-- USUARIO -->
+
+            <div class="filter-field">
+
+                <label for="usuarioId">
+                    Usuario
+                </label>
+
+                <select id="usuarioId"
+                        name="usuarioId"
+                        class="audit-control">
+
+                    <option value="">
+                        Todos los usuarios
+                    </option>
+
+                    @foreach (
+                        var usuario in filtro
+                            .UsuariosDisponibles
+                            .OrderBy(x => x.Value))
+                    {
+                        <option value="@usuario.Key"
+                                selected="@(filtro.UsuarioId == usuario.Key)">
+
+                            @usuario.Value
+
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+            <!-- DESDE -->
+
+            <div class="filter-field">
+
+                <label for="desde">
+                    Desde
+                </label>
+
+                <input id="desde"
+                       name="desde"
+                       type="date"
+                       value="@(filtro.Desde?.ToString("yyyy-MM-dd"))"
+                       class="audit-control" />
+
+            </div>
+
+            <!-- HASTA -->
+
+            <div class="filter-field">
+
+                <label for="hasta">
+                    Hasta
+                </label>
+
+                <input id="hasta"
+                       name="hasta"
+                       type="date"
+                       value="@(filtro.Hasta?.ToString("yyyy-MM-dd"))"
+                       class="audit-control" />
+
+            </div>
+
+            <!-- TAMAÑO -->
+
+            <div class="filter-field">
+
+                <label for="pageSize">
+                    Registros
+                </label>
+
+                <select id="pageSize"
+                        name="pageSize"
+                        class="audit-control">
+
+                    <option value="15"
+                            selected="@(pageSize == 15)">
+                        15
+                    </option>
+
+                    <option value="30"
+                            selected="@(pageSize == 30)">
+                        30
+                    </option>
+
+                    <option value="50"
+                            selected="@(pageSize == 50)">
+                        50
+                    </option>
+
+                    <option value="100"
+                            selected="@(pageSize == 100)">
+                        100
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="filter-actions">
+
+                <a asp-action="Index"
+                   class="btn-secondary">
+
+                    Limpiar
+
+                </a>
+
+                <button type="submit"
+                        class="btn-primary">
+
+                    <svg class="icon icon-sm">
+                        <use href="#icon-search"></use>
+                    </svg>
+
+                    Aplicar filtros
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+    <!-- ============================================================
+         LISTADO
+         ============================================================ -->
+
+    <section class="audit-card">
+
+        <div class="audit-card-header">
+
+            <div class="card-heading">
+
+                <div class="section-icon">
+
+                    <svg class="icon">
+                        <use href="#icon-history"></use>
+                    </svg>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        TRAZABILIDAD
+                    </span>
+
+                    <h2>
+                        Historial de operaciones
+                    </h2>
+
+                    <p>
+                        Página @paginaActual ·
+                        @totalPagina
+                        @(totalPagina == 1
+                            ? "registro visible"
+                            : "registros visibles")
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="table-tools">
+
+                <div class="local-search">
+
+                    <svg class="icon icon-sm">
+                        <use href="#icon-search"></use>
+                    </svg>
+
+                    <input type="search"
+                           id="localSearch"
+                           placeholder="Buscar en esta página..."
+                           autocomplete="off" />
+
+                    <button type="button"
+                            id="btnClearLocal"
+                            style="display:none;">
+
+                        <svg class="icon icon-sm">
+                            <use href="#icon-x"></use>
+                        </svg>
+
+                    </button>
+
+                </div>
+
+                <a asp-action="ExportarExcel"
+                   asp-route-tabla="@filtro.Tabla"
+                   asp-route-accion="@filtro.Accion"
+                   asp-route-usuarioId="@filtro.UsuarioId"
+                   asp-route-desde="@filtro.Desde"
+                   asp-route-hasta="@filtro.Hasta"
+                   class="coming-button"
+                   title="La exportación está pendiente de implementación">
+
+                    <svg class="icon icon-sm">
+                        <use href="#icon-info"></use>
+                    </svg>
+
+                    Excel próximamente
+
+                </a>
+
+            </div>
+
+        </div>
+
+        @if (registros.Any())
+        {
+            <div class="table-wrap">
+
+                <table class="audit-table"
+                       id="auditTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Fecha y hora
+                            </th>
+
+                            <th>
+                                Usuario
+                            </th>
+
+                            <th>
+                                Tabla
+                            </th>
+
+                            <th>
+                                Acción
+                            </th>
+
+                            <th>
+                                Registro
+                            </th>
+
+                            <th>
+                                Resumen
+                            </th>
+
+                            <th class="text-center">
+                                Detalle
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in registros)
+                        {
+                            var clase =
+                                ClaseAccion(
+                                    item.Accion);
+
+                            <tr>
+
+                                <!-- FECHA -->
+
+                                <td>
+
+                                    <div class="date-cell">
+
+                                        <strong>
+                                            @item.FechaHora.ToString("dd/MM/yyyy")
+                                        </strong>
+
+                                        <span>
+                                            @item.FechaHora.ToString("HH:mm:ss")
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <!-- USUARIO -->
+
+                                <td>
+
+                                    <div class="user-cell">
+
+                                        <div class="user-avatar">
+
+                                            @ObtenerIniciales(
+                                                item.UsuarioNombre)
+
+                                        </div>
+
+                                        <div>
+
+                                            <strong>
+                                                @(string.IsNullOrWhiteSpace(
+                                                    item.UsuarioNombre)
+                                                    ? "Sistema"
+                                                    : item.UsuarioNombre)
+                                            </strong>
+
+                                            <span>
+                                                @(item.IdUsuario.HasValue
+                                                    ? $"Usuario #{item.IdUsuario}"
+                                                    : "Proceso del sistema")
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <!-- TABLA -->
+
+                                <td>
+
+                                    <span class="table-badge">
+
+                                        <svg class="icon icon-sm">
+                                            <use href="#icon-list"></use>
+                                        </svg>
+
+                                        @item.NombreTabla
+
+                                    </span>
+
+                                </td>
+
+                                <!-- ACCIÓN -->
+
+                                <td>
+
+                                    <span class="action-badge @clase">
+
+                                        <svg class="icon icon-sm">
+                                            <use href="#icon-@IconoAccion(item.Accion)"></use>
+                                        </svg>
+
+                                        @item.AccionTexto
+
+                                    </span>
+
+                                </td>
+
+                                <!-- REGISTRO -->
+
+                                <td>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                            item.IdRegistroAfectado))
+                                    {
+                                        <span class="record-id">
+                                            #@item.IdRegistroAfectado
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="empty-value">
+                                            —
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <!-- RESUMEN -->
+
+                                <td>
+
+                                    <div class="change-summary">
+
+                                        @item.ResumenCambio
+
+                                    </div>
+
+                                </td>
+
+                                <!-- DETALLE -->
+
+                                <td class="text-center">
+
+                                    <a asp-action="Detalles"
+                                       asp-route-id="@item.IdAuditoria"
+                                       class="detail-button"
+                                       title="Ver detalle">
+
+                                        <svg class="icon icon-sm">
+                                            <use href="#icon-eye"></use>
+                                        </svg>
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <!-- SIN RESULTADO LOCAL -->
+
+            <div class="empty-state"
+                 id="noLocalResults"
+                 style="display:none;">
+
+                <div class="empty-icon">
+
+                    <svg class="icon icon-xl">
+                        <use href="#icon-search"></use>
+                    </svg>
+
+                </div>
+
+                <h3>
+                    No se encontraron coincidencias
+                </h3>
+
+                <p>
+                    La búsqueda solo se aplica a los
+                    registros cargados en esta página.
+                </p>
+
+                <button type="button"
+                        id="btnResetLocal"
+                        class="btn-secondary">
+
+                    Limpiar búsqueda
+
+                </button>
+
+            </div>
+
+            <!-- ====================================================
+                 PAGINACIÓN
+                 ==================================================== -->
+
+            <div class="pagination-bar">
+
+                <div class="pagination-info">
+
+                    <span>
+                        Página
+                    </span>
+
+                    <strong>
+                        @paginaActual
+                    </strong>
+
+                    <span>
+                        · Máximo @pageSize registros
+                    </span>
+
+                </div>
+
+                <div class="pagination-actions">
+
+                    @if (paginaActual > 1)
+                    {
+                        <a asp-action="Index"
+                           asp-route-tabla="@filtro.Tabla"
+                           asp-route-accion="@filtro.Accion"
+                           asp-route-usuarioId="@filtro.UsuarioId"
+                           asp-route-desde="@filtro.Desde"
+                           asp-route-hasta="@filtro.Hasta"
+                           asp-route-page="@(paginaActual - 1)"
+                           asp-route-pageSize="@pageSize"
+                           class="page-button">
+
+                            <svg class="icon icon-sm">
+                                <use href="#icon-arrow-left"></use>
+                            </svg>
+
+                            Anterior
+
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="page-button disabled">
+
+                            <svg class="icon icon-sm">
+                                <use href="#icon-arrow-left"></use>
+                            </svg>
+
+                            Anterior
+
+                        </span>
+                    }
+
+                    <span class="page-current">
+                        @paginaActual
+                    </span>
+
+                    @if (puedeAvanzar)
+                    {
+                        <a asp-action="Index"
+                           asp-route-tabla="@filtro.Tabla"
+                           asp-route-accion="@filtro.Accion"
+                           asp-route-usuarioId="@filtro.UsuarioId"
+                           asp-route-desde="@filtro.Desde"
+                           asp-route-hasta="@filtro.Hasta"
+                           asp-route-page="@(paginaActual + 1)"
+                           asp-route-pageSize="@pageSize"
+                           class="page-button">
+
+                            Siguiente
+
+                            <svg class="icon icon-sm">
+                                <use href="#icon-arrow-right"></use>
+                            </svg>
+
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="page-button disabled">
+
+                            Siguiente
+
+                            <svg class="icon icon-sm">
+                                <use href="#icon-arrow-right"></use>
+                            </svg>
+
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+
+                <div class="empty-icon">
+
+                    <svg class="icon icon-xl">
+                        <use href="#icon-history"></use>
+                    </svg>
+
+                </div>
+
+                <h3>
+                    No hay registros de auditoría
+                </h3>
+
+                <p>
+                    No se encontraron operaciones para
+                    los filtros seleccionados.
+                </p>
+
+                <a asp-action="Index"
+                   class="btn-primary">
+
+                    <svg class="icon icon-sm">
+                        <use href="#icon-refresh"></use>
+                    </svg>
+
+                    Restablecer filtros
+
+                </a>
+
+            </div>
+        }
+
+    </section>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
+
+                // ========================================================
+                // BÚSQUEDA LOCAL
+                // ========================================================
+
+                const localSearch =
+                    document.getElementById(
+                        'localSearch');
+
+                const auditTable =
+                    document.getElementById(
+                        'auditTable');
+
+                const noLocalResults =
+                    document.getElementById(
+                        'noLocalResults');
+
+                const btnClearLocal =
+                    document.getElementById(
+                        'btnClearLocal');
+
+                const btnResetLocal =
+                    document.getElementById(
+                        'btnResetLocal');
+
+                function filtrarPagina() {
+
+                    if (!auditTable) {
+                        return;
+                    }
+
+                    const term =
+                        (localSearch?.value || '')
+                            .trim()
+                            .toLowerCase();
+
+                    const rows =
+                        auditTable.querySelectorAll(
+                            'tbody tr');
+
+                    let visibles = 0;
+
+                    rows.forEach(
+                        function(row) {
+
+                            const visible =
+                                !term ||
+                                row.textContent
+                                    .toLowerCase()
+                                    .includes(term);
+
+                            row.style.display =
+                                visible
+                                    ? ''
+                                    : 'none';
+
+                            if (visible) {
+                                visibles++;
+                            }
+                        });
+
+                    if (noLocalResults) {
+
+                        noLocalResults.style.display =
+                            visibles === 0
+                                ? 'flex'
+                                : 'none';
+                    }
+
+                    if (btnClearLocal) {
+
+                        btnClearLocal.style.display =
+                            term
+                                ? 'inline-flex'
+                                : 'none';
+                    }
+                }
+
+                if (localSearch) {
+
+                    localSearch.addEventListener(
+                        'input',
+                        filtrarPagina);
+                }
+
+                function limpiarBusqueda() {
+
+                    if (!localSearch) {
+                        return;
+                    }
+
+                    localSearch.value = '';
+
+                    filtrarPagina();
+
+                    localSearch.focus();
+                }
+
+                if (btnClearLocal) {
+
+                    btnClearLocal.addEventListener(
+                        'click',
+                        limpiarBusqueda);
+                }
+
+                if (btnResetLocal) {
+
+                    btnResetLocal.addEventListener(
+                        'click',
+                        limpiarBusqueda);
+                }
+
+                // ========================================================
+                // FILTROS RESPONSIVE
+                // ========================================================
+
+                const btnToggleFilters =
+                    document.getElementById(
+                        'btnToggleFilters');
+
+                const filterForm =
+                    document.getElementById(
+                        'filterForm');
+
+                if (btnToggleFilters &&
+                    filterForm) {
+
+                    btnToggleFilters.addEventListener(
+                        'click',
+                        function() {
+
+                            filterForm.classList.toggle(
+                                'mobile-open');
+                        });
+                }
+
+                // ========================================================
+                // VALIDACIÓN FECHAS
+                // ========================================================
+
+                const desde =
+                    document.getElementById(
+                        'desde');
+
+                const hasta =
+                    document.getElementById(
+                        'hasta');
+
+                if (desde &&
+                    hasta) {
+
+                    desde.addEventListener(
+                        'change',
+                        function() {
+
+                            if (desde.value) {
+
+                                hasta.min =
+                                    desde.value;
+                            }
+
+                            if (
+                                desde.value &&
+                                hasta.value &&
+                                hasta.value <
+                                desde.value
+                            ) {
+                                hasta.value =
+                                    desde.value;
+                            }
+                        });
+
+                    hasta.addEventListener(
+                        'change',
+                        function() {
+
+                            if (
+                                desde.value &&
+                                hasta.value &&
+                                hasta.value <
+                                desde.value
+                            ) {
+                                hasta.value =
+                                    desde.value;
+                            }
+                        });
+                }
+
+                // ========================================================
+                // ALERTAS
+                // ========================================================
+
+                document
+                    .querySelectorAll(
+                        '.alert-close')
+                    .forEach(
+                        function(button) {
+
+                            button.addEventListener(
+                                'click',
+                                function() {
+
+                                    const alert =
+                                        button.closest(
+                                            '.audit-alert');
+
+                                    if (alert) {
+                                        alert.remove();
+                                    }
+                                });
+                        });
+
+                document
+                    .querySelectorAll(
+                        '.audit-alert')
+                    .forEach(
+                        function(alert) {
+
+                            setTimeout(
+                                function() {
+
+                                    if (!alert.isConnected) {
+                                        return;
+                                    }
+
+                                    alert.classList.add(
+                                        'closing');
+
+                                    setTimeout(
+                                        function() {
+
+                                            if (alert.isConnected) {
+                                                alert.remove();
+                                            }
+                                        },
+                                        350);
+
+                                },
+                                6000);
+                        });
+
+            });
+
+    </script>
+}
+
+<style>
+
+    /* ================================================================
+           BASE
+           ================================================================ */
+
+    .audit-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #344357;
+        --muted: #7d8999;
+        --success: #168957;
+        --danger: #d1475b;
+        --warning: #c58918;
+    }
+
+    /* ================================================================
+           HERO
+           ================================================================ */
+
+    .audit-hero {
+        min-height: 118px;
+        padding: 23px 30px;
+        margin-bottom: 17px;
+        border-radius: 20px;
+        background: linear-gradient( 100deg, #102947 0%, #17488e 49%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .audit-hero::after {
+            content: "";
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            top: -145px;
+            right: -85px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-main {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.11);
+        border: 1px solid rgba(255,255,255,.13);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-eyebrow {
+        margin-bottom: 3px;
+        color: rgba(255,255,255,.55);
+        font-size: .53rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .audit-hero h1 {
+        margin: 0;
+        font-size: 1.58rem;
+        font-weight: 800;
+    }
+
+    .audit-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.72);
+        font-size: .75rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-btn {
+        min-height: 41px;
+        padding: 0 14px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .68rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+        .hero-btn.light {
+            border: 1px solid white;
+            background: white;
+            color: var(--navy);
+        }
+
+        .hero-btn.outline {
+            border: 1px solid rgba(255,255,255,.28);
+            background: rgba(255,255,255,.05);
+            color: white;
+        }
+
+        .hero-btn.light:hover {
+            color: var(--navy);
+            background: #f3f7fb;
+        }
+
+        .hero-btn.outline:hover {
+            color: white;
+            background: rgba(255,255,255,.12);
+        }
+
+    /* ================================================================
+           ALERTAS
+           ================================================================ */
+
+    .audit-alert {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        border-radius: 11px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        transition: opacity .35s ease, transform .35s ease;
+    }
+
+        .audit-alert.success {
+            background: #edf9f3;
+            color: #146f48;
+            border-left: 4px solid var(--success);
+        }
+
+        .audit-alert.danger {
+            background: #fff1f3;
+            color: #a73547;
+            border-left: 4px solid var(--danger);
+        }
+
+        .audit-alert > div {
+            flex: 1;
+        }
+
+        .audit-alert strong,
+        .audit-alert span {
+            display: block;
+        }
+
+        .audit-alert strong {
+            font-size: .7rem;
+        }
+
+        .audit-alert span {
+            margin-top: 2px;
+            font-size: .62rem;
+        }
+
+        .audit-alert.closing {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+    .alert-close {
+        border: none;
+        padding: 2px;
+        background: transparent;
+        color: currentColor;
+        opacity: .65;
+        cursor: pointer;
+    }
+
+    /* ================================================================
+           METRICAS
+           ================================================================ */
+
+    .metrics-grid {
+        margin-bottom: 17px;
+        display: grid;
+        grid-template-columns: repeat( 4, minmax(0,1fr));
+        gap: 12px;
+    }
+
+    .metric-card {
+        min-height: 86px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow: 0 4px 15px rgba(16,41,71,.035);
+    }
+
+    .metric-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .metric-icon.blue {
+            background: #eaf2fb;
+            color: #306ca7;
+        }
+
+        .metric-icon.green {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+        .metric-icon.gold {
+            background: #fff7e5;
+            color: #a47517;
+        }
+
+        .metric-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+    .metric-card span {
+        display: block;
+        color: #8995a5;
+        font-size: .54rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .45px;
+    }
+
+    .metric-card strong {
+        display: block;
+        margin-top: 2px;
+        color: var(--navy);
+        font-size: 1.25rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .metric-card small {
+        display: block;
+        margin-top: 4px;
+        color: #99a3b0;
+        font-size: .5rem;
+    }
+
+    /* ================================================================
+           FILTROS
+           ================================================================ */
+
+    .filter-card,
+    .audit-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+    }
+
+    .filter-card {
+        margin-bottom: 17px;
+        overflow: hidden;
+    }
+
+    .filter-header,
+    .audit-card-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    .filter-title,
+    .card-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .filter-title span,
+    .card-heading span {
+        display: block;
+        color: #929dab;
+        font-size: .51rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+    }
+
+    .filter-title h2,
+    .card-heading h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .88rem;
+        font-weight: 800;
+    }
+
+    .filter-title p,
+    .card-heading p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .59rem;
+    }
+
+    .filter-toggle {
+        display: none;
+        min-height: 36px;
+        padding: 0 11px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: white;
+        color: #536579;
+        font-size: .61rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+    .filter-body {
+        padding: 16px 18px;
+        display: grid;
+        grid-template-columns: repeat( 6, minmax(0,1fr)) auto;
+        gap: 10px;
+        align-items: end;
+    }
+
+    .filter-field label {
+        display: block;
+        margin-bottom: 5px;
+        color: #526174;
+        font-size: .58rem;
+        font-weight: 750;
+    }
+
+    .audit-control {
+        width: 100%;
+        min-height: 39px;
+        padding: 7px 9px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: white;
+        color: #47566a;
+        font-size: .62rem;
+        outline: none;
+    }
+
+        .audit-control:focus {
+            border-color: #6b9bce;
+            box-shadow: 0 0 0 3px rgba(34,108,194,.07);
+        }
+
+    .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* ================================================================
+           BOTONES
+           ================================================================ */
+
+    .btn-primary,
+    .btn-secondary,
+    .coming-button {
+        min-height: 38px;
+        padding: 0 13px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .61rem;
+        font-weight: 750;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        border: none;
+        background: linear-gradient( 135deg, #102947, #17488e);
+        color: white;
+    }
+
+        .btn-primary:hover {
+            color: white;
+        }
+
+    .btn-secondary {
+        border: 1px solid #d8e0e9;
+        background: white;
+        color: #586779;
+    }
+
+    .coming-button {
+        border: 1px solid #e6dfc8;
+        background: #fffaf0;
+        color: #8c711f;
+    }
+
+    /* ================================================================
+           CABECERA TABLA
+           ================================================================ */
+
+    .table-tools {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .local-search {
+        width: 230px;
+        min-height: 38px;
+        padding: 0 9px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .local-search > .icon {
+            color: #8995a5;
+        }
+
+        .local-search input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #465569;
+            font-size: .61rem;
+        }
+
+        .local-search button {
+            border: none;
+            padding: 2px;
+            background: transparent;
+            color: #8a96a6;
+            cursor: pointer;
+        }
+
+    /* ================================================================
+           TABLA
+           ================================================================ */
+
+    .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .audit-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .audit-table thead th {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e8edf3;
+            background: #f8fafc;
+            color: #7d8999;
+            font-size: .54rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .48px;
+            white-space: nowrap;
+        }
+
+        .audit-table tbody td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #eef2f6;
+            color: #536174;
+            font-size: .63rem;
+            vertical-align: middle;
+        }
+
+        .audit-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .audit-table tbody tr {
+            transition: background .15s ease;
+        }
+
+            .audit-table tbody tr:hover {
+                background: #fafbfd;
+            }
+
+    /* ================================================================
+           CELDAS
+           ================================================================ */
+
+    .date-cell {
+        min-width: 95px;
+    }
+
+        .date-cell strong {
+            display: block;
+            color: #48576a;
+            font-size: .61rem;
+        }
+
+        .date-cell span {
+            display: block;
+            margin-top: 1px;
+            color: #939dab;
+            font-size: .52rem;
+        }
+
+    .user-cell {
+        min-width: 175px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .user-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356c9f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .59rem;
+        font-weight: 850;
+        flex-shrink: 0;
+    }
+
+    .user-cell strong {
+        display: block;
+        color: #415066;
+        font-size: .62rem;
+    }
+
+    .user-cell span {
+        display: block;
+        margin-top: 1px;
+        color: #959fab;
+        font-size: .5rem;
+    }
+
+    .table-badge {
+        padding: 5px 8px;
+        border-radius: 7px;
+        background: #edf3f8;
+        color: #536f8b;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .55rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    /* ================================================================
+           ACCIÓN
+           ================================================================ */
+
+    .action-badge {
+        padding: 5px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .53rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+        .action-badge.create,
+        .action-badge.activate {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+        .action-badge.update {
+            background: #fff7e5;
+            color: #a47517;
+        }
+
+        .action-badge.delete,
+        .action-badge.deactivate {
+            background: #fff0f2;
+            color: #bf4759;
+        }
+
+        .action-badge.login {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .action-badge.logout {
+            background: #edf0f4;
+            color: #687587;
+        }
+
+        .action-badge.other {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+    .record-id {
+        padding: 4px 7px;
+        border-radius: 6px;
+        background: #f2f4f7;
+        color: #59687a;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: .55rem;
+    }
+
+    .empty-value {
+        color: #a0a9b5;
+    }
+
+    .change-summary {
+        min-width: 135px;
+        color: #697789;
+        line-height: 1.4;
+    }
+
+    .detail-button {
+        width: 31px;
+        height: 31px;
+        border: 1px solid #cfdfef;
+        border-radius: 7px;
+        background: #f1f7fc;
+        color: #3974aa;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+
+        .detail-button:hover {
+            color: #285e91;
+            transform: translateY(-1px);
+        }
+
+    /* ================================================================
+           PAGINACIÓN
+           ================================================================ */
+
+    .pagination-bar {
+        padding: 13px 16px;
+        border-top: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .pagination-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #8490a1;
+        font-size: .57rem;
+    }
+
+        .pagination-info strong {
+            color: #455469;
+        }
+
+    .pagination-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .page-button {
+        min-height: 34px;
+        padding: 0 10px;
+        border: 1px solid #d8e0e9;
+        border-radius: 7px;
+        background: white;
+        color: #59687a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .57rem;
+        font-weight: 750;
+    }
+
+        .page-button.disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+    .page-current {
+        min-width: 34px;
+        height: 34px;
+        border-radius: 7px;
+        background: var(--navy);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .59rem;
+        font-weight: 800;
+    }
+
+    /* ================================================================
+           EMPTY STATE
+           ================================================================ */
+
+    .empty-state {
+        min-height: 250px;
+        padding: 30px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 15px;
+        background: #edf3f8;
+        color: #7790a8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state h3 {
+        margin: 12px 0 0;
+        color: #435267;
+        font-size: .78rem;
+        font-weight: 800;
+    }
+
+    .empty-state p {
+        max-width: 390px;
+        margin: 4px 0 0;
+        color: #8995a4;
+        font-size: .59rem;
+        line-height: 1.45;
+    }
+
+    .empty-state .btn-primary,
+    .empty-state .btn-secondary {
+        margin-top: 13px;
+    }
+
+    /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+
+    @@media (max-width: 1150px) {
+
+        .filter-body {
+            grid-template-columns: repeat( 3, minmax(0,1fr));
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-end;
+        }
+
+        .audit-card-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .table-tools {
+            width: 100%;
+        }
+
+        .local-search {
+            flex: 1;
+            width: auto;
+        }
+    }
+
+    @@media (max-width: 900px) {
+
+        .metrics-grid {
+            grid-template-columns: repeat( 2, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 720px) {
+
+        .audit-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-btn {
+            flex: 1;
+        }
+
+        .filter-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .filter-body {
+            display: none;
+            grid-template-columns: 1fr;
+        }
+
+            .filter-body.mobile-open {
+                display: grid;
+            }
+
+        .filter-actions {
+            grid-column: auto;
+            flex-direction: column-reverse;
+        }
+
+            .filter-actions .btn-primary,
+            .filter-actions .btn-secondary {
+                width: 100%;
+            }
+
+        .table-tools {
+            flex-direction: column;
+        }
+
+        .local-search,
+        .coming-button {
+            width: 100%;
+        }
+
+        .pagination-bar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .pagination-actions {
+            justify-content: space-between;
+        }
+    }
+
+    @@media (max-width: 520px) {
+
+        .audit-hero {
+            padding: 20px;
+        }
+
+        .hero-main {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .audit-hero h1 {
+            font-size: 1.3rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-btn {
+            width: 100%;
+        }
+
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>

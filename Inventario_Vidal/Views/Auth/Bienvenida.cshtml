@@ -1,0 +1,1443 @@
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Bienvenido";
+    Layout = null;
+
+    var empresaNombre =
+        ViewBag.EmpresaNombre as string
+        ?? "Fabricaciones de Estructuras Metálicas Vidal E.I.R.L.";
+
+    var usuario =
+        ViewBag.Usuario as string
+        ?? "Usuario";
+
+    var rol =
+        ViewBag.Rol as string
+        ?? string.Empty;
+
+    var destino =
+        ViewBag.Destino as string
+        ?? "/";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1" />
+
+    <meta name="theme-color"
+          content="#0b203a" />
+
+    <title>
+        Bienvenido - @empresaNombre
+    </title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet" />
+
+    <style>
+
+        :root {
+
+            --navy-1000:
+                #051426;
+
+            --navy-950:
+                #07182c;
+
+            --navy-900:
+                #0b203a;
+
+            --navy-850:
+                #102947;
+
+            --blue-700:
+                #17488e;
+
+            --blue-600:
+                #226cc2;
+
+            --blue-500:
+                #3a88d9;
+
+            --blue-300:
+                #9fd0ff;
+
+            --white:
+                #ffffff;
+
+            --font:
+                "Inter",
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+        }
+
+        *,
+        *::before,
+        *::after {
+
+            box-sizing:
+                border-box;
+
+        }
+
+        html,
+        body {
+
+            width:
+                100%;
+
+            height:
+                100%;
+
+            margin:
+                0;
+
+            padding:
+                0;
+
+        }
+
+        body {
+
+            overflow:
+                hidden;
+
+            font-family:
+                var(
+                    --font);
+
+            color:
+                #fff;
+
+            background:
+                var(
+                    --navy-950);
+
+        }
+
+        /* ============================================================
+           ESCENA
+           ============================================================ */
+
+        .welcome-screen {
+
+            width:
+                100%;
+
+            height:
+                100%;
+
+            min-height:
+                100vh;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            isolation:
+                isolate;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            padding:
+                28px;
+
+            background:
+
+                radial-gradient(
+                    circle
+                    at
+                    76%
+                    14%,
+                    rgba(
+                        67,
+                        147,
+                        226,
+                        .26),
+                    transparent
+                        27%),
+
+                radial-gradient(
+                    circle
+                    at
+                    18%
+                    83%,
+                    rgba(
+                        39,
+                        108,
+                        194,
+                        .22),
+                    transparent
+                        31%),
+
+                linear-gradient(
+                    135deg,
+                    #061629
+                        0%,
+                    #0b2441
+                        38%,
+                    #123d72
+                        72%,
+                    #1d5aa0
+                        100%);
+
+        }
+
+        /* ============================================================
+           FONDO FOTOGRÁFICO
+           ============================================================ */
+
+        .background-photo {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            z-index:
+                -6;
+
+            opacity:
+                .24;
+
+            background:
+
+                url('/images/estructuras-metalicas.jpg')
+                center
+                center /
+                cover
+                no-repeat;
+
+            animation:
+                backgroundZoom
+                7s
+                ease-out
+                forwards;
+
+        }
+
+        @@keyframes backgroundZoom {
+
+            from {
+
+                transform:
+                    scale(
+                        1.09);
+
+            }
+
+            to {
+
+                transform:
+                    scale(
+                        1);
+
+            }
+
+        }
+
+        .background-overlay {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            z-index:
+                -5;
+
+            background:
+
+                linear-gradient(
+                    120deg,
+                    rgba(
+                        5,
+                        20,
+                        38,
+                        .92)
+                        0%,
+                    rgba(
+                        10,
+                        36,
+                        67,
+                        .82)
+                        48%,
+                    rgba(
+                        23,
+                        72,
+                        142,
+                        .66)
+                        100%);
+
+        }
+
+        /* ============================================================
+           CUADRÍCULA
+           ============================================================ */
+
+        .grid {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            z-index:
+                -4;
+
+            opacity:
+                .10;
+
+            pointer-events:
+                none;
+
+            background-image:
+
+                linear-gradient(
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        .18)
+                        1px,
+                    transparent
+                        1px),
+
+                linear-gradient(
+                    90deg,
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        .18)
+                        1px,
+                    transparent
+                        1px);
+
+            background-size:
+                58px
+                58px;
+
+            mask-image:
+                radial-gradient(
+                    circle
+                    at
+                    center,
+                    #000,
+                    transparent
+                        76%);
+
+        }
+
+        /* ============================================================
+           ORBES
+           ============================================================ */
+
+        .orb {
+
+            position:
+                absolute;
+
+            z-index:
+                -3;
+
+            border-radius:
+                50%;
+
+            pointer-events:
+                none;
+
+        }
+
+        .orb-one {
+
+            width:
+                520px;
+
+            height:
+                520px;
+
+            right:
+                -190px;
+
+            top:
+                -190px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .09);
+
+            box-shadow:
+
+                0
+                0
+                0
+                70px
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .022),
+
+                0
+                0
+                0
+                140px
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .013);
+
+            animation:
+                orbFloat
+                8s
+                ease-in-out
+                infinite;
+
+        }
+
+        .orb-two {
+
+            width:
+                390px;
+
+            height:
+                390px;
+
+            left:
+                -160px;
+
+            bottom:
+                -175px;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(
+                        111,
+                        185,
+                        255,
+                        .32),
+                    transparent
+                        69%);
+
+            animation:
+                orbFloat
+                10s
+                ease-in-out
+                infinite
+                reverse;
+
+        }
+
+        @@keyframes orbFloat {
+
+            0%,
+            100% {
+
+                transform:
+                    translateY(
+                        0);
+
+            }
+
+            50% {
+
+                transform:
+                    translateY(
+                        -18px);
+
+            }
+
+        }
+
+        /* ============================================================
+           CONTENIDO
+           ============================================================ */
+
+        .welcome-content {
+
+            width:
+                min(
+                    720px,
+                    100%);
+
+            text-align:
+                center;
+
+            position:
+                relative;
+
+            z-index:
+                2;
+
+            animation:
+                contentEnter
+                .55s
+                cubic-bezier(
+                    .2,
+                    .74,
+                    .2,
+                    1)
+                both;
+
+        }
+
+        @@keyframes contentEnter {
+
+            from {
+
+                opacity:
+                    0;
+
+                transform:
+                    translateY(
+                        24px)
+                    scale(
+                        .985);
+
+            }
+
+            to {
+
+                opacity:
+                    1;
+
+                transform:
+                    translateY(
+                        0)
+                    scale(
+                        1);
+
+            }
+
+        }
+
+        /* ============================================================
+           LOGO OFICIAL
+           ============================================================ */
+
+        .logo-zone {
+
+            width:
+                150px;
+
+            height:
+                150px;
+
+            margin:
+                0
+                auto;
+
+            position:
+                relative;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+        }
+
+        .logo-halo {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .15);
+
+            border-radius:
+                34px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .055);
+
+            backdrop-filter:
+                blur(
+                    12px);
+
+            box-shadow:
+                0
+                26px
+                70px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    .24);
+
+            animation:
+                haloBreath
+                1.6s
+                ease-in-out
+                infinite;
+
+        }
+
+        @@keyframes haloBreath {
+
+            0%,
+            100% {
+
+                transform:
+                    scale(
+                        .92);
+
+                opacity:
+                    .60;
+
+            }
+
+            50% {
+
+                transform:
+                    scale(
+                        1.05);
+
+                opacity:
+                    1;
+
+            }
+
+        }
+
+        .logo-ring {
+
+            position:
+                absolute;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .13);
+
+            border-radius:
+                42px;
+
+            animation:
+                ringPulse
+                1.7s
+                ease-out
+                infinite;
+
+        }
+
+        .logo-ring.one {
+
+            inset:
+                -13px;
+
+        }
+
+        .logo-ring.two {
+
+            inset:
+                -27px;
+
+            opacity:
+                .48;
+
+            animation-delay:
+                .48s;
+
+        }
+
+        @@keyframes ringPulse {
+
+            0% {
+
+                transform:
+                    scale(
+                        .85);
+
+                opacity:
+                    0;
+
+            }
+
+            38% {
+
+                opacity:
+                    .72;
+
+            }
+
+            100% {
+
+                transform:
+                    scale(
+                        1.12);
+
+                opacity:
+                    0;
+
+            }
+
+        }
+
+        .official-logo {
+
+            width:
+                126px;
+
+            height:
+                126px;
+
+            position:
+                relative;
+
+            z-index:
+                3;
+
+            object-fit:
+                contain;
+
+            filter:
+                drop-shadow(
+                    0
+                    15px
+                    25px
+                    rgba(
+                        0,
+                        0,
+                        0,
+                        .24));
+
+            animation:
+                logoBreath
+                1.35s
+                ease-in-out
+                infinite;
+
+            will-change:
+                transform;
+
+        }
+
+        /*
+         * Esta es la animación que pediste:
+         * el logo crece y disminuye suavemente.
+         */
+        @@keyframes logoBreath {
+
+            0%,
+            100% {
+
+                transform:
+                    scale(
+                        .91);
+
+            }
+
+            50% {
+
+                transform:
+                    scale(
+                        1.06);
+
+            }
+
+        }
+
+        /* ============================================================
+           TEXTO
+           ============================================================ */
+
+        .welcome-kicker {
+
+            min-height:
+                36px;
+
+            margin-top:
+                32px;
+
+            padding:
+                0
+                13px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .13);
+
+            border-radius:
+                999px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .07);
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .82);
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                8px;
+
+            font-size:
+                .66rem;
+
+            font-weight:
+                850;
+
+            letter-spacing:
+                1.05px;
+
+            backdrop-filter:
+                blur(
+                    10px);
+
+        }
+
+        .welcome-kicker-dot {
+
+            width:
+                8px;
+
+            height:
+                8px;
+
+            border-radius:
+                50%;
+
+            background:
+                #8fc4ff;
+
+            box-shadow:
+                0
+                0
+                0
+                5px
+                rgba(
+                    143,
+                    196,
+                    255,
+                    .10);
+
+        }
+
+        .welcome-title {
+
+            margin:
+                15px
+                0
+                0;
+
+            color:
+                #fff;
+
+            font-size:
+                clamp(
+                    2.2rem,
+                    5vw,
+                    4.25rem);
+
+            font-weight:
+                880;
+
+            line-height:
+                1.02;
+
+            letter-spacing:
+                -2px;
+
+            text-wrap:
+                balance;
+
+        }
+
+        .welcome-title span {
+
+            color:
+                #add6ff;
+
+        }
+
+        .welcome-description {
+
+            max-width:
+                580px;
+
+            margin:
+                15px
+                auto
+                0;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .69);
+
+            font-size:
+                .88rem;
+
+            line-height:
+                1.70;
+
+        }
+
+        .user-chip {
+
+            width:
+                fit-content;
+
+            max-width:
+                100%;
+
+            margin:
+                19px
+                auto
+                0;
+
+            padding:
+                9px
+                14px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .14);
+
+            border-radius:
+                999px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .075);
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .87);
+
+            font-size:
+                .68rem;
+
+            font-weight:
+                760;
+
+            backdrop-filter:
+                blur(
+                    10px);
+
+        }
+
+        /* ============================================================
+           CARGA CORTA
+           ============================================================ */
+
+        .loading-area {
+
+            width:
+                min(
+                    420px,
+                    84vw);
+
+            margin:
+                29px
+                auto
+                0;
+
+        }
+
+        .loading-copy {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+
+            gap:
+                12px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .63);
+
+            font-size:
+                .62rem;
+
+        }
+
+        .loading-copy strong {
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .92);
+
+        }
+
+        .loading-track {
+
+            height:
+                6px;
+
+            margin-top:
+                10px;
+
+            overflow:
+                hidden;
+
+            border-radius:
+                999px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .13);
+
+        }
+
+        .loading-bar {
+
+            width:
+                0;
+
+            height:
+                100%;
+
+            border-radius:
+                inherit;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #6ab5fb,
+                    #ffffff);
+
+            box-shadow:
+                0
+                0
+                18px
+                rgba(
+                    106,
+                    181,
+                    251,
+                    .42);
+
+            animation:
+                shortLoad
+                1.55s
+                cubic-bezier(
+                    .2,
+                    .74,
+                    .2,
+                    1)
+                forwards;
+
+        }
+
+        @@keyframes shortLoad {
+
+            0% {
+
+                width:
+                    0;
+
+            }
+
+            36% {
+
+                width:
+                    47%;
+
+            }
+
+            72% {
+
+                width:
+                    82%;
+
+            }
+
+            100% {
+
+                width:
+                    100%;
+
+            }
+
+        }
+
+        .footer {
+
+            position:
+                absolute;
+
+            left:
+                0;
+
+            right:
+                0;
+
+            bottom:
+                22px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .37);
+
+            text-align:
+                center;
+
+            font-size:
+                .55rem;
+
+        }
+
+        /* ============================================================
+           MOBILE
+           ============================================================ */
+
+        @@media (
+            max-width:
+                560px) {
+
+            .welcome-screen {
+
+                padding:
+                    20px;
+
+            }
+
+            .logo-zone {
+
+                width:
+                    118px;
+
+                height:
+                    118px;
+
+            }
+
+            .official-logo {
+
+                width:
+                    98px;
+
+                height:
+                    98px;
+
+            }
+
+            .welcome-kicker {
+
+                margin-top:
+                    26px;
+
+            }
+
+            .welcome-title {
+
+                font-size:
+                    2.05rem;
+
+                letter-spacing:
+                    -1.25px;
+
+            }
+
+            .welcome-description {
+
+                font-size:
+                    .76rem;
+
+            }
+
+        }
+
+        /* ============================================================
+           REDUCED MOTION
+           ============================================================ */
+
+        @@media (
+            prefers-reduced-motion:
+                reduce) {
+
+            *,
+            *::before,
+            *::after {
+
+                animation-duration:
+                    .01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                transition-duration:
+                    .01ms !important;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <main class="welcome-screen">
+
+        <div class="background-photo"></div>
+
+        <div class="background-overlay"></div>
+
+        <div class="grid"></div>
+
+        <div class="orb orb-one"></div>
+
+        <div class="orb orb-two"></div>
+
+        <section class="welcome-content">
+
+            <div class="logo-zone">
+
+                <div class="logo-halo"></div>
+
+                <div class="logo-ring one"></div>
+
+                <div class="logo-ring two"></div>
+
+                <img src="/images/Logo_Vidal.png"
+                     class="official-logo"
+                     alt="Logo Fabricaciones Vidal"
+                     draggable="false" />
+
+            </div>
+
+            <div class="welcome-kicker">
+
+                <span class="welcome-kicker-dot"></span>
+
+                ACCESO AUTORIZADO
+
+            </div>
+
+            <h1 class="welcome-title">
+
+                Bienvenido al
+
+                <span>
+                    Sistema Logístico VIDAL
+                </span>
+
+            </h1>
+
+            <p class="welcome-description">
+
+                Tu sesión se inició correctamente.
+                Estamos preparando el entorno de trabajo.
+
+            </p>
+
+            <div class="user-chip">
+
+                @usuario
+
+                @if (!string.IsNullOrWhiteSpace(rol))
+                {
+                    <span>
+                        · @rol
+                    </span>
+                }
+
+            </div>
+
+            <div class="loading-area">
+
+                <div class="loading-copy">
+
+                    <strong>
+                        Preparando entorno
+                    </strong>
+
+                    <span id="progressLabel">
+                        0%
+                    </span>
+
+                </div>
+
+                <div class="loading-track">
+
+                    <div class="loading-bar"></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <footer class="footer">
+
+            @empresaNombre · Plataforma logística
+
+        </footer>
+
+    </main>
+
+    <script>
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function ()
+            {
+                const destination =
+                    @Html.Raw(
+                        JsonSerializer.Serialize(
+                            destino));
+
+                const progress =
+                    document.getElementById(
+                        'progressLabel');
+
+                /*
+                 * Antes eran 3 segundos.
+                 * Ahora Bienvenida dura solo ~1.6 segundos.
+                 */
+                const duration =
+                    window.matchMedia(
+                        '(prefers-reduced-motion: reduce)')
+                        .matches
+                        ? 450
+                        : 1600;
+
+                const started =
+                    performance.now();
+
+                function updateProgress(
+                    now)
+                {
+                    const elapsed =
+                        now - started;
+
+                    const percentage =
+                        Math.min(
+                            100,
+                            Math.round(
+                                elapsed /
+                                duration *
+                                100));
+
+                    progress.textContent =
+                        percentage + '%';
+
+                    if (
+                        percentage <
+                        100)
+                    {
+                        requestAnimationFrame(
+                            updateProgress);
+                    }
+                }
+
+                requestAnimationFrame(
+                    updateProgress);
+
+                window.setTimeout(
+                    function ()
+                    {
+                        window.location.replace(
+                            destination);
+                    },
+                    duration);
+            });
+
+    </script>
+
+</body>
+
+</html>

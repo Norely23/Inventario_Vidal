@@ -1,0 +1,2147 @@
+@using Inventario_Vidal.DTOs
+@model UsuarioCreateDto
+
+@{
+    ViewData["Title"] = "Nuevo Usuario";
+    ViewBag.Subtitle = "Registrar una nueva cuenta de acceso";
+
+    var roles =
+        ViewBag.Roles as IEnumerable<UsuarioRolDto>
+        ?? new List<UsuarioRolDto>();
+}
+
+<div class="user-create-page">
+
+    <!-- ============================================================
+    HERO
+    ============================================================ -->
+    <section class="create-hero">
+
+        <div class="hero-left">
+
+            <div class="hero-icon">
+                <svg class="icon icon-xl">
+                    <use href="#icon-user-plus"></use>
+                </svg>
+            </div>
+
+            <div>
+
+                <h1>
+                    Nuevo usuario
+                </h1>
+
+                <div class="hero-subtitle">
+
+                    <svg class="icon icon-sm">
+                        <use href="#icon-info"></use>
+                    </svg>
+
+                    <span>
+                        Registra una nueva cuenta y asigna su nivel de acceso.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <a asp-action="Index"
+           class="hero-back">
+
+            <svg class="icon icon-sm">
+                <use href="#icon-arrow-left"></use>
+            </svg>
+
+            Volver a usuarios
+
+        </a>
+
+    </section>
+
+    <!-- ============================================================
+    ALERTAS
+    ============================================================ -->
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="page-alert danger">
+
+            <svg class="icon">
+                <use href="#icon-alert-triangle"></use>
+            </svg>
+
+            <div>
+
+                <strong>
+                    Revisa la información ingresada
+                </strong>
+
+                <div asp-validation-summary="ModelOnly"
+                     class="validation-summary">
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- ============================================================
+    FORMULARIO
+    ============================================================ -->
+    <form asp-action="Crear"
+          method="post"
+          id="usuarioForm">
+
+        @Html.AntiForgeryToken()
+
+        <div class="create-layout">
+
+            <!-- ========================================================
+            CONTENIDO PRINCIPAL
+            ======================================================== -->
+            <main>
+
+                <!-- ====================================================
+                DATOS PERSONALES
+                ==================================================== -->
+                <section class="form-card">
+
+                    <div class="card-header">
+
+                        <div class="section-icon blue">
+
+                            <svg class="icon">
+                                <use href="#icon-user"></use>
+                            </svg>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                PASO 1
+                            </span>
+
+                            <h2>
+                                Datos personales
+                            </h2>
+
+                            <p>
+                                Información principal de la persona que utilizará la cuenta.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="field-group">
+
+                            <label asp-for="NombreCompleto"
+                                   class="vidal-label">
+                                Nombre completo *
+                            </label>
+
+                            <div class="input-with-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-user"></use>
+                                </svg>
+
+                                <input asp-for="NombreCompleto"
+                                       id="NombreCompleto"
+                                       class="vidal-control with-icon"
+                                       maxlength="150"
+                                       autocomplete="name"
+                                       placeholder="Ej. Elizabeth Morales Lázaro" />
+
+                            </div>
+
+                            <span asp-validation-for="NombreCompleto"
+                                  class="validation-text">
+                            </span>
+
+                            <small class="field-help">
+                                Ingresa los nombres y apellidos completos del usuario.
+                            </small>
+
+                        </div>
+
+                        <div class="field-group">
+
+                            <label asp-for="CorreoElectronico"
+                                   class="vidal-label">
+                                Correo electrónico
+                            </label>
+
+                            <div class="input-with-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-mail"></use>
+                                </svg>
+
+                                <input asp-for="CorreoElectronico"
+                                       id="CorreoElectronico"
+                                       type="email"
+                                       class="vidal-control with-icon"
+                                       maxlength="150"
+                                       autocomplete="email"
+                                       placeholder="usuario@correo.com" />
+
+                            </div>
+
+                            <span asp-validation-for="CorreoElectronico"
+                                  class="validation-text">
+                            </span>
+
+                            <small class="field-help">
+                                Campo opcional. Se utilizará como información de contacto.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                CUENTA
+                ==================================================== -->
+                <section class="form-card mt-card">
+
+                    <div class="card-header">
+
+                        <div class="section-icon purple">
+
+                            <svg class="icon">
+                                <use href="#icon-lock"></use>
+                            </svg>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                PASO 2
+                            </span>
+
+                            <h2>
+                                Datos de acceso
+                            </h2>
+
+                            <p>
+                                Define el usuario y contraseña para ingresar al sistema.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <!-- ============================================
+                        NOMBRE USUARIO
+                        ============================================ -->
+                        <div class="field-group">
+
+                            <label asp-for="NombreUsuario"
+                                   class="vidal-label">
+                                Nombre de usuario *
+                            </label>
+
+                            <div class="input-with-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-user"></use>
+                                </svg>
+
+                                <input asp-for="NombreUsuario"
+                                       id="NombreUsuario"
+                                       class="vidal-control with-icon"
+                                       maxlength="50"
+                                       autocomplete="username"
+                                       autocapitalize="none"
+                                       spellcheck="false"
+                                       placeholder="Ej. emorales" />
+
+                            </div>
+
+                            <span asp-validation-for="NombreUsuario"
+                                  class="validation-text">
+                            </span>
+
+                            <small class="field-help">
+                                Solo letras, números, puntos, guiones y guiones bajos.
+                            </small>
+
+                        </div>
+
+                        <div class="password-grid">
+
+                            <!-- ========================================
+                            CONTRASEÑA
+                            ======================================== -->
+                            <div class="field-group">
+
+                                <label asp-for="Contrasena"
+                                       class="vidal-label">
+                                    Contraseña *
+                                </label>
+
+                                <div class="password-control">
+
+                                    <svg class="icon icon-sm field-icon">
+                                        <use href="#icon-lock"></use>
+                                    </svg>
+
+                                    <input asp-for="Contrasena"
+                                           id="Contrasena"
+                                           type="password"
+                                           class="vidal-control password-input"
+                                           maxlength="100"
+                                           autocomplete="new-password"
+                                           placeholder="Mínimo 6 caracteres" />
+
+                                    <button type="button"
+                                            class="password-toggle"
+                                            data-target="Contrasena"
+                                            title="Mostrar contraseña">
+
+                                        <svg class="icon icon-sm">
+                                            <use href="#icon-eye"></use>
+                                        </svg>
+
+                                    </button>
+
+                                </div>
+
+                                <span asp-validation-for="Contrasena"
+                                      class="validation-text">
+                                </span>
+
+                            </div>
+
+                            <!-- ========================================
+                            CONFIRMAR CONTRASEÑA
+                            ======================================== -->
+                            <div class="field-group">
+
+                                <label asp-for="ConfirmarContrasena"
+                                       class="vidal-label">
+                                    Confirmar contraseña *
+                                </label>
+
+                                <div class="password-control">
+
+                                    <svg class="icon icon-sm field-icon">
+                                        <use href="#icon-lock"></use>
+                                    </svg>
+
+                                    <input asp-for="ConfirmarContrasena"
+                                           id="ConfirmarContrasena"
+                                           type="password"
+                                           class="vidal-control password-input"
+                                           maxlength="100"
+                                           autocomplete="new-password"
+                                           placeholder="Repite la contraseña" />
+
+                                    <button type="button"
+                                            class="password-toggle"
+                                            data-target="ConfirmarContrasena"
+                                            title="Mostrar contraseña">
+
+                                        <svg class="icon icon-sm">
+                                            <use href="#icon-eye"></use>
+                                        </svg>
+
+                                    </button>
+
+                                </div>
+
+                                <span asp-validation-for="ConfirmarContrasena"
+                                      class="validation-text">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ============================================
+                        INDICADOR DE CONTRASEÑA
+                        ============================================ -->
+                        <div class="password-status"
+                             id="passwordStatus">
+
+                            <div class="password-status-header">
+
+                                <span>
+                                    Seguridad de la contraseña
+                                </span>
+
+                                <strong id="passwordStrengthText">
+                                    Sin evaluar
+                                </strong>
+
+                            </div>
+
+                            <div class="password-track">
+
+                                <div class="password-value"
+                                     id="passwordStrengthBar">
+                                </div>
+
+                            </div>
+
+                            <div class="password-requirements">
+
+                                <span id="reqLength">
+
+                                    <svg class="icon icon-sm">
+                                        <use href="#icon-circle"></use>
+                                    </svg>
+
+                                    Mínimo 6 caracteres
+
+                                </span>
+
+                                <span id="reqMatch">
+
+                                    <svg class="icon icon-sm">
+                                        <use href="#icon-circle"></use>
+                                    </svg>
+
+                                    Las contraseñas coinciden
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                ROL Y ESTADO
+                ==================================================== -->
+                <section class="form-card mt-card">
+
+                    <div class="card-header">
+
+                        <div class="section-icon gold">
+
+                            <svg class="icon">
+                                <use href="#icon-shield"></use>
+                            </svg>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                PASO 3
+                            </span>
+
+                            <h2>
+                                Rol y estado
+                            </h2>
+
+                            <p>
+                                Define el nivel de acceso inicial de la cuenta.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="field-group">
+
+                            <label asp-for="IdRol"
+                                   class="vidal-label">
+                                Rol *
+                            </label>
+
+                            <div class="input-with-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-shield"></use>
+                                </svg>
+
+                                <select asp-for="IdRol"
+                                        id="IdRol"
+                                        class="vidal-control with-icon">
+
+                                    <option value="">
+                                        Seleccione un rol...
+                                    </option>
+
+                                    @foreach (var rol in roles)
+                                    {
+                                        <option value="@rol.IdRol"
+                                                data-description="@rol.Descripcion">
+                                            @rol.NombreRol
+                                        </option>
+                                    }
+
+                                </select>
+
+                            </div>
+
+                            <span asp-validation-for="IdRol"
+                                  class="validation-text">
+                            </span>
+
+                            <div class="role-description"
+                                 id="roleDescription">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-info"></use>
+                                </svg>
+
+                                <span>
+                                    Selecciona un rol para ver su descripción.
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ============================================
+                        ESTADO
+                        ============================================ -->
+                        <div class="status-box">
+
+                            <div class="status-icon">
+
+                                <svg class="icon">
+                                    <use href="#icon-check-circle"></use>
+                                </svg>
+
+                            </div>
+
+                            <div class="status-content">
+
+                                <strong>
+                                    Cuenta activa
+                                </strong>
+
+                                <span>
+                                    Una cuenta activa podrá iniciar sesión después de ser registrada.
+                                </span>
+
+                            </div>
+
+                            <label class="switch-control">
+
+                                <input asp-for="Activo"
+                                       id="Activo"
+                                       type="checkbox" />
+
+                                <span class="switch-slider"></span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </main>
+
+            <!-- ========================================================
+            RESUMEN LATERAL
+            ======================================================== -->
+            <aside>
+
+                <section class="summary-card">
+
+                    <div class="summary-title">
+
+                        <svg class="icon">
+                            <use href="#icon-eye"></use>
+                        </svg>
+
+                        Vista previa
+
+                    </div>
+
+                    <div class="profile-preview">
+
+                        <div class="profile-avatar"
+                             id="previewAvatar">
+                            NU
+                        </div>
+
+                        <div class="profile-info">
+
+                            <strong id="previewNombre">
+                                Nuevo usuario
+                            </strong>
+
+                            <span id="previewUsername">
+                                @@usuario
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="preview-status-row">
+
+                        <span>
+                            Estado
+                        </span>
+
+                        <span id="previewEstado"
+                              class="status-preview active">
+                            Activo
+                        </span>
+
+                    </div>
+
+                    <div class="preview-data">
+
+                        <div>
+
+                            <span>
+                                Correo
+                            </span>
+
+                            <strong id="previewCorreo">
+                                Sin correo
+                            </strong>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                Rol
+                            </span>
+
+                            <strong id="previewRol">
+                                Sin seleccionar
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-note">
+
+                        <svg class="icon icon-sm">
+                            <use href="#icon-shield"></use>
+                        </svg>
+
+                        <span>
+                            Los permisos efectivos dependerán del rol asignado.
+                        </span>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                SEGURIDAD
+                ==================================================== -->
+                <section class="security-card">
+
+                    <div class="security-card-icon">
+
+                        <svg class="icon">
+                            <use href="#icon-lock"></use>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Seguridad de acceso
+                        </strong>
+
+                        <span>
+                            La contraseña se almacenará protegida por el mecanismo de seguridad configurado en el sistema.
+                        </span>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                ROLES
+                ==================================================== -->
+                <section class="role-info-card">
+
+                    <div class="role-info-header">
+
+                        <svg class="icon">
+                            <use href="#icon-shield"></use>
+                        </svg>
+
+                        <strong>
+                            Roles disponibles
+                        </strong>
+
+                    </div>
+
+                    <span class="role-count">
+                        @roles.Count()
+                        @(roles.Count() == 1
+                            ? "rol activo disponible"
+                            : "roles activos disponibles")
+                    </span>
+
+                    <a asp-controller="Roles"
+                       asp-action="Index">
+
+                        Administrar roles
+
+                        <svg class="icon icon-sm">
+                            <use href="#icon-arrow-right"></use>
+                        </svg>
+
+                    </a>
+
+                </section>
+
+            </aside>
+
+        </div>
+
+        <!-- ============================================================
+        ACCIONES
+        ============================================================ -->
+        <div class="form-actions">
+
+            <a asp-action="Index"
+               class="cancel-button">
+
+                Cancelar
+
+            </a>
+
+            <button type="reset"
+                    class="reset-button"
+                    id="btnReset">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-refresh"></use>
+                </svg>
+
+                Limpiar
+
+            </button>
+
+            <button type="submit"
+                    class="submit-button"
+                    id="btnSubmit">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-save"></use>
+                </svg>
+
+                Registrar usuario
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
+
+                // ========================================================
+                // ELEMENTOS
+                // ========================================================
+
+                const nombreCompleto =
+                    document.getElementById(
+                        'NombreCompleto');
+
+                const nombreUsuario =
+                    document.getElementById(
+                        'NombreUsuario');
+
+                const correo =
+                    document.getElementById(
+                        'CorreoElectronico');
+
+                const contrasena =
+                    document.getElementById(
+                        'Contrasena');
+
+                const confirmarContrasena =
+                    document.getElementById(
+                        'ConfirmarContrasena');
+
+                const rolSelect =
+                    document.getElementById(
+                        'IdRol');
+
+                const activo =
+                    document.getElementById(
+                        'Activo');
+
+                const btnReset =
+                    document.getElementById(
+                        'btnReset');
+
+                const form =
+                    document.getElementById(
+                        'usuarioForm');
+
+                const btnSubmit =
+                    document.getElementById(
+                        'btnSubmit');
+
+                // ========================================================
+                // PREVIEW
+                // ========================================================
+
+                const previewAvatar =
+                    document.getElementById(
+                        'previewAvatar');
+
+                const previewNombre =
+                    document.getElementById(
+                        'previewNombre');
+
+                const previewUsername =
+                    document.getElementById(
+                        'previewUsername');
+
+                const previewCorreo =
+                    document.getElementById(
+                        'previewCorreo');
+
+                const previewRol =
+                    document.getElementById(
+                        'previewRol');
+
+                const previewEstado =
+                    document.getElementById(
+                        'previewEstado');
+
+                const roleDescription =
+                    document.getElementById(
+                        'roleDescription');
+
+                // ========================================================
+                // CONTRASEÑA
+                // ========================================================
+
+                const passwordStrengthBar =
+                    document.getElementById(
+                        'passwordStrengthBar');
+
+                const passwordStrengthText =
+                    document.getElementById(
+                        'passwordStrengthText');
+
+                const reqLength =
+                    document.getElementById(
+                        'reqLength');
+
+                const reqMatch =
+                    document.getElementById(
+                        'reqMatch');
+
+                // ========================================================
+                // INICIALES
+                // ========================================================
+
+                function obtenerIniciales(nombre) {
+
+                    if (!nombre ||
+                        !nombre.trim()) {
+
+                        return 'NU';
+                    }
+
+                    const partes =
+                        nombre
+                            .trim()
+                            .split(/\s+/)
+                            .filter(Boolean);
+
+                    if (partes.length === 1) {
+
+                        return partes[0]
+                            .substring(0, 2)
+                            .toUpperCase();
+                    }
+
+                    return (
+                        partes[0][0] +
+                        partes[partes.length - 1][0]
+                    ).toUpperCase();
+                }
+
+                // ========================================================
+                // ACTUALIZAR PREVIEW
+                // ========================================================
+
+                function actualizarPreview() {
+
+                    const nombre =
+                        nombreCompleto.value.trim();
+
+                    const username =
+                        nombreUsuario.value.trim();
+
+                    const correoTexto =
+                        correo.value.trim();
+
+                    const selectedOption =
+                        rolSelect.options[
+                        rolSelect.selectedIndex];
+
+                    const rolTexto =
+                        rolSelect.value
+                            ? selectedOption.text.trim()
+                            : 'Sin seleccionar';
+
+                    previewAvatar.textContent =
+                        obtenerIniciales(nombre);
+
+                    previewNombre.textContent =
+                        nombre ||
+                        'Nuevo usuario';
+
+                    previewUsername.textContent =
+                        username
+                            ? '@@' + username
+                            : '@@usuario';
+
+                    previewCorreo.textContent =
+                        correoTexto ||
+                        'Sin correo';
+
+                    previewRol.textContent =
+                        rolTexto;
+
+                    previewEstado.textContent =
+                        activo.checked
+                            ? 'Activo'
+                            : 'Inactivo';
+
+                    previewEstado.className =
+                        activo.checked
+                            ? 'status-preview active'
+                            : 'status-preview inactive';
+
+                    actualizarDescripcionRol();
+                }
+
+                // ========================================================
+                // DESCRIPCIÓN DEL ROL
+                // ========================================================
+
+                function actualizarDescripcionRol() {
+
+                    const option =
+                        rolSelect.options[
+                        rolSelect.selectedIndex];
+
+                    const descripcion =
+                        option &&
+                            option.value
+                            ? option.dataset.description
+                            : '';
+
+                    roleDescription.innerHTML =
+                        '<svg class="icon icon-sm">' +
+                        '<use href="#icon-info"></use>' +
+                        '</svg>' +
+                        '<span>' +
+                        escaparHtml(
+                            descripcion ||
+                            'Selecciona un rol para ver su descripción.') +
+                        '</span>';
+                }
+
+                // ========================================================
+                // ESCAPAR HTML
+                // ========================================================
+
+                function escaparHtml(value) {
+
+                    return String(value || '')
+                        .replaceAll('&', '&amp;')
+                        .replaceAll('<', '&lt;')
+                        .replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;')
+                        .replaceAll("'", '&#039;');
+                }
+
+                // ========================================================
+                // FORTALEZA DE CONTRASEÑA
+                // ========================================================
+
+                function actualizarPassword() {
+
+                    const valor =
+                        contrasena.value || '';
+
+                    const confirmacion =
+                        confirmarContrasena.value || '';
+
+                    let puntos = 0;
+
+                    if (valor.length >= 6) {
+                        puntos++;
+                    }
+
+                    if (valor.length >= 10) {
+                        puntos++;
+                    }
+
+                    if (/[A-Z]/.test(valor) &&
+                        /[a-z]/.test(valor)) {
+                        puntos++;
+                    }
+
+                    if (/\d/.test(valor)) {
+                        puntos++;
+                    }
+
+                    if (/[^A-Za-z0-9]/.test(valor)) {
+                        puntos++;
+                    }
+
+                    let porcentaje = 0;
+                    let texto = 'Sin evaluar';
+                    let clase = '';
+
+                    if (valor.length > 0) {
+
+                        porcentaje =
+                            Math.min(
+                                100,
+                                puntos * 20);
+
+                        if (puntos <= 1) {
+                            texto = 'Débil';
+                            clase = 'weak';
+                        }
+                        else if (puntos <= 3) {
+                            texto = 'Media';
+                            clase = 'medium';
+                        }
+                        else {
+                            texto = 'Fuerte';
+                            clase = 'strong';
+                        }
+                    }
+
+                    passwordStrengthBar.style.width =
+                        porcentaje + '%';
+
+                    passwordStrengthBar.className =
+                        'password-value ' +
+                        clase;
+
+                    passwordStrengthText.textContent =
+                        texto;
+
+                    passwordStrengthText.className =
+                        clase;
+
+                    actualizarRequisito(
+                        reqLength,
+                        valor.length >= 6);
+
+                    actualizarRequisito(
+                        reqMatch,
+                        valor.length > 0 &&
+                        confirmacion.length > 0 &&
+                        valor === confirmacion);
+                }
+
+                // ========================================================
+                // REQUISITO
+                // ========================================================
+
+                function actualizarRequisito(
+                    elemento,
+                    cumplido) {
+
+                    if (!elemento) {
+                        return;
+                    }
+
+                    elemento.className =
+                        cumplido
+                            ? 'requirement ok'
+                            : 'requirement';
+
+                    const use =
+                        elemento.querySelector(
+                            'use');
+
+                    if (use) {
+
+                        use.setAttribute(
+                            'href',
+                            cumplido
+                                ? '#icon-check-circle'
+                                : '#icon-circle');
+                    }
+                }
+
+                // ========================================================
+                // MOSTRAR / OCULTAR PASSWORD
+                // ========================================================
+
+                document
+                    .querySelectorAll(
+                        '.password-toggle')
+                    .forEach(
+                        function(button) {
+
+                            button.addEventListener(
+                                'click',
+                                function() {
+
+                                    const target =
+                                        document.getElementById(
+                                            button.dataset.target);
+
+                                    if (!target) {
+                                        return;
+                                    }
+
+                                    const mostrar =
+                                        target.type ===
+                                        'password';
+
+                                    target.type =
+                                        mostrar
+                                            ? 'text'
+                                            : 'password';
+
+                                    button.title =
+                                        mostrar
+                                            ? 'Ocultar contraseña'
+                                            : 'Mostrar contraseña';
+                                });
+                        });
+
+                // ========================================================
+                // NORMALIZAR NOMBRE DE USUARIO
+                // ========================================================
+
+                nombreUsuario.addEventListener(
+                    'input',
+                    function() {
+
+                        const posicion =
+                            nombreUsuario.selectionStart;
+
+                        nombreUsuario.value =
+                            nombreUsuario.value
+                                .replace(/\s+/g, '')
+                                .toLowerCase();
+
+                        try {
+
+                            nombreUsuario.setSelectionRange(
+                                posicion,
+                                posicion);
+                        }
+                        catch {
+                        }
+
+                        actualizarPreview();
+                    });
+
+                // ========================================================
+                // LISTENERS
+                // ========================================================
+
+                nombreCompleto.addEventListener(
+                    'input',
+                    actualizarPreview);
+
+                correo.addEventListener(
+                    'input',
+                    actualizarPreview);
+
+                rolSelect.addEventListener(
+                    'change',
+                    actualizarPreview);
+
+                activo.addEventListener(
+                    'change',
+                    actualizarPreview);
+
+                contrasena.addEventListener(
+                    'input',
+                    actualizarPassword);
+
+                confirmarContrasena.addEventListener(
+                    'input',
+                    actualizarPassword);
+
+                // ========================================================
+                // RESET
+                // ========================================================
+
+                btnReset.addEventListener(
+                    'click',
+                    function() {
+
+                        setTimeout(
+                            function() {
+
+                                actualizarPreview();
+                                actualizarPassword();
+
+                            },
+                            0);
+                    });
+
+                // ========================================================
+                // SUBMIT
+                // ========================================================
+
+                form.addEventListener(
+                    'submit',
+                    function() {
+
+                        if (!form.checkValidity()) {
+                            return;
+                        }
+
+                        btnSubmit.disabled =
+                            true;
+
+                        btnSubmit.innerHTML =
+                            '<svg class="icon icon-sm icon-spin">' +
+                            '<use href="#icon-refresh"></use>' +
+                            '</svg>' +
+                            ' Registrando...';
+                    });
+
+                // ========================================================
+                // ESTADO INICIAL
+                // ========================================================
+
+                actualizarPreview();
+                actualizarPassword();
+            });
+
+    </script>
+}
+
+<style>
+
+    /* ================================================================
+           BASE
+           ================================================================ */
+
+    .user-create-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #344357;
+        --muted: #7d8999;
+        --success: #168957;
+        --danger: #d1475b;
+        --warning: #d99a24;
+    }
+
+    /* ================================================================
+           HERO
+           ================================================================ */
+
+    .create-hero {
+        min-height: 114px;
+        padding: 23px 30px;
+        margin-bottom: 17px;
+        border-radius: 20px;
+        background: linear-gradient( 100deg, #102947 0%, #17488e 49%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .create-hero::after {
+            content: "";
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            top: -130px;
+            right: -80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.11);
+        border: 1px solid rgba(255,255,255,.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .create-hero h1 {
+        margin: 0;
+        font-size: 1.65rem;
+        font-weight: 800;
+    }
+
+    .hero-subtitle {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: rgba(255,255,255,.72);
+        font-size: .8rem;
+    }
+
+    .hero-back {
+        min-height: 41px;
+        padding: 0 15px;
+        border: 1px solid rgba(255,255,255,.28);
+        border-radius: 9px;
+        background: rgba(255,255,255,.05);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        text-decoration: none;
+        font-size: .72rem;
+        font-weight: 750;
+        position: relative;
+        z-index: 1;
+    }
+
+        .hero-back:hover {
+            color: white;
+            background: rgba(255,255,255,.12);
+        }
+
+    /* ================================================================
+           ALERTAS
+           ================================================================ */
+
+    .page-alert {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        border-radius: 11px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+        .page-alert.danger {
+            background: #fff1f3;
+            color: #a73547;
+            border-left: 4px solid var(--danger);
+        }
+
+        .page-alert > div {
+            flex: 1;
+        }
+
+        .page-alert strong {
+            display: block;
+            font-size: .72rem;
+        }
+
+        .page-alert span {
+            display: block;
+            margin-top: 2px;
+            font-size: .66rem;
+        }
+
+    .validation-summary {
+        margin-top: 4px;
+        font-size: .64rem;
+    }
+
+        .validation-summary ul {
+            margin: 4px 0 0;
+            padding-left: 18px;
+        }
+
+    /* ================================================================
+           LAYOUT
+           ================================================================ */
+
+    .create-layout {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) 310px;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .form-card,
+    .summary-card,
+    .security-card,
+    .role-info-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+    }
+
+    .mt-card {
+        margin-top: 16px;
+    }
+
+    /* ================================================================
+           CARD
+           ================================================================ */
+
+    .card-header {
+        padding: 17px 19px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .section-icon {
+        width: 37px;
+        height: 37px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .section-icon.blue {
+            color: #356fa7;
+            background: #eaf2fb;
+        }
+
+        .section-icon.purple {
+            color: #7554aa;
+            background: #f0ebf8;
+        }
+
+        .section-icon.gold {
+            color: #a47517;
+            background: #fff7e5;
+        }
+
+    .card-header span {
+        display: block;
+        color: #929dab;
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+    }
+
+    .card-header h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .card-header p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .61rem;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* ================================================================
+           CAMPOS
+           ================================================================ */
+
+    .field-group + .field-group {
+        margin-top: 18px;
+    }
+
+    .password-grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 13px;
+    }
+
+        .password-grid .field-group {
+            margin-top: 0;
+        }
+
+    .vidal-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #33445a;
+        font-size: .69rem;
+        font-weight: 750;
+    }
+
+    .vidal-control {
+        width: 100%;
+        min-height: 42px;
+        padding: 9px 11px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: white;
+        color: #344357;
+        font-size: .69rem;
+        outline: none;
+        transition: .18s ease;
+    }
+
+        .vidal-control:focus {
+            border-color: #6797ca;
+            box-shadow: 0 0 0 3px rgba(34,108,194,.08);
+        }
+
+        .vidal-control.with-icon {
+            padding-left: 37px;
+        }
+
+    .input-with-icon {
+        position: relative;
+    }
+
+        .input-with-icon > .icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8391a2;
+            pointer-events: none;
+        }
+
+    .validation-text {
+        display: block;
+        margin-top: 5px;
+        color: var(--danger);
+        font-size: .61rem;
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 5px;
+        color: #8a96a6;
+        font-size: .58rem;
+    }
+
+    /* ================================================================
+           PASSWORD
+           ================================================================ */
+
+    .password-control {
+        position: relative;
+    }
+
+        .password-control .field-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8391a2;
+            pointer-events: none;
+        }
+
+    .password-input {
+        padding-left: 37px;
+        padding-right: 40px;
+    }
+
+    .password-toggle {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        top: 4px;
+        right: 4px;
+        border: none;
+        border-radius: 7px;
+        background: transparent;
+        color: #738195;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+        .password-toggle:hover {
+            background: #f0f4f8;
+            color: #496a8c;
+        }
+
+    .password-status {
+        margin-top: 14px;
+        padding: 12px;
+        border: 1px solid #e3e9f0;
+        border-radius: 9px;
+        background: #fafbfd;
+    }
+
+    .password-status-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: #768396;
+        font-size: .58rem;
+    }
+
+        .password-status-header strong {
+            font-size: .58rem;
+        }
+
+        .password-status-header .weak {
+            color: #c7485a;
+        }
+
+        .password-status-header .medium {
+            color: #b77a15;
+        }
+
+        .password-status-header .strong {
+            color: #168957;
+        }
+
+    .password-track {
+        height: 5px;
+        margin-top: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e4eaf0;
+    }
+
+    .password-value {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: #cbd3dc;
+        transition: width .2s ease;
+    }
+
+        .password-value.weak {
+            background: #d1475b;
+        }
+
+        .password-value.medium {
+            background: #d99a24;
+        }
+
+        .password-value.strong {
+            background: #168957;
+        }
+
+    .password-requirements {
+        margin-top: 9px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .requirement {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #8a96a6;
+        font-size: .54rem;
+    }
+
+        .requirement.ok {
+            color: #168957;
+        }
+
+    /* ================================================================
+           ROL
+           ================================================================ */
+
+    .role-description {
+        margin-top: 8px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: #f4f8fc;
+        color: #61768c;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: .58rem;
+        line-height: 1.45;
+    }
+
+        .role-description .icon {
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+    /* ================================================================
+           ESTADO
+           ================================================================ */
+
+    .status-box {
+        margin-top: 19px;
+        padding: 13px;
+        border: 1px solid #dfe6ee;
+        border-radius: 10px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #e9f7f0;
+        color: #168957;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .status-content {
+        flex: 1;
+    }
+
+        .status-content strong {
+            display: block;
+            color: #344357;
+            font-size: .67rem;
+        }
+
+        .status-content span {
+            display: block;
+            margin-top: 2px;
+            color: #7f8c9c;
+            font-size: .57rem;
+            line-height: 1.4;
+        }
+
+    .switch-control {
+        width: 42px;
+        height: 23px;
+        position: relative;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+        .switch-control input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
+
+    .switch-slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #cfd7e1;
+        transition: .2s ease;
+    }
+
+        .switch-slider::before {
+            content: "";
+            position: absolute;
+            width: 17px;
+            height: 17px;
+            top: 3px;
+            left: 3px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 1px 4px rgba(0,0,0,.18);
+            transition: .2s ease;
+        }
+
+    .switch-control input:checked +
+    .switch-slider {
+        background: #168957;
+    }
+
+        .switch-control input:checked +
+        .switch-slider::before {
+            transform: translateX(19px);
+        }
+
+    /* ================================================================
+           SUMMARY
+           ================================================================ */
+
+    .summary-card {
+        padding: 18px;
+        position: sticky;
+        top: 90px;
+    }
+
+    .summary-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--navy);
+        font-size: .7rem;
+        font-weight: 800;
+    }
+
+    .profile-preview {
+        margin-top: 17px;
+        padding: 13px;
+        border-radius: 11px;
+        background: #f7f9fc;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .profile-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 11px;
+        color: #346b9e;
+        background: #e8f1f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .72rem;
+        font-weight: 850;
+        flex-shrink: 0;
+    }
+
+    .profile-info {
+        min-width: 0;
+    }
+
+        .profile-info strong {
+            display: block;
+            overflow: hidden;
+            color: #344357;
+            font-size: .7rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .profile-info span {
+            display: block;
+            margin-top: 2px;
+            color: #8b96a5;
+            font-size: .57rem;
+        }
+
+    .preview-status-row {
+        margin-top: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+        .preview-status-row > span:first-child {
+            color: #8894a4;
+            font-size: .58rem;
+        }
+
+    .status-preview {
+        padding: 4px 7px;
+        border-radius: 999px;
+        font-size: .54rem;
+        font-weight: 800;
+    }
+
+        .status-preview.active {
+            color: #168957;
+            background: #e9f7f0;
+        }
+
+        .status-preview.inactive {
+            color: #687587;
+            background: #edf0f4;
+        }
+
+    .preview-data {
+        margin-top: 9px;
+    }
+
+        .preview-data > div {
+            padding: 7px 0;
+            border-bottom: 1px solid #edf1f5;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .preview-data span {
+            color: #8995a4;
+            font-size: .56rem;
+        }
+
+        .preview-data strong {
+            max-width: 165px;
+            overflow: hidden;
+            color: #4b5a6d;
+            font-size: .57rem;
+            text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .summary-divider {
+        height: 1px;
+        margin: 12px 0;
+        background: #edf1f5;
+    }
+
+    .summary-note {
+        padding: 10px;
+        border-radius: 8px;
+        background: #eef5fd;
+        color: #4f6d8b;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: .56rem;
+        line-height: 1.45;
+    }
+
+    /* ================================================================
+           SIDE CARDS
+           ================================================================ */
+
+    .security-card,
+    .role-info-card {
+        margin-top: 13px;
+        padding: 13px;
+    }
+
+    .security-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+    }
+
+    .security-card-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #edf3f8;
+        color: #526f8d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .security-card strong {
+        display: block;
+        color: #344357;
+        font-size: .63rem;
+    }
+
+    .security-card span {
+        display: block;
+        margin-top: 2px;
+        color: #8793a3;
+        font-size: .54rem;
+        line-height: 1.45;
+    }
+
+    .role-info-header {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #4f6d8b;
+    }
+
+        .role-info-header strong {
+            color: #344357;
+            font-size: .64rem;
+        }
+
+    .role-count {
+        display: block;
+        margin-top: 6px;
+        color: #8995a4;
+        font-size: .55rem;
+    }
+
+    .role-info-card a {
+        min-height: 33px;
+        margin-top: 10px;
+        border-radius: 7px;
+        background: #f2f6fa;
+        color: #496a8a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .57rem;
+        font-weight: 750;
+    }
+
+    /* ================================================================
+           ACCIONES
+           ================================================================ */
+
+    .form-actions {
+        margin-top: 17px;
+        padding-top: 16px;
+        border-top: 1px solid #e7ecf2;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .cancel-button,
+    .reset-button,
+    .submit-button {
+        min-height: 41px;
+        padding: 0 15px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: .66rem;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .cancel-button,
+    .reset-button {
+        border: 1px solid #d8e0e9;
+        background: white;
+        color: #586779;
+    }
+
+    .reset-button {
+        cursor: pointer;
+    }
+
+    .submit-button {
+        border: none;
+        background: linear-gradient( 135deg, #102947, #17488e);
+        color: white;
+        cursor: pointer;
+    }
+
+        .submit-button:disabled {
+            opacity: .65;
+            cursor: wait;
+        }
+
+    .icon-spin {
+        animation: userCreateSpin 1s linear infinite;
+    }
+
+    @@keyframes userCreateSpin {
+
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+
+    @@media (max-width: 950px) {
+
+        .create-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-card {
+            position: static;
+        }
+    }
+
+    @@media (max-width: 720px) {
+
+        .create-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-back {
+            width: 100%;
+        }
+
+        .password-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 520px) {
+
+        .create-hero {
+            padding: 20px;
+        }
+
+        .hero-left {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .create-hero h1 {
+            font-size: 1.35rem;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .cancel-button,
+        .reset-button,
+        .submit-button {
+            width: 100%;
+        }
+    }
+
+</style>

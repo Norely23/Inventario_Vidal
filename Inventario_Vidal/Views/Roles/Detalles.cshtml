@@ -1,0 +1,1156 @@
+@using Inventario_Vidal.DTOs
+@model RolListDto
+
+@{
+    ViewData["Title"] = "Detalle del rol";
+    ViewBag.Subtitle = "Información del perfil de acceso";
+}
+
+<div class="security-page">
+
+    <section class="page-hero">
+        <div class="hero-left">
+            <div class="hero-icon">
+                <svg class="icon icon-xl">
+                    <use href="#icon-shield"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span class="hero-eyebrow">
+                    DETALLE DEL ROL
+                </span>
+
+                <h1>@Model.NombreRol</h1>
+
+                <p>
+                    Consulta la información general y administra su configuración de acceso.
+                </p>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a asp-action="Index"
+               class="hero-btn outline">
+                <svg class="icon icon-sm">
+                    <use href="#icon-arrow-left"></use>
+                </svg>
+                Volver
+            </a>
+
+            <a asp-action="Editar"
+               asp-route-id="@Model.IdRol"
+               class="hero-btn light">
+                <svg class="icon icon-sm">
+                    <use href="#icon-edit"></use>
+                </svg>
+                Editar
+            </a>
+
+            <a asp-action="Permisos"
+               asp-route-id="@Model.IdRol"
+               class="hero-btn outline">
+                <svg class="icon icon-sm">
+                    <use href="#icon-key"></use>
+                </svg>
+                Permisos
+            </a>
+        </div>
+    </section>
+
+    <section class="summary-grid">
+        <article class="summary-card">
+            <div class="summary-icon blue">
+                <svg class="icon">
+                    <use href="#icon-shield"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span>Identificador</span>
+                <strong>#@Model.IdRol</strong>
+                <small>Rol del sistema</small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon @(Model.Activo ? "green" : "red")">
+                <svg class="icon">
+                    <use href="#icon-@(Model.Activo ? "check-circle" : "x-circle")"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span>Estado</span>
+                <strong>@Model.EstadoTexto</strong>
+                <small>
+                    @(Model.Activo
+                        ? "Disponible para asignación"
+                        : "No disponible para nuevos usuarios")
+                </small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon purple">
+                <svg class="icon">
+                    <use href="#icon-users"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span>Usuarios asignados</span>
+                <strong>@Model.CantidadUsuarios</strong>
+                <small>Usuarios vinculados al rol</small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon gold">
+                <svg class="icon">
+                    <use href="#icon-clock"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span>Creado</span>
+                <strong>@Model.FechaCreacion.ToString("dd/MM/yyyy")</strong>
+                <small>@Model.FechaCreacion.ToString("HH:mm")</small>
+            </div>
+        </article>
+    </section>
+
+    <div class="detail-grid">
+        <section class="panel-card">
+            <div class="panel-heading">
+                <div class="heading-left">
+                    <div class="heading-icon">
+                        <svg class="icon">
+                            <use href="#icon-info"></use>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <span>INFORMACIÓN</span>
+                        <h2>Datos generales</h2>
+                        <p>
+                            Identificación y descripción del perfil.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-body">
+                <div class="detail-row">
+                    <span>Nombre del rol</span>
+                    <strong>@Model.NombreRol</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>Descripción</span>
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(Model.Descripcion)
+                            ? "Sin descripción registrada."
+                            : Model.Descripcion)
+                    </strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>Estado</span>
+
+                    <strong>
+                        <span class="status-badge @(Model.Activo ? "active" : "inactive")">
+                            <span class="status-dot"></span>
+                            @Model.EstadoTexto
+                        </span>
+                    </strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>Fecha de creación</span>
+                    <strong>@Model.FechaCreacionFormateada</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel-card">
+            <div class="panel-heading">
+                <div class="heading-left">
+                    <div class="heading-icon gold">
+                        <svg class="icon">
+                            <use href="#icon-key"></use>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <span>ACCESOS</span>
+                        <h2>Configuración de permisos</h2>
+                        <p>
+                            Administra qué operaciones puede realizar este rol.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="permission-cta">
+                <div class="permission-cta-icon">
+                    <svg class="icon icon-xl">
+                        <use href="#icon-key"></use>
+                    </svg>
+                </div>
+
+                <h3>Permisos del rol</h3>
+
+                <p>
+                    Los permisos se gestionan desde una pantalla independiente
+                    para evitar modificar accidentalmente la información general.
+                </p>
+
+                <a asp-action="Permisos"
+                   asp-route-id="@Model.IdRol"
+                   class="primary-btn">
+                    <svg class="icon icon-sm">
+                        <use href="#icon-settings"></use>
+                    </svg>
+                    Configurar permisos
+                </a>
+            </div>
+        </section>
+    </div>
+</div>
+
+<style>
+    .detail-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .detail-body {
+        padding: 4px 16px;
+    }
+
+    .detail-row {
+        min-height: 64px;
+        padding: 12px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr);
+        gap: 18px;
+        align-items: center;
+    }
+
+    .detail-row:last-child {
+        border-bottom: 0;
+    }
+
+    .detail-row > span {
+        color: #8794a4;
+        font-size: .61rem;
+        font-weight: 750;
+    }
+
+    .detail-row > strong {
+        color: #43566e;
+        font-size: .66rem;
+        line-height: 1.45;
+    }
+
+    .permission-cta {
+        padding: 28px 20px;
+        text-align: center;
+    }
+
+    .permission-cta-icon {
+        width: 62px;
+        height: 62px;
+        margin: 0 auto;
+        border-radius: 15px;
+        background: #fff6e4;
+        color: #a47517;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .permission-cta h3 {
+        margin: 11px 0 4px;
+        color: #41546b;
+        font-size: .78rem;
+    }
+
+    .permission-cta p {
+        margin: 0 auto 14px;
+        max-width: 420px;
+        color: #8592a1;
+        font-size: .62rem;
+        line-height: 1.5;
+    }
+
+    @@media (max-width: 900px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 620px) {
+        .detail-row {
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+    }
+</style>
+
+<style>
+    .security-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue2: #226cc2;
+        --border: #dce3eb;
+        --muted: #7d8b9c;
+        --success: #168957;
+        --danger: #c93f55;
+        --warning: #b67916;
+        --surface: #ffffff;
+    }
+
+    .security-page * {
+        box-sizing: border-box;
+    }
+
+    .page-hero {
+        min-height: 120px;
+        margin-bottom: 16px;
+        padding: 24px 30px;
+        border-radius: 20px;
+        background: linear-gradient(100deg, #102947, #17488e 52%, #226cc2);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(16, 41, 71, .12);
+    }
+
+    .page-hero::after {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        right: -95px;
+        top: -145px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.05);
+        pointer-events: none;
+    }
+
+    .hero-left,
+    .hero-actions {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-left {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .hero-icon {
+        width: 62px;
+        height: 62px;
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 15px;
+        background: rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-icon .icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .hero-eyebrow {
+        display: block;
+        color: rgba(255,255,255,.64);
+        font-size: .62rem;
+        font-weight: 800;
+        letter-spacing: .85px;
+    }
+
+    .page-hero h1 {
+        margin: 3px 0 0;
+        color: #fff;
+        font-size: 1.45rem;
+        line-height: 1.15;
+    }
+
+    .page-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.76);
+        font-size: .72rem;
+        line-height: 1.45;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .hero-btn {
+        min-height: 40px;
+        padding: 0 13px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: .68rem;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .hero-btn.light {
+        border: 1px solid #fff;
+        background: #fff;
+        color: var(--navy);
+    }
+
+    .hero-btn.outline {
+        border: 1px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.05);
+        color: #fff;
+    }
+
+    .summary-grid {
+        margin-bottom: 16px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .summary-card {
+        min-height: 104px;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .summary-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .summary-icon.blue {
+        background: #eaf2fb;
+        color: #356fa7;
+    }
+
+    .summary-icon.green {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .summary-icon.red {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .summary-icon.purple {
+        background: #f0ebf8;
+        color: #7554aa;
+    }
+
+    .summary-icon.gold {
+        background: #fff6e4;
+        color: #a47517;
+    }
+
+    .summary-card span,
+    .summary-card strong,
+    .summary-card small {
+        display: block;
+    }
+
+    .summary-card span {
+        color: #8995a5;
+        font-size: .58rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+    }
+
+    .summary-card strong {
+        margin-top: 3px;
+        color: var(--navy);
+        font-size: .92rem;
+    }
+
+    .summary-card small {
+        margin-top: 2px;
+        color: #97a2af;
+        font-size: .55rem;
+    }
+
+    .panel-card {
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .panel-heading {
+        padding: 14px 16px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .heading-left {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .heading-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .heading-icon.green {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .heading-icon.gold {
+        background: #fff6e4;
+        color: #a47517;
+    }
+
+    .heading-icon.purple {
+        background: #f0ebf8;
+        color: #7554aa;
+    }
+
+    .heading-left span {
+        display: block;
+        color: #929dab;
+        font-size: .55rem;
+        font-weight: 800;
+        letter-spacing: .6px;
+    }
+
+    .heading-left h2 {
+        margin: 2px 0 0;
+        color: var(--navy);
+        font-size: .82rem;
+    }
+
+    .heading-left p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .62rem;
+    }
+
+    .heading-tools {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .record-count {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #687b90;
+        font-size: .57rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .search-box {
+        width: 235px;
+        min-height: 37px;
+        padding: 0 9px;
+        border: 1px solid #dce3eb;
+        border-radius: 8px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .search-box input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #46566a;
+        font-size: .63rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .vidal-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .vidal-table th {
+        padding: 10px 12px;
+        border-bottom: 1px solid #dfe5eb;
+        background: #f6f8fa;
+        color: #68788b;
+        font-size: .55rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .vidal-table td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #edf1f5;
+        color: #4a596c;
+        font-size: .62rem;
+        vertical-align: middle;
+    }
+
+    .vidal-table tbody tr:hover {
+        background: #fafcfe;
+    }
+
+    .entity-cell {
+        min-width: 190px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .entity-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: .67rem;
+        font-weight: 900;
+    }
+
+    .entity-cell strong,
+    .entity-cell span,
+    .stack-cell strong,
+    .stack-cell span {
+        display: block;
+    }
+
+    .entity-cell strong,
+    .stack-cell strong {
+        color: #425267;
+        font-size: .64rem;
+    }
+
+    .entity-cell span,
+    .stack-cell span {
+        margin-top: 2px;
+        color: #929dab;
+        font-size: .55rem;
+    }
+
+    .status-badge {
+        padding: 6px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .56rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .status-badge.active {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .status-badge.inactive {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .action-group {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .action-btn.info {
+        border: 1px solid #cdddec;
+        background: #f2f7fb;
+        color: #4779a8;
+    }
+
+    .action-btn.edit {
+        border: 1px solid #d8cff0;
+        background: #f7f3ff;
+        color: #7856af;
+    }
+
+    .action-btn.key {
+        border: 1px solid #eadab4;
+        background: #fff9ed;
+        color: #9a6c18;
+    }
+
+    .action-btn.disable {
+        border: 1px solid #efcbd1;
+        background: #fff3f5;
+        color: #c64055;
+    }
+
+    .action-btn.enable {
+        border: 1px solid #cce8d9;
+        background: #edf9f3;
+        color: #168957;
+    }
+
+    .table-footer {
+        padding: 10px 14px;
+        border-top: 1px solid #edf1f5;
+        background: #fafbfd;
+        color: #7f8d9e;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: .56rem;
+    }
+
+    .empty-state {
+        min-height: 240px;
+        padding: 28px;
+        color: #8794a4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 15px;
+        background: #f0f4f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state h3 {
+        margin: 11px 0 0;
+        color: #506075;
+        font-size: .78rem;
+    }
+
+    .empty-state p {
+        margin: 5px 0 13px;
+        font-size: .62rem;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+        min-height: 39px;
+        padding: 0 12px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .63rem;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .primary-btn {
+        border: 0;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: #fff;
+    }
+
+    .secondary-btn {
+        border: 1px solid #d6dee7;
+        background: #fff;
+        color: #59697b;
+    }
+
+    .form-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.65fr) minmax(280px, .75fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .form-body {
+        padding: 16px;
+    }
+
+    .field-group {
+        margin-bottom: 14px;
+    }
+
+    .field-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .field-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #526276;
+        font-size: .64rem;
+        font-weight: 800;
+    }
+
+    .vidal-control {
+        width: 100%;
+        min-height: 41px;
+        padding: 0 10px;
+        border: 1px solid #dce3eb;
+        border-radius: 8px;
+        background: #fafbfd;
+        color: #46566a;
+        outline: none;
+        font-size: .66rem;
+    }
+
+    textarea.vidal-control {
+        min-height: 110px;
+        padding: 10px;
+        resize: vertical;
+    }
+
+    .vidal-control:focus {
+        border-color: #86acd0;
+        box-shadow: 0 0 0 3px rgba(53,111,167,.08);
+        background: #fff;
+    }
+
+    .field-help,
+    .field-counter {
+        margin-top: 5px;
+        color: #8995a4;
+        font-size: .57rem;
+        line-height: 1.4;
+    }
+
+    .field-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .validation-text {
+        color: #c93f55;
+        font-size: .58rem;
+    }
+
+    .status-box {
+        padding: 12px;
+        border: 1px solid #e1e7ee;
+        border-radius: 10px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-box-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        background: #e9f7f0;
+        color: #168957;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .status-box-content {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .status-box-content strong,
+    .status-box-content span {
+        display: block;
+    }
+
+    .status-box-content strong {
+        color: #43566e;
+        font-size: .65rem;
+    }
+
+    .status-box-content span {
+        margin-top: 2px;
+        color: #8491a0;
+        font-size: .57rem;
+        line-height: 1.4;
+    }
+
+    .switch {
+        position: relative;
+        width: 42px;
+        height: 23px;
+        flex-shrink: 0;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .switch-slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #c8d0da;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .switch-slider::before {
+        content: "";
+        position: absolute;
+        width: 17px;
+        height: 17px;
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        background: #fff;
+        transition: .2s;
+        box-shadow: 0 1px 4px rgba(0,0,0,.18);
+    }
+
+    .switch input:checked + .switch-slider {
+        background: #168957;
+    }
+
+    .switch input:checked + .switch-slider::before {
+        transform: translateX(19px);
+    }
+
+    .preview-card {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .preview-header {
+        padding: 13px 14px;
+        border-bottom: 1px solid #edf1f5;
+        color: #607286;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: .64rem;
+        font-weight: 800;
+    }
+
+    .preview-body {
+        padding: 18px;
+        text-align: center;
+    }
+
+    .preview-avatar {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto;
+        border-radius: 15px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .preview-body h3 {
+        margin: 10px 0 3px;
+        color: #33465e;
+        font-size: .8rem;
+    }
+
+    .preview-body p {
+        margin: 0;
+        color: #8794a4;
+        font-size: .61rem;
+        line-height: 1.5;
+    }
+
+    .preview-status {
+        margin-top: 11px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .59rem;
+        font-weight: 800;
+    }
+
+    .preview-status.active {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .preview-status.inactive {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .form-actions {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid #edf1f5;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .model-errors {
+        margin-bottom: 14px;
+        padding: 11px 13px;
+        border: 1px solid #efcbd1;
+        border-left: 4px solid #c93f55;
+        border-radius: 10px;
+        background: #fff3f5;
+        color: #a73547;
+        font-size: .61rem;
+    }
+
+    @@media (max-width: 1050px) {
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .form-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 760px) {
+        .page-hero {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-btn {
+            flex: 1;
+        }
+
+        .panel-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .heading-tools {
+            width: 100%;
+        }
+
+        .search-box {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 560px) {
+        .page-hero {
+            padding: 20px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-btn {
+            width: 100%;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .primary-btn,
+        .secondary-btn {
+            width: 100%;
+        }
+    }
+</style>

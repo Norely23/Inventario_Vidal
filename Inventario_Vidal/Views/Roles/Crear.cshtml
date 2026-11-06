@@ -1,0 +1,1243 @@
+@using Inventario_Vidal.DTOs
+@model RolCreateDto
+
+@{
+    ViewData["Title"] = "Nuevo rol";
+    ViewBag.Subtitle = "Crear un perfil de acceso";
+}
+
+<div class="security-page">
+
+    <section class="page-hero">
+        <div class="hero-left">
+            <div class="hero-icon">
+                <svg class="icon icon-xl">
+                    <use href="#icon-shield"></use>
+                </svg>
+            </div>
+
+            <div>
+                <span class="hero-eyebrow">
+                    SEGURIDAD Y ACCESOS
+                </span>
+
+                <h1>Nuevo rol</h1>
+
+                <p>
+                    Define un perfil de acceso. Los permisos se configuran después de crear el rol.
+                </p>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a asp-action="Index"
+               class="hero-btn outline">
+                <svg class="icon icon-sm">
+                    <use href="#icon-arrow-left"></use>
+                </svg>
+                Volver
+            </a>
+        </div>
+    </section>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="model-errors"
+             asp-validation-summary="ModelOnly">
+        </div>
+    }
+
+    <form asp-action="Crear"
+          method="post"
+          id="rolForm">
+        @Html.AntiForgeryToken()
+
+        <div class="form-layout">
+            <main>
+                <section class="panel-card">
+                    <div class="panel-heading">
+                        <div class="heading-left">
+                            <div class="heading-icon">
+                                <svg class="icon">
+                                    <use href="#icon-shield"></use>
+                                </svg>
+                            </div>
+
+                            <div>
+                                <span>INFORMACIÓN</span>
+                                <h2>Datos del rol</h2>
+                                <p>
+                                    Identifica el perfil y define su estado inicial.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-body">
+                        <div class="field-group">
+                            <label asp-for="NombreRol">
+                                Nombre del rol *
+                            </label>
+
+                            <input asp-for="NombreRol"
+                                   id="NombreRol"
+                                   class="vidal-control"
+                                   maxlength="50"
+                                   autocomplete="off"
+                                   placeholder="Ej. Supervisor de almacén" />
+
+                            <div class="field-footer">
+                                <span asp-validation-for="NombreRol"
+                                      class="validation-text">
+                                </span>
+
+                                <span id="nombreStatus"
+                                      class="field-help">
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label asp-for="Descripcion">
+                                Descripción
+                            </label>
+
+                            <textarea asp-for="Descripcion"
+                                      id="Descripcion"
+                                      class="vidal-control"
+                                      maxlength="200"
+                                      placeholder="Describe las responsabilidades y alcance del rol"></textarea>
+
+                            <div class="field-footer">
+                                <span asp-validation-for="Descripcion"
+                                      class="validation-text">
+                                </span>
+
+                                <span id="contadorDescripcion"
+                                      class="field-counter">
+                                    0 / 200
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="status-box">
+                            <div class="status-box-icon">
+                                <svg class="icon">
+                                    <use href="#icon-check-circle"></use>
+                                </svg>
+                            </div>
+
+                            <div class="status-box-content">
+                                <strong>Estado del rol</strong>
+                                <span>
+                                    Un rol activo puede asignarse inmediatamente a los usuarios.
+                                </span>
+                            </div>
+
+                            <label class="switch">
+                                <input asp-for="Activo"
+                                       id="Activo" />
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="form-actions">
+                    <a asp-action="Index"
+                       class="secondary-btn">
+                        Cancelar
+                    </a>
+
+                    <button type="submit"
+                            class="primary-btn"
+                            id="btnGuardar">
+                        <svg class="icon icon-sm">
+                            <use href="#icon-save"></use>
+                        </svg>
+                        Crear rol
+                    </button>
+                </div>
+            </main>
+
+            <aside>
+                <section class="preview-card">
+                    <div class="preview-header">
+                        <svg class="icon icon-sm">
+                            <use href="#icon-eye"></use>
+                        </svg>
+                        Vista previa
+                    </div>
+
+                    <div class="preview-body">
+                        <div class="preview-avatar"
+                             id="previewAvatar">
+                            R
+                        </div>
+
+                        <h3 id="previewNombre">
+                            Nuevo rol
+                        </h3>
+
+                        <p id="previewDescripcion">
+                            Sin descripción registrada.
+                        </p>
+
+                        <span class="preview-status active"
+                              id="previewEstado">
+                            <span class="status-dot"></span>
+                            Activo
+                        </span>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </form>
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener(
+            'DOMContentLoaded',
+            function () {
+
+                const nombre =
+                    document.getElementById('NombreRol');
+
+                const descripcion =
+                    document.getElementById('Descripcion');
+
+                const activo =
+                    document.getElementById('Activo');
+
+                const previewNombre =
+                    document.getElementById('previewNombre');
+
+                const previewDescripcion =
+                    document.getElementById('previewDescripcion');
+
+                const previewEstado =
+                    document.getElementById('previewEstado');
+
+                const previewAvatar =
+                    document.getElementById('previewAvatar');
+
+                const contador =
+                    document.getElementById('contadorDescripcion');
+
+                const nombreStatus =
+                    document.getElementById('nombreStatus');
+
+                const form =
+                    document.getElementById('rolForm');
+
+                const btnGuardar =
+                    document.getElementById('btnGuardar');
+
+                let nombreDisponible = true;
+                let verificandoNombre = false;
+                let timer;
+
+                function iniciales(value) {
+                    const parts =
+                        String(value || '')
+                            .trim()
+                            .split(/\s+/)
+                            .filter(Boolean);
+
+                    if (!parts.length)
+                        return 'R';
+
+                    return (
+                        parts.length === 1
+                            ? parts[0][0]
+                            : parts[0][0] +
+                                parts[parts.length - 1][0]
+                    ).toUpperCase();
+                }
+
+                function actualizarVista() {
+                    const name =
+                        nombre.value.trim();
+
+                    const description =
+                        descripcion.value.trim();
+
+                    previewNombre.textContent =
+                        name || 'Nuevo rol';
+
+                    previewDescripcion.textContent =
+                        description ||
+                        'Sin descripción registrada.';
+
+                    previewAvatar.textContent =
+                        iniciales(name);
+
+                    previewEstado.className =
+                        activo.checked
+                            ? 'preview-status active'
+                            : 'preview-status inactive';
+
+                    previewEstado.innerHTML =
+                        '<span class="status-dot"></span>' +
+                        (activo.checked
+                            ? 'Activo'
+                            : 'Inactivo');
+
+                    contador.textContent =
+                        `${descripcion.value.length} / 200`;
+                }
+
+                async function verificarNombre() {
+                    const value =
+                        nombre.value.trim();
+
+                    if (value.length < 3) {
+                        nombreStatus.textContent = '';
+                        nombreDisponible = true;
+                        return;
+                    }
+
+                    verificandoNombre = true;
+                    nombreDisponible = false;
+                    nombreStatus.textContent =
+                        'Verificando disponibilidad...';
+
+                    try {
+                        const response =
+                            await fetch(
+                                '@Url.Action("VerificarNombre", "Roles")' +
+                                '?nombre=' +
+                                encodeURIComponent(value));
+
+                        const data =
+                            await response.json();
+
+                        if (data.error) {
+                            nombreDisponible = false;
+                            nombreStatus.textContent =
+                                'No se pudo verificar el nombre.';
+                            return;
+                        }
+
+                        nombreDisponible =
+                            data.exists !== true;
+
+                        nombreStatus.textContent =
+                            nombreDisponible
+                                ? 'Nombre disponible.'
+                                : 'Ya existe un rol con este nombre.';
+                    }
+                    catch {
+                        nombreDisponible = false;
+                        nombreStatus.textContent =
+                            'No se pudo verificar el nombre.';
+                    }
+                    finally {
+                        verificandoNombre = false;
+                    }
+                }
+
+                nombre.addEventListener(
+                    'input',
+                    function () {
+                        actualizarVista();
+
+                        clearTimeout(timer);
+
+                        nombreDisponible = true;
+                        nombreStatus.textContent = '';
+
+                        timer =
+                            setTimeout(
+                                verificarNombre,
+                                400);
+                    });
+
+                descripcion.addEventListener(
+                    'input',
+                    actualizarVista);
+
+                activo.addEventListener(
+                    'change',
+                    actualizarVista);
+
+                form.addEventListener(
+                    'submit',
+                    function (event) {
+                        if (verificandoNombre ||
+                            !nombreDisponible)
+                        {
+                            event.preventDefault();
+                            nombre.focus();
+                            return;
+                        }
+
+                        if (!form.checkValidity())
+                            return;
+
+                        btnGuardar.disabled = true;
+                        btnGuardar.innerHTML =
+                            '<svg class="icon icon-sm"><use href="#icon-refresh"></use></svg> Guardando...';
+                    });
+
+                actualizarVista();
+            });
+    </script>
+}
+
+<style>
+    .security-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue2: #226cc2;
+        --border: #dce3eb;
+        --muted: #7d8b9c;
+        --success: #168957;
+        --danger: #c93f55;
+        --warning: #b67916;
+        --surface: #ffffff;
+    }
+
+    .security-page * {
+        box-sizing: border-box;
+    }
+
+    .page-hero {
+        min-height: 120px;
+        margin-bottom: 16px;
+        padding: 24px 30px;
+        border-radius: 20px;
+        background: linear-gradient(100deg, #102947, #17488e 52%, #226cc2);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(16, 41, 71, .12);
+    }
+
+    .page-hero::after {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        right: -95px;
+        top: -145px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.05);
+        pointer-events: none;
+    }
+
+    .hero-left,
+    .hero-actions {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-left {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .hero-icon {
+        width: 62px;
+        height: 62px;
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 15px;
+        background: rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-icon .icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .hero-eyebrow {
+        display: block;
+        color: rgba(255,255,255,.64);
+        font-size: .62rem;
+        font-weight: 800;
+        letter-spacing: .85px;
+    }
+
+    .page-hero h1 {
+        margin: 3px 0 0;
+        color: #fff;
+        font-size: 1.45rem;
+        line-height: 1.15;
+    }
+
+    .page-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.76);
+        font-size: .72rem;
+        line-height: 1.45;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .hero-btn {
+        min-height: 40px;
+        padding: 0 13px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: .68rem;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .hero-btn.light {
+        border: 1px solid #fff;
+        background: #fff;
+        color: var(--navy);
+    }
+
+    .hero-btn.outline {
+        border: 1px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.05);
+        color: #fff;
+    }
+
+    .summary-grid {
+        margin-bottom: 16px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .summary-card {
+        min-height: 104px;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .summary-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .summary-icon.blue {
+        background: #eaf2fb;
+        color: #356fa7;
+    }
+
+    .summary-icon.green {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .summary-icon.red {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .summary-icon.purple {
+        background: #f0ebf8;
+        color: #7554aa;
+    }
+
+    .summary-icon.gold {
+        background: #fff6e4;
+        color: #a47517;
+    }
+
+    .summary-card span,
+    .summary-card strong,
+    .summary-card small {
+        display: block;
+    }
+
+    .summary-card span {
+        color: #8995a5;
+        font-size: .58rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+    }
+
+    .summary-card strong {
+        margin-top: 3px;
+        color: var(--navy);
+        font-size: .92rem;
+    }
+
+    .summary-card small {
+        margin-top: 2px;
+        color: #97a2af;
+        font-size: .55rem;
+    }
+
+    .panel-card {
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .panel-heading {
+        padding: 14px 16px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .heading-left {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .heading-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .heading-icon.green {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .heading-icon.gold {
+        background: #fff6e4;
+        color: #a47517;
+    }
+
+    .heading-icon.purple {
+        background: #f0ebf8;
+        color: #7554aa;
+    }
+
+    .heading-left span {
+        display: block;
+        color: #929dab;
+        font-size: .55rem;
+        font-weight: 800;
+        letter-spacing: .6px;
+    }
+
+    .heading-left h2 {
+        margin: 2px 0 0;
+        color: var(--navy);
+        font-size: .82rem;
+    }
+
+    .heading-left p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .62rem;
+    }
+
+    .heading-tools {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .record-count {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #687b90;
+        font-size: .57rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .search-box {
+        width: 235px;
+        min-height: 37px;
+        padding: 0 9px;
+        border: 1px solid #dce3eb;
+        border-radius: 8px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .search-box input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #46566a;
+        font-size: .63rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .vidal-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .vidal-table th {
+        padding: 10px 12px;
+        border-bottom: 1px solid #dfe5eb;
+        background: #f6f8fa;
+        color: #68788b;
+        font-size: .55rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .vidal-table td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #edf1f5;
+        color: #4a596c;
+        font-size: .62rem;
+        vertical-align: middle;
+    }
+
+    .vidal-table tbody tr:hover {
+        background: #fafcfe;
+    }
+
+    .entity-cell {
+        min-width: 190px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .entity-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: .67rem;
+        font-weight: 900;
+    }
+
+    .entity-cell strong,
+    .entity-cell span,
+    .stack-cell strong,
+    .stack-cell span {
+        display: block;
+    }
+
+    .entity-cell strong,
+    .stack-cell strong {
+        color: #425267;
+        font-size: .64rem;
+    }
+
+    .entity-cell span,
+    .stack-cell span {
+        margin-top: 2px;
+        color: #929dab;
+        font-size: .55rem;
+    }
+
+    .status-badge {
+        padding: 6px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .56rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .status-badge.active {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .status-badge.inactive {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .action-group {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .action-btn.info {
+        border: 1px solid #cdddec;
+        background: #f2f7fb;
+        color: #4779a8;
+    }
+
+    .action-btn.edit {
+        border: 1px solid #d8cff0;
+        background: #f7f3ff;
+        color: #7856af;
+    }
+
+    .action-btn.key {
+        border: 1px solid #eadab4;
+        background: #fff9ed;
+        color: #9a6c18;
+    }
+
+    .action-btn.disable {
+        border: 1px solid #efcbd1;
+        background: #fff3f5;
+        color: #c64055;
+    }
+
+    .action-btn.enable {
+        border: 1px solid #cce8d9;
+        background: #edf9f3;
+        color: #168957;
+    }
+
+    .table-footer {
+        padding: 10px 14px;
+        border-top: 1px solid #edf1f5;
+        background: #fafbfd;
+        color: #7f8d9e;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: .56rem;
+    }
+
+    .empty-state {
+        min-height: 240px;
+        padding: 28px;
+        color: #8794a4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 15px;
+        background: #f0f4f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state h3 {
+        margin: 11px 0 0;
+        color: #506075;
+        font-size: .78rem;
+    }
+
+    .empty-state p {
+        margin: 5px 0 13px;
+        font-size: .62rem;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+        min-height: 39px;
+        padding: 0 12px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .63rem;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .primary-btn {
+        border: 0;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: #fff;
+    }
+
+    .secondary-btn {
+        border: 1px solid #d6dee7;
+        background: #fff;
+        color: #59697b;
+    }
+
+    .form-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.65fr) minmax(280px, .75fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .form-body {
+        padding: 16px;
+    }
+
+    .field-group {
+        margin-bottom: 14px;
+    }
+
+    .field-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .field-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #526276;
+        font-size: .64rem;
+        font-weight: 800;
+    }
+
+    .vidal-control {
+        width: 100%;
+        min-height: 41px;
+        padding: 0 10px;
+        border: 1px solid #dce3eb;
+        border-radius: 8px;
+        background: #fafbfd;
+        color: #46566a;
+        outline: none;
+        font-size: .66rem;
+    }
+
+    textarea.vidal-control {
+        min-height: 110px;
+        padding: 10px;
+        resize: vertical;
+    }
+
+    .vidal-control:focus {
+        border-color: #86acd0;
+        box-shadow: 0 0 0 3px rgba(53,111,167,.08);
+        background: #fff;
+    }
+
+    .field-help,
+    .field-counter {
+        margin-top: 5px;
+        color: #8995a4;
+        font-size: .57rem;
+        line-height: 1.4;
+    }
+
+    .field-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .validation-text {
+        color: #c93f55;
+        font-size: .58rem;
+    }
+
+    .status-box {
+        padding: 12px;
+        border: 1px solid #e1e7ee;
+        border-radius: 10px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-box-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        background: #e9f7f0;
+        color: #168957;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .status-box-content {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .status-box-content strong,
+    .status-box-content span {
+        display: block;
+    }
+
+    .status-box-content strong {
+        color: #43566e;
+        font-size: .65rem;
+    }
+
+    .status-box-content span {
+        margin-top: 2px;
+        color: #8491a0;
+        font-size: .57rem;
+        line-height: 1.4;
+    }
+
+    .switch {
+        position: relative;
+        width: 42px;
+        height: 23px;
+        flex-shrink: 0;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .switch-slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #c8d0da;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .switch-slider::before {
+        content: "";
+        position: absolute;
+        width: 17px;
+        height: 17px;
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        background: #fff;
+        transition: .2s;
+        box-shadow: 0 1px 4px rgba(0,0,0,.18);
+    }
+
+    .switch input:checked + .switch-slider {
+        background: #168957;
+    }
+
+    .switch input:checked + .switch-slider::before {
+        transform: translateX(19px);
+    }
+
+    .preview-card {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+    }
+
+    .preview-header {
+        padding: 13px 14px;
+        border-bottom: 1px solid #edf1f5;
+        color: #607286;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: .64rem;
+        font-weight: 800;
+    }
+
+    .preview-body {
+        padding: 18px;
+        text-align: center;
+    }
+
+    .preview-avatar {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto;
+        border-radius: 15px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .preview-body h3 {
+        margin: 10px 0 3px;
+        color: #33465e;
+        font-size: .8rem;
+    }
+
+    .preview-body p {
+        margin: 0;
+        color: #8794a4;
+        font-size: .61rem;
+        line-height: 1.5;
+    }
+
+    .preview-status {
+        margin-top: 11px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .59rem;
+        font-weight: 800;
+    }
+
+    .preview-status.active {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .preview-status.inactive {
+        background: #fff0f2;
+        color: #c93f55;
+    }
+
+    .form-actions {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid #edf1f5;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .model-errors {
+        margin-bottom: 14px;
+        padding: 11px 13px;
+        border: 1px solid #efcbd1;
+        border-left: 4px solid #c93f55;
+        border-radius: 10px;
+        background: #fff3f5;
+        color: #a73547;
+        font-size: .61rem;
+    }
+
+    @@media (max-width: 1050px) {
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .form-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 760px) {
+        .page-hero {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-btn {
+            flex: 1;
+        }
+
+        .panel-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .heading-tools {
+            width: 100%;
+        }
+
+        .search-box {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 560px) {
+        .page-hero {
+            padding: 20px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-btn {
+            width: 100%;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .primary-btn,
+        .secondary-btn {
+            width: 100%;
+        }
+    }
+</style>
