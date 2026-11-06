@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Inventario_Vidal.Controllers
 {
     [LoginRequerido]
-
+    
     public class ReportesController : Controller
     {
         private readonly IReporteService _reporteService;
