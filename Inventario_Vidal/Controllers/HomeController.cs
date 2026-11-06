@@ -1,8 +1,8 @@
-﻿using Inventario_Vidal.DTOs;
+using Inventario_Vidal.DTOs;
 using Inventario_Vidal.Filters;
 using Inventario_Vidal.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;  
 
 namespace Inventario_Vidal.Controllers
 {
@@ -51,7 +51,7 @@ namespace Inventario_Vidal.Controllers
                 _logger.LogError(ex, "Error al cargar el Dashboard");
                 // El error del BI no debe ocultarse tras un total ficticio.
                 ViewBag.ErrorComprasBI = "No se pudo cargar el resumen de compras.";
-                var emptyModel = new DashboardViewModel
+                                var emptyModel = new DashboardViewModel
                 {
                     FechaActualizacion = DateTime.Now,
                     ProyectosPorEstado = new List<EstadoCountDto>(),
@@ -235,7 +235,7 @@ namespace Inventario_Vidal.Controllers
                     data = proyectos.Select(p => new
                     {
                         p.IdProyecto,
-                        p.CodigoProyecto,
+                        p.CodigoProyecto, 
                         p.Cliente,
                         p.Estado,
                         p.EstadoBadge,
@@ -281,7 +281,7 @@ namespace Inventario_Vidal.Controllers
                         EstaEnLinea = true,
                         Iniciales = ObtenerIniciales(u.NombreCompleto)
                     })
-                    .ToListAsync();
+                    .ToListAsync();  
 
                 return Json(new { success = true, data = usuarios });
             }

@@ -1,0 +1,1450 @@
+@{
+    ViewData["Title"] = "Reportes";
+    ViewBag.Subtitle = "Generación de reportes y estadísticas del sistema";
+}
+
+<div class="users-page reports-page">
+    <section class="users-hero">
+        <div class="hero-left">
+            <div class="hero-icon"><svg class="icon icon-xl"><use href="#icon-chart-bar"></use></svg></div>
+            <div>
+                <div class="reports-hero-eyebrow">CENTRO DE REPORTES</div>
+                <h1>Reportes</h1>
+                <div class="hero-subtitle"><svg class="icon icon-sm"><use href="#icon-info"></use></svg><span>Consulta, analiza y exporta información operativa del sistema VIDAL.</span></div>
+            </div>
+        </div>
+        <div class="hero-actions">
+            <button type="button" class="hero-secondary" onclick="window.location.reload()"><svg class="icon icon-sm"><use href="#icon-refresh"></use></svg>Actualizar</button>
+        </div>
+    </section>
+
+    @if (TempData["MensajeExito"] != null)
+    {
+        <div class="page-alert success"><svg class="icon"><use href="#icon-check-circle"></use></svg><div class="page-alert-content"><strong>Operación completada</strong><span>@TempData["MensajeExito"]</span></div></div>
+    }
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="page-alert danger"><svg class="icon"><use href="#icon-x-circle"></use></svg><div class="page-alert-content"><strong>No se pudo completar la operación</strong><span>@TempData["MensajeError"]</span></div></div>
+    }
+
+    <section class="reports-overview" aria-labelledby="reports-summary-title">
+        <div class="reports-section-heading reports-feature-heading">
+            <div class="reports-heading-icon blue">
+                <svg class="icon"><use href="#icon-chart-bar"></use></svg>
+            </div>
+            <div class="reports-heading-copy">
+                <span class="reports-eyebrow">RESUMEN DEL SISTEMA</span>
+                <h2 id="reports-summary-title">Indicadores generales</h2>
+                <p>Datos obtenidos de las estadísticas del sistema.</p>
+            </div>
+            <span class="reports-counter reports-heading-count">
+                <svg class="icon icon-sm"><use href="#icon-activity"></use></svg>
+                Resumen actualizado
+            </span>
+        </div>
+        <div class="reports-stats">
+            <div class="reports-stat"><div class="reports-stat-icon blue"><svg class="icon"><use href="#icon-box"></use></svg></div><div><span class="reports-stat-label">MATERIALES</span><span class="reports-stat-value" id="totalMateriales" aria-live="polite">—</span><span class="reports-stat-caption">Registrados en inventario</span></div></div>
+            <div class="reports-stat"><div class="reports-stat-icon green"><svg class="icon"><use href="#icon-folder"></use></svg></div><div><span class="reports-stat-label">PROYECTOS</span><span class="reports-stat-value" id="totalProyectos" aria-live="polite">—</span><span class="reports-stat-caption">Registrados en el sistema</span></div></div>
+            <div class="reports-stat"><div class="reports-stat-icon gold"><svg class="icon"><use href="#icon-shopping-cart"></use></svg></div><div><span class="reports-stat-label">COMPRAS</span><span class="reports-stat-value" id="totalCompras" aria-live="polite">—</span><span class="reports-stat-caption">Operaciones registradas</span></div></div>
+            <div class="reports-stat"><div class="reports-stat-icon red"><svg class="icon"><use href="#icon-alert-triangle"></use></svg></div><div><span class="reports-stat-label">ALERTAS DE STOCK</span><span class="reports-stat-value" id="alertasStock" aria-live="polite">—</span><span class="reports-stat-caption">Materiales que requieren revisión</span></div></div>
+        </div>
+    </section>
+
+    <section class="reports-directory" aria-labelledby="reports-title">
+        <div class="reports-section-heading reports-feature-heading">
+            <div class="reports-heading-icon blue">
+                <svg class="icon"><use href="#icon-file-bar-chart"></use></svg>
+            </div>
+            <div class="reports-heading-copy">
+                <span class="reports-eyebrow">CENTRO DE CONSULTAS</span>
+                <h2 id="reports-title">Reportes disponibles</h2>
+                <p>Selecciona el informe que necesitas consultar o exportar.</p>
+            </div>
+            <span class="reports-counter reports-heading-count">
+                <svg class="icon icon-sm"><use href="#icon-file-text"></use></svg>
+                8 reportes
+            </span>
+        </div>
+        <div class="reports-grid">
+            <a asp-action="Stock" class="reports-link"><span class="reports-link-icon blue"><svg class="icon"><use href="#icon-box"></use></svg></span><span class="reports-link-content"><strong>Stock de inventario</strong><small>Consulta las existencias y los niveles de materiales.</small><span class="reports-link-availability"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Disponible</span></span><span class="reports-link-arrow"><svg class="icon icon-sm"><use href="#icon-chevron-right"></use></svg></span></a>
+            <a asp-action="Proyectos" class="reports-link"><span class="reports-link-icon green"><svg class="icon"><use href="#icon-folder"></use></svg></span><span class="reports-link-content"><strong>Proyectos</strong><small>Revisa proyectos según su estado y período.</small><span class="reports-link-availability"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Disponible</span></span><span class="reports-link-arrow"><svg class="icon icon-sm"><use href="#icon-chevron-right"></use></svg></span></a>
+            <a asp-action="Compras" class="reports-link"><span class="reports-link-icon gold"><svg class="icon"><use href="#icon-shopping-cart"></use></svg></span><span class="reports-link-content"><strong>Compras</strong><small>Consulta compras por proveedor y fechas.</small><span class="reports-link-availability"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Disponible</span></span><span class="reports-link-arrow"><svg class="icon icon-sm"><use href="#icon-chevron-right"></use></svg></span></a>
+            <a asp-action="Kardex" class="reports-link"><span class="reports-link-icon purple"><svg class="icon"><use href="#icon-list"></use></svg></span><span class="reports-link-content"><strong>Kardex</strong><small>Analiza movimientos de inventario por material.</small><span class="reports-link-availability"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Disponible</span></span><span class="reports-link-arrow"><svg class="icon icon-sm"><use href="#icon-chevron-right"></use></svg></span></a>
+            <a asp-action="Maquinaria" class="reports-link"><span class="reports-link-icon red"><svg class="icon"><use href="#icon-settings"></use></svg></span><span class="reports-link-content"><strong>Maquinaria</strong><small>Consulta el estado y uso de las maquinarias.</small><span class="reports-link-availability"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Disponible</span></span><span class="reports-link-arrow"><svg class="icon icon-sm"><use href="#icon-chevron-right"></use></svg></span></a>
+            <a asp-action="Clientes" class="reports-link"><span class="reports-link-icon cyan"><svg class="icon"><use href="#icon-users"></use></svg></span><span class="reports-link-content"><strong>Clientes</strong><small>Revisa clientes y su actividad en proyectos.</small><span class="reports-link-availability"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Disponible</span></span><span class="reports-link-arrow"><svg class="icon icon-sm"><use href="#icon-chevron-right"></use></svg></span></a>
+            <a asp-action="Contratistas" class="reports-link"><span class="reports-link-icon purple"><svg class="icon"><use href="#icon-user"></use></svg></span><span class="reports-link-content"><strong>Contratistas</strong><small>Consulta asignaciones y actividad de contratistas.</small><span class="reports-link-availability"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Disponible</span></span><span class="reports-link-arrow"><svg class="icon icon-sm"><use href="#icon-chevron-right"></use></svg></span></a>
+            <a asp-action="Utilidad" class="reports-link"><span class="reports-link-icon green"><svg class="icon"><use href="#icon-trending-up"></use></svg></span><span class="reports-link-content"><strong>Utilidad por proyecto</strong><small>Examina los resultados económicos de cada proyecto.</small><span class="reports-link-availability"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Disponible</span></span><span class="reports-link-arrow"><svg class="icon icon-sm"><use href="#icon-chevron-right"></use></svg></span></a>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ids = ['totalMateriales', 'totalProyectos', 'totalCompras', 'alertasStock'];
+            fetch('@Url.Action("GetEstadisticasRapidas", "Reportes")', { credentials: 'same-origin' })
+                .then(function(response) { if (!response.ok) throw new Error('No se pudo consultar el resumen'); return response.json(); })
+                .then(function(result) {
+                    if (!result || !result.success || !result.data) throw new Error('Respuesta incompleta');
+                    ids.forEach(function(id) {
+                        const element = document.getElementById(id);
+                        const number = Number(result.data[id]);
+                        element.textContent = Number.isFinite(number) ? new Intl.NumberFormat('es-PE').format(number) : '—';
+                    });
+                })
+                .catch(function() { ids.forEach(function(id) { document.getElementById(id).textContent = '—'; }); });
+        });
+    </script>
+}
+
+<style>
+
+    /* ================================================================
+               BASE
+               ================================================================ */
+
+    .users-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #344357;
+        --muted: #7d8999;
+        --surface: #ffffff;
+        --success: #168957;
+        --danger: #d1475b;
+        --warning: #d99a24;
+    }
+
+    /* ================================================================
+               HERO
+               ================================================================ */
+
+    .users-hero {
+        min-height: 114px;
+        padding: 23px 30px;
+        margin-bottom: 17px;
+        border-radius: 20px;
+        background: linear-gradient( 100deg, #102947 0%, #17488e 49%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .users-hero::after {
+            content: "";
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            top: -130px;
+            right: -80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.11);
+        border: 1px solid rgba(255,255,255,.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .users-hero h1 {
+        margin: 0;
+        font-size: 1.65rem;
+        font-weight: 800;
+    }
+
+    .hero-subtitle {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: rgba(255,255,255,.72);
+        font-size: .8rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-primary,
+    .hero-secondary {
+        min-height: 41px;
+        padding: 0 15px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        font-size: .72rem;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .18s ease;
+    }
+
+    .hero-primary {
+        border: 1px solid white;
+        background: white;
+        color: var(--navy);
+    }
+
+    .hero-secondary {
+        border: 1px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.05);
+        color: white;
+    }
+
+    .hero-primary:hover {
+        background: #f3f7fb;
+        color: var(--navy);
+        transform: translateY(-1px);
+    }
+
+    .hero-secondary:hover {
+        background: rgba(255,255,255,.12);
+        transform: translateY(-1px);
+    }
+
+    /* ================================================================
+               ALERTS
+               ================================================================ */
+
+    .page-alert {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        border-radius: 11px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        transition: opacity .35s ease, transform .35s ease;
+    }
+
+        .page-alert.success {
+            background: #edf9f3;
+            color: #146f48;
+            border-left: 4px solid var(--success);
+        }
+
+        .page-alert.danger {
+            background: #fff1f3;
+            color: #a73547;
+            border-left: 4px solid var(--danger);
+        }
+
+    .page-alert-content {
+        flex: 1;
+    }
+
+        .page-alert-content strong,
+        .page-alert-content span {
+            display: block;
+        }
+
+        .page-alert-content strong {
+            font-size: .72rem;
+        }
+
+        .page-alert-content span {
+            margin-top: 2px;
+            font-size: .66rem;
+        }
+
+    .page-alert.closing {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    .alert-close {
+        border: none;
+        padding: 2px;
+        background: transparent;
+        color: currentColor;
+        opacity: .6;
+        cursor: pointer;
+    }
+
+    /* ================================================================
+               STATS
+               ================================================================ */
+
+    .stats-grid {
+        margin-bottom: 17px;
+        display: grid;
+        grid-template-columns: repeat( 4, minmax(0,1fr));
+        gap: 12px;
+    }
+
+    .stat-card {
+        min-height: 84px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 15px rgba(16,41,71,.035);
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .stat-icon.blue {
+            color: #306ca7;
+            background: #eaf2fb;
+        }
+
+        .stat-icon.green {
+            color: #168957;
+            background: #e9f7f0;
+        }
+
+        .stat-icon.gray {
+            color: #687587;
+            background: #edf0f4;
+        }
+
+        .stat-icon.red {
+            color: #c34d5f;
+            background: #fff0f2;
+        }
+
+    .stat-label {
+        display: block;
+        color: #8995a5;
+        font-size: .57rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .stat-value {
+        display: block;
+        margin-top: 2px;
+        color: var(--navy);
+        font-size: 1.3rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    /* ================================================================
+               CARD
+               ================================================================ */
+
+    .users-card {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+    }
+
+    .users-card-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .card-heading {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .heading-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        color: #356fa7;
+        background: #eaf2fb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .card-heading span {
+        display: block;
+        color: #929dab;
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+    }
+
+    .card-heading h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .card-heading p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .61rem;
+    }
+
+    /* ================================================================
+               TOOLBAR
+               ================================================================ */
+
+    .users-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .search-box {
+        width: 245px;
+        min-height: 39px;
+        padding: 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+        .search-box:focus-within {
+            border-color: #6f9ed0;
+            box-shadow: 0 0 0 3px rgba(34,108,194,.08);
+        }
+
+        .search-box > .icon {
+            color: #8b97a7;
+        }
+
+        .search-box input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #445368;
+            font-size: .67rem;
+        }
+
+    .search-clear {
+        padding: 2px;
+        border: none;
+        background: transparent;
+        color: #929dab;
+        cursor: pointer;
+    }
+
+    .toolbar-select {
+        min-height: 39px;
+        padding: 0 29px 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: white;
+        color: #536174;
+        font-size: .66rem;
+        outline: none;
+    }
+
+    /* ================================================================
+               TABLE
+               ================================================================ */
+
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .users-table thead th {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e8edf3;
+            background: #f8fafc;
+            color: #7d8999;
+            font-size: .56rem;
+            font-weight: 800;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .users-table tbody td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #eef2f6;
+            color: #536174;
+            font-size: .66rem;
+            vertical-align: middle;
+        }
+
+        .users-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .users-table tbody tr {
+            transition: background .16s ease;
+        }
+
+            .users-table tbody tr:hover {
+                background: #fafbfd;
+            }
+
+    /* ================================================================
+               USER
+               ================================================================ */
+
+    .user-cell {
+        min-width: 180px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .user-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        color: #346b9e;
+        background: #eaf2fb;
+        border: 1px solid #dce9f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .66rem;
+        font-weight: 850;
+        flex-shrink: 0;
+    }
+
+    .user-main strong {
+        display: block;
+        color: #344357;
+        font-size: .7rem;
+    }
+
+    .user-main span {
+        display: block;
+        margin-top: 2px;
+        color: #939dab;
+        font-size: .54rem;
+    }
+
+    /* ================================================================
+               ACCOUNT / MAIL
+               ================================================================ */
+
+    .account-cell,
+    .mail-cell {
+        min-width: 125px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #59687b;
+    }
+
+        .account-cell .icon,
+        .mail-cell .icon {
+            color: #8796a5;
+            flex-shrink: 0;
+        }
+
+    .mail-cell {
+        max-width: 220px;
+    }
+
+        .mail-cell span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .empty-value {
+        color: #a1aab6;
+        font-style: italic;
+    }
+
+    /* ================================================================
+               ROLE
+               ================================================================ */
+
+    .role-badge {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #496783;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .58rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    /* ================================================================
+               STATUS
+               ================================================================ */
+
+    .status-badge {
+        padding: 5px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .57rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+        .status-badge.active {
+            color: #15744b;
+            background: #e9f7f0;
+        }
+
+        .status-badge.inactive {
+            color: #667384;
+            background: #edf0f4;
+        }
+
+        .status-badge.blocked {
+            color: #b34052;
+            background: #fff0f2;
+        }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    /* ================================================================
+               LAST ACCESS
+               ================================================================ */
+
+    .last-access {
+        min-width: 95px;
+    }
+
+        .last-access strong {
+            display: block;
+            color: #4d5c6f;
+            font-size: .63rem;
+        }
+
+        .last-access span {
+            display: block;
+            margin-top: 1px;
+            color: #939dab;
+            font-size: .54rem;
+        }
+
+        .last-access .never-access {
+            color: #8793a3;
+        }
+
+    /* ================================================================
+               SECURITY
+               ================================================================ */
+
+    .security-state {
+        min-width: 92px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-align: left;
+    }
+
+        .security-state > .icon {
+            flex-shrink: 0;
+        }
+
+        .security-state strong {
+            display: block;
+            font-size: .57rem;
+        }
+
+        .security-state span {
+            display: block;
+            margin-top: 1px;
+            font-size: .5rem;
+        }
+
+        .security-state.ok {
+            color: #168957;
+        }
+
+        .security-state.warning {
+            color: #ad7514;
+        }
+
+        .security-state.blocked {
+            color: #ba4053;
+        }
+
+    /* ================================================================
+               ACTIONS
+               ================================================================ */
+
+    .actions-column {
+        width: 125px;
+    }
+
+    .action-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .action-btn {
+        width: 31px;
+        height: 31px;
+        padding: 0;
+        border-radius: 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .16s ease;
+    }
+
+        .action-btn.view {
+            border: 1px solid #cfe0f0;
+            background: #f1f7fc;
+            color: #3974aa;
+        }
+
+        .action-btn.edit {
+            border: 1px solid #d9e3ee;
+            background: #f7f9fc;
+            color: #526e8b;
+        }
+
+        .action-btn.disable {
+            border: 1px solid #f0ced4;
+            background: #fff3f4;
+            color: #c24d60;
+        }
+
+        .action-btn.enable {
+            border: 1px solid #cce8da;
+            background: #eefaf4;
+            color: #168957;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(.97);
+        }
+
+    .toggle-form {
+        margin: 0;
+    }
+
+    /* ================================================================
+               EMPTY
+               ================================================================ */
+
+    .empty-state {
+        min-height: 260px;
+        padding: 35px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 16px;
+        color: #7591ac;
+        background: #edf3f8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state h3 {
+        margin: 14px 0 0;
+        color: #344357;
+        font-size: .86rem;
+        font-weight: 800;
+    }
+
+    .empty-state p {
+        max-width: 390px;
+        margin: 5px 0 0;
+        color: #8995a4;
+        font-size: .66rem;
+        line-height: 1.5;
+    }
+
+    .primary-button,
+    .secondary-button {
+        min-height: 38px;
+        padding: 0 14px;
+        margin-top: 14px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: .66rem;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .primary-button {
+        border: none;
+        background: linear-gradient( 135deg, #102947, #17488e);
+        color: white;
+    }
+
+    .secondary-button {
+        border: 1px solid #d8e0e9;
+        background: white;
+        color: #576678;
+    }
+
+    /* ================================================================
+               CONFIRM MODAL
+               ================================================================ */
+
+    .confirm-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 11000;
+        padding: 20px;
+        background: rgba(12,26,45,.58);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-modal {
+        width: min( 390px, 100%);
+        padding: 24px;
+        border-radius: 15px;
+        background: white;
+        box-shadow: 0 20px 60px rgba(11,27,48,.2);
+        text-align: center;
+    }
+
+    .confirm-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto;
+        border-radius: 13px;
+        color: #496f95;
+        background: #edf4fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-modal h3 {
+        margin: 14px 0 0;
+        color: #2f4054;
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .confirm-modal p {
+        margin: 6px 0 0;
+        color: #7c8898;
+        font-size: .68rem;
+        line-height: 1.5;
+    }
+
+    .confirm-warning {
+        margin-top: 12px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: #fff7e8;
+        color: #89641b;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        text-align: left;
+        font-size: .58rem;
+        line-height: 1.45;
+    }
+
+    .confirm-actions {
+        margin-top: 19px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .confirm-actions .secondary-button {
+            margin-top: 0;
+        }
+
+    .confirm-button {
+        min-height: 38px;
+        padding: 0 15px;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: .66rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+        .confirm-button.danger {
+            background: #c8475a;
+        }
+
+        .confirm-button.success {
+            background: #168957;
+        }
+
+    /* ================================================================
+               RESPONSIVE
+               ================================================================ */
+
+    @@media (max-width: 1100px) {
+
+        .users-card-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .users-toolbar {
+            width: 100%;
+        }
+
+        .search-box {
+            flex: 1;
+            width: auto;
+        }
+    }
+
+    @@media (max-width: 900px) {
+
+        .stats-grid {
+            grid-template-columns: repeat( 2, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 760px) {
+
+        .users-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-primary,
+        .hero-secondary {
+            flex: 1;
+        }
+
+        .users-toolbar {
+            flex-direction: column;
+        }
+
+        .search-box,
+        .toolbar-select {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 520px) {
+
+        .users-hero {
+            padding: 20px;
+        }
+
+        .hero-left {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .users-hero h1 {
+            font-size: 1.35rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-primary,
+        .hero-secondary {
+            width: 100%;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .confirm-actions {
+            flex-direction: column-reverse;
+        }
+
+            .confirm-actions button {
+                width: 100%;
+            }
+    }
+
+
+    /* Componentes exclusivos del módulo Reportes. La estructura del hero y los colores
+           reutilizan el CSS original de Usuarios/Index.cshtml. */
+    .reports-page .reports-overview {
+        margin-bottom: 21px;
+    }
+
+    .reports-page .reports-section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin: 0 0 13px;
+    }
+
+    .reports-page .reports-eyebrow {
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+        color: #929dab;
+    }
+
+    .reports-page .reports-section-heading h2 {
+        margin: 3px 0 0;
+        font-size: .9rem;
+        font-weight: 800;
+        color: #102947;
+    }
+
+    .reports-page .reports-section-heading p {
+        margin: 3px 0 0;
+        color: #8793a3;
+        font-size: .61rem;
+    }
+
+    .reports-page .reports-counter {
+        padding: 6px 10px;
+        color: #566c84;
+        background: #eef3f8;
+        border-radius: 8px;
+        font-size: .58rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .reports-page .reports-stats {
+        display: grid;
+        grid-template-columns: repeat(4,minmax(0,1fr));
+        gap: 13px;
+    }
+
+    .reports-page .reports-stat {
+        background: #fff;
+        border: 1px solid #dce3eb;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .reports-page .reports-stat-icon, .reports-page .reports-link-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 10px;
+    }
+
+    .reports-page .reports-stat-icon {
+        width: 41px;
+        height: 41px;
+    }
+
+    .reports-page .blue {
+        background: #eaf2fb;
+        color: #356fa7;
+    }
+
+    .reports-page .green {
+        background: #e9f7f0;
+        color: #168957;
+    }
+
+    .reports-page .gold {
+        background: #fff7e5;
+        color: #a47517;
+    }
+
+    .reports-page .purple {
+        background: #f0ebf8;
+        color: #7554aa;
+    }
+
+    .reports-page .red {
+        background: #fff1f3;
+        color: #c7485a;
+    }
+
+    .reports-page .cyan {
+        background: #e7f7fa;
+        color: #237b94;
+    }
+
+    .reports-page .reports-stat-value {
+        display: block;
+        font-size: 1.28rem;
+        font-weight: 800;
+        line-height: 1.2;
+        color: #102947;
+    }
+
+    .reports-page .reports-stat-label {
+        display: block;
+        margin-top: 3px;
+        color: #8793a3;
+        font-size: .59rem;
+    }
+
+    .reports-page .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 13px;
+    }
+
+    .reports-page .reports-link {
+        min-width: 0;
+        padding: 17px;
+        display: flex;
+        gap: 13px;
+        align-items: flex-start;
+        border: 1px solid #dce3eb;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+        text-decoration: none;
+        transition: transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+    }
+
+        .reports-page .reports-link:hover {
+            border-color: #acc6e2;
+            box-shadow: 0 7px 22px rgba(16,41,71,.09);
+            transform: translateY(-2px);
+        }
+
+        .reports-page .reports-link:focus-visible {
+            outline: 3px solid rgba(34,108,194,.3);
+            outline-offset: 2px;
+        }
+
+    .reports-page .reports-link-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .reports-page .reports-link-content {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+        .reports-page .reports-link-content strong {
+            font-size: .7rem;
+            font-weight: 800;
+            color: #344357;
+        }
+
+        .reports-page .reports-link-content small {
+            margin-top: 5px;
+            font-size: .58rem;
+            line-height: 1.5;
+            color: #8793a3;
+        }
+
+    .reports-page .reports-link-availability {
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
+        width: max-content;
+        margin-top: 11px;
+        font-size: .54rem;
+        color: #168957;
+        font-weight: 750;
+    }
+
+    .reports-page .reports-link-arrow {
+        margin-top: 12px;
+        color: #8b99a8;
+    }
+
+    @@media (max-width:950px) {
+        .reports-page .reports-stats {
+            grid-template-columns: repeat(2,minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width:720px) {
+        .reports-page .reports-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width:520px) {
+        .reports-page .reports-stats {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .reports-page .reports-stat {
+            padding: 12px;
+            gap: 8px;
+        }
+
+        .reports-page .reports-stat-value {
+            font-size: 1rem;
+        }
+
+        .reports-page .reports-stat-icon {
+            width: 34px;
+            height: 34px;
+        }
+    }
+
+
+
+    /* ================================================================
+           VIDAL · TARJETAS DE SECCIÓN PARA RESUMEN Y CENTRO DE CONSULTAS
+           No modifica las rutas, IDs ni el flujo de estadísticas.
+           ================================================================ */
+    .reports-page .reports-overview,
+    .reports-page .reports-directory {
+        position: relative;
+        margin-bottom: 19px;
+        border: 1px solid #dce3eb;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 18px rgba(16,41,71,.055);
+        overflow: hidden;
+    }
+
+    .reports-page .reports-feature-heading {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+        min-height: 79px;
+        margin: 0;
+        padding: 17px 20px;
+        border-bottom: 1px solid #e9eef5;
+        background: linear-gradient(90deg, #f7faff 0%, #fff 75%);
+    }
+
+        .reports-page .reports-feature-heading::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg,#17488e,#226cc2);
+        }
+
+    .reports-page .reports-heading-icon {
+        width: 43px;
+        height: 43px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dce9f5;
+        border-radius: 11px;
+    }
+
+        .reports-page .reports-heading-icon .icon {
+            width: 21px;
+            height: 21px;
+        }
+
+    .reports-page .reports-heading-copy {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .reports-page .reports-feature-heading .reports-eyebrow {
+        display: block;
+        font-size: .54rem;
+        letter-spacing: .8px;
+        color: #758ba6;
+    }
+
+    .reports-page .reports-feature-heading h2 {
+        margin: 3px 0 0;
+        font-size: .94rem;
+        font-weight: 800;
+        color: #102947;
+    }
+
+    .reports-page .reports-feature-heading p {
+        margin: 3px 0 0;
+        color: #8090a3;
+        font-size: .62rem;
+        line-height: 1.5;
+    }
+
+    .reports-page .reports-heading-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 11px;
+        margin-left: auto;
+        border: 1px solid #d8e6f4;
+        background: #edf5fd;
+        color: #245c91;
+        border-radius: 9px;
+        font-weight: 750;
+        font-size: .59rem;
+    }
+
+    .reports-page .reports-stats,
+    .reports-page .reports-grid {
+        padding: 19px;
+    }
+
+    .reports-page .reports-stat,
+    .reports-page .reports-link {
+        box-shadow: none;
+        border-color: #e2e9f1;
+        background: #fff;
+    }
+
+    .reports-page .reports-stat {
+        min-height: 93px;
+    }
+
+    .reports-page .reports-stat-value {
+        font-size: 1.37rem;
+    }
+
+    .reports-page .reports-link:hover {
+        border-color: #b6cce3;
+        background: #fafdff;
+        box-shadow: 0 5px 13px rgba(16,41,71,.06);
+    }
+
+    @@media (max-width: 720px) {
+        .reports-page .reports-feature-heading {
+            padding: 15px 17px;
+            flex-wrap: wrap;
+        }
+
+        .reports-page .reports-heading-count {
+            margin-left: 55px;
+        }
+
+        .reports-page .reports-stats,
+        .reports-page .reports-grid {
+            padding: 13px;
+        }
+    }
+
+    @@media (max-width: 520px) {
+        .reports-page .reports-feature-heading {
+            gap: 9px;
+        }
+
+        .reports-page .reports-heading-icon {
+            width: 39px;
+            height: 39px;
+        }
+
+        .reports-page .reports-heading-count {
+            margin-left: 48px;
+        }
+    }
+
+
+    .reports-page .reports-hero-eyebrow {
+        color: rgba(255,255,255,.67);
+        font-size: .55rem;
+        font-weight: 800;
+        letter-spacing: .85px;
+        margin-bottom: 3px;
+    }
+
+    .reports-page .reports-stat-label {
+        display: block;
+        margin: 0 0 3px;
+        color: #7d8999;
+        font-size: .56rem;
+        font-weight: 800;
+        letter-spacing: .35px;
+        text-transform: uppercase;
+    }
+
+    .reports-page .reports-stat-value {
+        display: block;
+        margin: 0;
+        color: #102947;
+        font-size: 1.37rem;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .reports-page .reports-stat-caption {
+        display: block;
+        margin-top: 4px;
+        color: #929eae;
+        font-size: .56rem;
+        font-weight: 500;
+        line-height: 1.35;
+    }
+</style>

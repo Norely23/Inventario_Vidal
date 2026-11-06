@@ -1,0 +1,1554 @@
+@using Inventario_Vidal.DTOs
+@model TipoCambioDto
+
+@{
+    ViewData["Title"] = "Registrar Tipo de Cambio";
+    ViewBag.Subtitle = "Registro manual excepcional de tipo de cambio USD/PEN";
+
+    var ultimo = ViewBag.Ultimo as TipoCambioDto;
+    var ultimos = ViewBag.Ultimos as List<TipoCambioDto> ?? new List<TipoCambioDto>();
+}
+
+<div class="exchange-create-page">
+
+    <!-- HERO -->
+    <section class="create-hero">
+        <div class="hero-left">
+            <div class="hero-icon">
+                <svg class="icon icon-xl"><use href="#icon-plus"></use></svg>
+            </div>
+            <div>
+                <span class="hero-eyebrow">CONFIGURACIÓN FINANCIERA</span>
+                <h1>Registrar Tipo de Cambio</h1>
+                <p>Registro manual excepcional para el par USD/PEN.</p>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a asp-action="Index" class="hero-button secondary">
+                <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
+                Volver al historial
+            </a>
+
+            <button type="submit" form="tipoCambioForm" class="hero-button light">
+                <svg class="icon icon-sm"><use href="#icon-save"></use></svg>
+                Guardar registro
+            </button>
+        </div>
+    </section>
+
+    <!-- AVISO AUTOMÁTICO -->
+    <section class="automatic-notice">
+        <div class="notice-icon">
+            <svg class="icon"><use href="#icon-info"></use></svg>
+        </div>
+
+        <div>
+            <strong>La actualización normal del tipo de cambio es automática</strong>
+            <span>
+                El sistema obtiene el tipo de cambio USD/PEN mediante el servicio configurado.
+                Si ya existe un registro para el día, utiliza el valor almacenado en la base de datos.
+                Este formulario debe utilizarse únicamente cuando sea necesario registrar manualmente
+                una fecha que todavía no tenga un valor guardado.
+            </span>
+        </div>
+
+        <div class="automatic-badge">
+            <span></span>
+            Proceso automático
+        </div>
+    </section>
+
+    <!-- ALERTAS -->
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="page-alert danger">
+            <svg class="icon"><use href="#icon-alert-triangle"></use></svg>
+            <div>
+                <strong>Revisa la información ingresada</strong>
+                <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+            </div>
+            <button type="button" class="alert-close">
+                <svg class="icon icon-sm"><use href="#icon-x"></use></svg>
+            </button>
+        </div>
+    }
+
+    <div class="create-layout">
+
+        <!-- FORMULARIO -->
+        <main>
+            <form asp-action="Crear"
+                  method="post"
+                  id="tipoCambioForm"
+                  class="form-card"
+                  novalidate>
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="MonedaOrigen" type="hidden" value="USD" />
+                <input asp-for="MonedaDestino" type="hidden" value="PEN" />
+
+                <div class="card-header">
+                    <div class="heading-left">
+                        <div class="heading-icon">
+                            <svg class="icon"><use href="#icon-exchange"></use></svg>
+                        </div>
+                        <div>
+                            <span>REGISTRO MANUAL</span>
+                            <h2>Datos del tipo de cambio</h2>
+                            <p>Registra un valor USD/PEN para una fecha que no tenga registro.</p>
+                        </div>
+                    </div>
+
+                    <span class="manual-badge">Manual</span>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- FECHA -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <svg class="icon icon-sm"><use href="#icon-calendar"></use></svg>
+                            </div>
+                            <div>
+                                <span>FECHA</span>
+                                <strong>Fecha de aplicación</strong>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label asp-for="Fecha" class="vidal-label">
+                                Fecha *
+                            </label>
+
+                            <div class="control-icon">
+                                <svg class="icon icon-sm"><use href="#icon-calendar"></use></svg>
+
+                                <input asp-for="Fecha"
+                                       id="Fecha"
+                                       type="date"
+                                       class="vidal-control"
+                                       required />
+                            </div>
+
+                            <span asp-validation-for="Fecha" class="validation-text"></span>
+
+                            <small class="field-help">
+                                Debe ser una fecha que todavía no tenga un tipo de cambio USD/PEN registrado.
+                            </small>
+
+                            <div id="fechaStatus" class="field-status" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- PAR DE MONEDAS -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <svg class="icon icon-sm"><use href="#icon-exchange"></use></svg>
+                            </div>
+                            <div>
+                                <span>CONVERSIÓN</span>
+                                <strong>Par de monedas</strong>
+                            </div>
+                        </div>
+
+                        <div class="currency-pair-card">
+                            <div class="currency-box">
+                                <span>MONEDA ORIGEN</span>
+                                <strong>USD</strong>
+                                <small>Dólar estadounidense</small>
+                            </div>
+
+                            <div class="currency-arrow">
+                                <svg class="icon"><use href="#icon-arrow-right"></use></svg>
+                            </div>
+
+                            <div class="currency-box">
+                                <span>MONEDA DESTINO</span>
+                                <strong>PEN</strong>
+                                <small>Sol peruano</small>
+                            </div>
+                        </div>
+
+                        <div class="pair-info">
+                            <svg class="icon icon-sm"><use href="#icon-lock"></use></svg>
+                            <span>
+                                El par USD/PEN está definido por la lógica actual del sistema y no se modifica desde este formulario.
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- VALOR -->
+                    <div class="form-section last">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <svg class="icon icon-sm"><use href="#icon-dollar"></use></svg>
+                            </div>
+                            <div>
+                                <span>VALOR</span>
+                                <strong>Tipo de cambio</strong>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label asp-for="Valor" class="vidal-label">
+                                Valor USD/PEN *
+                            </label>
+
+                            <div class="exchange-input">
+                                <div class="exchange-prefix">
+                                    <span>1</span>
+                                    <strong>USD</strong>
+                                </div>
+
+                                <div class="exchange-equals">=</div>
+
+                                <div class="exchange-control">
+                                    <input asp-for="Valor"
+                                           id="Valor"
+                                           type="number"
+                                           min="0.0001"
+                                           max="99999.9999"
+                                           step="0.0001"
+                                           class="vidal-control"
+                                           placeholder="3.8000"
+                                           required />
+
+                                    <span>PEN</span>
+                                </div>
+                            </div>
+
+                            <span asp-validation-for="Valor" class="validation-text"></span>
+
+                            <small class="field-help">
+                                Ingresa cuántos soles equivalen a 1 dólar estadounidense.
+                            </small>
+                        </div>
+
+                        <div class="value-preview">
+                            <div>
+                                <span>Vista previa</span>
+                                <strong id="previewConversion">1 USD = — PEN</strong>
+                            </div>
+
+                            <svg class="icon"><use href="#icon-exchange"></use></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit"
+                            class="primary-button"
+                            id="btnGuardar">
+
+                        <svg class="icon icon-sm"><use href="#icon-save"></use></svg>
+                        Guardar tipo de cambio
+                    </button>
+
+                    <button type="button"
+                            class="secondary-button"
+                            id="btnRestablecer">
+
+                        <svg class="icon icon-sm"><use href="#icon-refresh"></use></svg>
+                        Restablecer
+                    </button>
+
+                    <a asp-action="Index" class="secondary-button cancel">
+                        <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </main>
+
+        <!-- LATERAL -->
+        <aside>
+
+            <!-- ÚLTIMO REGISTRO -->
+            <section class="side-card current-card">
+                <div class="side-header">
+                    <div>
+                        <span>REFERENCIA</span>
+                        <h3>Último registro</h3>
+                    </div>
+
+                    <div class="side-header-icon">
+                        <svg class="icon"><use href="#icon-exchange"></use></svg>
+                    </div>
+                </div>
+
+                @if (ultimo != null)
+                {
+                    <div class="current-rate">
+                        <div class="rate-pair">USD / PEN</div>
+                        <div class="rate-number">@ultimo.Valor.ToString("0.0000")</div>
+
+                        <div class="rate-meta">
+                            <div>
+                                <span>Fecha</span>
+                                <strong>@ultimo.Fecha.ToString("dd/MM/yyyy")</strong>
+                            </div>
+
+                            <div>
+                                <span>Registrado por</span>
+                                <strong>
+                                    @(string.IsNullOrWhiteSpace(ultimo.UsuarioNombre)
+                                        ? "Sistema"
+                                        : ultimo.UsuarioNombre)
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-reference">
+                        <svg class="icon icon-xl"><use href="#icon-exchange"></use></svg>
+                        <strong>Sin registros</strong>
+                        <span>No existe un tipo de cambio registrado todavía.</span>
+                    </div>
+                }
+            </section>
+
+            <!-- CONSIDERACIONES -->
+            <section class="side-card">
+                <div class="side-header normal">
+                    <div>
+                        <span>IMPORTANTE</span>
+                        <h3>Antes de registrar</h3>
+                    </div>
+
+                    <div class="side-header-icon soft">
+                        <svg class="icon"><use href="#icon-info"></use></svg>
+                    </div>
+                </div>
+
+                <div class="tips-list">
+                    <div class="tip-item">
+                        <div class="tip-icon blue">
+                            <svg class="icon icon-sm"><use href="#icon-calendar"></use></svg>
+                        </div>
+                        <div>
+                            <strong>Un registro por fecha</strong>
+                            <span>No puede existir otro USD/PEN para la misma fecha.</span>
+                        </div>
+                    </div>
+
+                    <div class="tip-item">
+                        <div class="tip-icon green">
+                            <svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>
+                        </div>
+                        <div>
+                            <strong>Proceso normal automático</strong>
+                            <span>El sistema obtiene y almacena automáticamente el valor diario cuando corresponde.</span>
+                        </div>
+                    </div>
+
+                    <div class="tip-item">
+                        <div class="tip-icon gold">
+                            <svg class="icon icon-sm"><use href="#icon-alert-triangle"></use></svg>
+                        </div>
+                        <div>
+                            <strong>Uso excepcional</strong>
+                            <span>Utiliza este formulario únicamente para completar un registro faltante.</span>
+                        </div>
+                    </div>
+
+                    <div class="tip-item">
+                        <div class="tip-icon gray">
+                            <svg class="icon icon-sm"><use href="#icon-lock"></use></svg>
+                        </div>
+                        <div>
+                            <strong>Historial conservado</strong>
+                            <span>Una vez registrado, el valor queda disponible en el historial del sistema.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ÚLTIMOS REGISTROS -->
+            @if (ultimos.Any())
+            {
+                <section class="side-card">
+                    <div class="side-header normal">
+                        <div>
+                            <span>HISTORIAL</span>
+                            <h3>Registros recientes</h3>
+                        </div>
+
+                        <span class="count-badge">@ultimos.Count</span>
+                    </div>
+
+                    <div class="recent-list">
+                        @foreach (var item in ultimos.Take(5))
+                        {
+                            <div class="recent-item">
+                                <div>
+                                    <strong>@item.Fecha.ToString("dd/MM/yyyy")</strong>
+                                    <span>@item.MonedaOrigen / @item.MonedaDestino</span>
+                                </div>
+
+                                <strong class="recent-value">@item.Valor.ToString("0.0000")</strong>
+                            </div>
+                        }
+                    </div>
+
+                    <a asp-action="Index" class="history-link">
+                        <svg class="icon icon-sm"><use href="#icon-history"></use></svg>
+                        Ver historial completo
+                        <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg>
+                    </a>
+                </section>
+            }
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('tipoCambioForm');
+            const fechaInput = document.getElementById('Fecha');
+            const valorInput = document.getElementById('Valor');
+            const btnGuardar = document.getElementById('btnGuardar');
+            const btnRestablecer = document.getElementById('btnRestablecer');
+            const fechaStatus = document.getElementById('fechaStatus');
+            const preview = document.getElementById('previewConversion');
+
+            let fechaDisponible = true;
+            let verificandoFecha = false;
+
+            function actualizarPreview() {
+                const valor = parseFloat(valorInput?.value);
+
+                if (!preview)
+                    return;
+
+                if (!Number.isFinite(valor) || valor <= 0) {
+                    preview.textContent = '1 USD = — PEN';
+                    return;
+                }
+
+                preview.textContent =
+                    '1 USD = ' + valor.toFixed(4) + ' PEN';
+            }
+
+            async function verificarFecha() {
+                if (!fechaInput || !fechaInput.value || !fechaStatus)
+                    return;
+
+                verificandoFecha = true;
+                fechaDisponible = false;
+
+                fechaStatus.className = 'field-status checking';
+                fechaStatus.style.display = 'flex';
+                fechaStatus.innerHTML =
+                    '<svg class="icon icon-sm"><use href="#icon-refresh"></use></svg>' +
+                    '<span>Verificando fecha...</span>';
+
+                try {
+                    const url =
+                        '@Url.Action("VerificarFecha", "TiposCambio")' +
+                        '?fecha=' + encodeURIComponent(fechaInput.value) +
+                        '&monedaOrigen=USD&monedaDestino=PEN';
+
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.error) {
+                        fechaDisponible = false;
+
+                        fechaStatus.className = 'field-status error';
+                        fechaStatus.innerHTML =
+                            '<svg class="icon icon-sm"><use href="#icon-alert-triangle"></use></svg>' +
+                            '<span>No se pudo verificar la fecha.</span>';
+
+                        return;
+                    }
+
+                    if (data.exists) {
+                        fechaDisponible = false;
+
+                        fechaStatus.className = 'field-status error';
+                        fechaStatus.innerHTML =
+                            '<svg class="icon icon-sm"><use href="#icon-x-circle"></use></svg>' +
+                            '<span>Ya existe un tipo de cambio USD/PEN para esta fecha.</span>';
+                    } else {
+                        fechaDisponible = true;
+
+                        fechaStatus.className = 'field-status success';
+                        fechaStatus.innerHTML =
+                            '<svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>' +
+                            '<span>La fecha está disponible para registro manual.</span>';
+                    }
+                } catch {
+                    fechaDisponible = false;
+
+                    fechaStatus.className = 'field-status error';
+                    fechaStatus.innerHTML =
+                        '<svg class="icon icon-sm"><use href="#icon-alert-triangle"></use></svg>' +
+                        '<span>No fue posible verificar la fecha.</span>';
+                } finally {
+                    verificandoFecha = false;
+                }
+            }
+
+            if (valorInput) {
+                valorInput.addEventListener('input', actualizarPreview);
+                actualizarPreview();
+            }
+
+            if (fechaInput) {
+                fechaInput.addEventListener('change', verificarFecha);
+
+                if (fechaInput.value)
+                    verificarFecha();
+            }
+
+            if (btnRestablecer && form) {
+                btnRestablecer.addEventListener('click', function() {
+                    form.reset();
+
+                    fechaDisponible = true;
+
+                    if (fechaStatus) {
+                        fechaStatus.style.display = 'none';
+                        fechaStatus.innerHTML = '';
+                    }
+
+                    setTimeout(actualizarPreview, 0);
+                });
+            }
+
+            if (form && btnGuardar) {
+                form.addEventListener('submit', function(event) {
+                    if (verificandoFecha) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    if (!fechaDisponible) {
+                        event.preventDefault();
+
+                        if (fechaStatus) {
+                            fechaStatus.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+                        }
+
+                        return;
+                    }
+
+                    if (!form.checkValidity())
+                        return;
+
+                    btnGuardar.disabled = true;
+                    btnGuardar.innerHTML =
+                        '<svg class="icon icon-sm icon-spin"><use href="#icon-refresh"></use></svg>' +
+                        ' Guardando...';
+                });
+            }
+
+            document.querySelectorAll('.alert-close').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const alert = button.closest('.page-alert');
+
+                    if (alert)
+                        alert.remove();
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .exchange-create-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #405066;
+        --muted: #8491a1;
+        --success: #168957;
+        --danger: #c93f55;
+        --warning: #a47517;
+    }
+
+    .create-hero {
+        min-height: 120px;
+        padding: 24px 30px;
+        margin-bottom: 16px;
+        border-radius: 20px;
+        background: linear-gradient(100deg, #102947 0%, #17488e 50%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .create-hero::after {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            right: -90px;
+            top: -150px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-left {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 62px;
+        height: 62px;
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 15px;
+        background: rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-eyebrow {
+        display: block;
+        color: rgba(255,255,255,.55);
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .create-hero h1 {
+        margin: 2px 0 0;
+        font-size: 1.55rem;
+        font-weight: 800;
+    }
+
+    .create-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.72);
+        font-size: .69rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-button {
+        min-height: 40px;
+        padding: 0 13px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .63rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+        .hero-button.light {
+            border: 1px solid white;
+            background: white;
+            color: var(--navy);
+        }
+
+        .hero-button.secondary {
+            border: 1px solid rgba(255,255,255,.3);
+            background: rgba(255,255,255,.06);
+            color: white;
+        }
+
+    .automatic-notice {
+        margin-bottom: 15px;
+        padding: 13px 15px;
+        border: 1px solid #d6e4f2;
+        border-radius: 12px;
+        background: #f3f8fd;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .notice-icon {
+        width: 37px;
+        height: 37px;
+        border-radius: 9px;
+        background: #e3effb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .automatic-notice strong,
+    .automatic-notice span {
+        display: block;
+    }
+
+    .automatic-notice strong {
+        color: #40566d;
+        font-size: .61rem;
+    }
+
+    .automatic-notice > div > span {
+        margin-top: 3px;
+        color: #718196;
+        font-size: .53rem;
+        line-height: 1.45;
+    }
+
+    .automatic-badge {
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #e6f6ee;
+        color: var(--success);
+        display: flex !important;
+        align-items: center;
+        gap: 5px;
+        font-size: .49rem !important;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+        .automatic-badge > span {
+            width: 6px;
+            height: 6px;
+            margin: 0 !important;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+    .page-alert {
+        margin-bottom: 13px;
+        padding: 11px 13px;
+        border-radius: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+    }
+
+        .page-alert.success {
+            border-left: 4px solid var(--success);
+            background: #edf9f3;
+            color: #146f48;
+        }
+
+        .page-alert.danger {
+            border-left: 4px solid var(--danger);
+            background: #fff1f3;
+            color: #a73547;
+        }
+
+        .page-alert > div {
+            flex: 1;
+        }
+
+        .page-alert strong,
+        .page-alert span {
+            display: block;
+        }
+
+        .page-alert strong {
+            font-size: .62rem;
+        }
+
+        .page-alert span,
+        .validation-summary {
+            margin-top: 2px;
+            font-size: .54rem;
+        }
+
+    .alert-close {
+        border: none;
+        background: transparent;
+        color: currentColor;
+        cursor: pointer;
+    }
+
+    .create-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(300px, .8fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .form-card,
+    .side-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: white;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 15px 17px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .heading-left {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .heading-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .heading-left span,
+    .side-header span {
+        display: block;
+        color: #929dab;
+        font-size: .47rem;
+        font-weight: 800;
+        letter-spacing: .6px;
+    }
+
+    .heading-left h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .8rem;
+        font-weight: 800;
+    }
+
+    .heading-left p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .53rem;
+    }
+
+    .manual-badge {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #fff5df;
+        color: #9b711c;
+        font-size: .49rem;
+        font-weight: 800;
+    }
+
+    .card-body {
+        padding: 18px;
+    }
+
+    .form-section {
+        padding-bottom: 19px;
+        margin-bottom: 18px;
+        border-bottom: 1px solid #edf1f5;
+    }
+
+        .form-section.last {
+            padding-bottom: 0;
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+
+    .section-title {
+        margin-bottom: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: #eef4fa;
+        color: #4878a8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .section-title span,
+    .section-title strong {
+        display: block;
+    }
+
+    .section-title span {
+        color: #929dab;
+        font-size: .45rem;
+        font-weight: 800;
+        letter-spacing: .6px;
+    }
+
+    .section-title strong {
+        margin-top: 1px;
+        color: #46566a;
+        font-size: .64rem;
+    }
+
+    .field-group {
+        max-width: 100%;
+    }
+
+    .vidal-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #405066;
+        font-size: .58rem;
+        font-weight: 750;
+    }
+
+    .control-icon {
+        position: relative;
+    }
+
+        .control-icon > .icon {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8492a3;
+            pointer-events: none;
+        }
+
+    .vidal-control {
+        width: 100%;
+        min-height: 42px;
+        padding: 8px 11px;
+        border: 1px solid #d7e0e9;
+        border-radius: 8px;
+        background: white;
+        color: #405066;
+        font-size: .62rem;
+        outline: none;
+    }
+
+    .control-icon .vidal-control {
+        padding-left: 35px;
+    }
+
+    .vidal-control:focus {
+        border-color: #6797ca;
+        box-shadow: 0 0 0 3px rgba(34,108,194,.07);
+    }
+
+    .validation-text {
+        display: block;
+        margin-top: 4px;
+        color: var(--danger);
+        font-size: .5rem;
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 4px;
+        color: #8d99a8;
+        font-size: .49rem;
+        line-height: 1.4;
+    }
+
+    .field-status {
+        margin-top: 7px;
+        padding: 7px 9px;
+        border-radius: 7px;
+        align-items: center;
+        gap: 5px;
+        font-size: .5rem;
+        font-weight: 650;
+    }
+
+        .field-status.checking {
+            background: #f0f4f8;
+            color: #65768a;
+        }
+
+        .field-status.success {
+            background: #eaf8f1;
+            color: #168957;
+        }
+
+        .field-status.error {
+            background: #fff0f2;
+            color: #bd3c50;
+        }
+
+        .field-status.checking .icon {
+            animation: spin 1s linear infinite;
+        }
+
+    .currency-pair-card {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .currency-box {
+        padding: 14px;
+        border: 1px solid #dfe6ed;
+        border-radius: 10px;
+        background: #fafbfd;
+        text-align: center;
+    }
+
+        .currency-box span,
+        .currency-box strong,
+        .currency-box small {
+            display: block;
+        }
+
+        .currency-box span {
+            color: #929dab;
+            font-size: .45rem;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+
+        .currency-box strong {
+            margin-top: 3px;
+            color: var(--navy);
+            font-size: 1.05rem;
+            font-weight: 850;
+        }
+
+        .currency-box small {
+            margin-top: 2px;
+            color: #8895a4;
+            font-size: .48rem;
+        }
+
+    .currency-arrow {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #edf3f8;
+        color: #65788b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pair-info {
+        margin-top: 9px;
+        color: #7f8d9d;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .49rem;
+    }
+
+    .exchange-input {
+        display: grid;
+        grid-template-columns: auto auto minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+    }
+
+    .exchange-prefix {
+        min-height: 42px;
+        padding: 0 13px;
+        border: 1px solid #dce3eb;
+        border-radius: 8px;
+        background: #f5f8fa;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+        .exchange-prefix span {
+            color: #68798c;
+            font-size: .65rem;
+        }
+
+        .exchange-prefix strong {
+            color: var(--navy);
+            font-size: .59rem;
+        }
+
+    .exchange-equals {
+        color: #8a97a6;
+        font-weight: 800;
+    }
+
+    .exchange-control {
+        position: relative;
+    }
+
+        .exchange-control .vidal-control {
+            padding-right: 55px;
+            font-weight: 750;
+        }
+
+        .exchange-control > span {
+            position: absolute;
+            right: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #68798b;
+            font-size: .52rem;
+            font-weight: 800;
+        }
+
+    .value-preview {
+        margin-top: 11px;
+        padding: 11px 13px;
+        border-radius: 9px;
+        background: linear-gradient(135deg, #f2f6fa, #f8fafc);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+        .value-preview span,
+        .value-preview strong {
+            display: block;
+        }
+
+        .value-preview span {
+            color: #8a96a5;
+            font-size: .47rem;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .value-preview strong {
+            margin-top: 2px;
+            color: var(--navy);
+            font-size: .66rem;
+        }
+
+        .value-preview > .icon {
+            color: #6685a5;
+        }
+
+    .form-actions {
+        padding: 13px 17px;
+        border-top: 1px solid #edf1f5;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .primary-button,
+    .secondary-button {
+        min-height: 39px;
+        padding: 0 12px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .57rem;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .primary-button {
+        border: none;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: white;
+    }
+
+        .primary-button:disabled {
+            opacity: .65;
+            cursor: not-allowed;
+        }
+
+    .secondary-button {
+        border: 1px solid #d6dee7;
+        background: white;
+        color: #59697b;
+    }
+
+        .secondary-button.cancel {
+            margin-left: auto;
+        }
+
+    aside {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .side-header {
+        padding: 14px 15px;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+        .side-header.normal {
+            border-bottom: 1px solid #edf1f5;
+            background: white;
+            color: var(--navy);
+        }
+
+            .side-header.normal span {
+                color: #929dab;
+            }
+
+        .side-header h3 {
+            margin: 2px 0 0;
+            font-size: .69rem;
+            font-weight: 800;
+        }
+
+    .side-header-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .side-header-icon.soft {
+            background: #eef4fa;
+            color: #527fa9;
+        }
+
+    .current-rate {
+        padding: 18px;
+        text-align: center;
+    }
+
+    .rate-pair {
+        color: #8491a1;
+        font-size: .5rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+    }
+
+    .rate-number {
+        margin-top: 4px;
+        color: var(--navy);
+        font-size: 1.75rem;
+        font-weight: 850;
+    }
+
+    .rate-meta {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #edf1f5;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        text-align: left;
+    }
+
+        .rate-meta span,
+        .rate-meta strong {
+            display: block;
+        }
+
+        .rate-meta span {
+            color: #929dab;
+            font-size: .45rem;
+            text-transform: uppercase;
+        }
+
+        .rate-meta strong {
+            margin-top: 2px;
+            color: #506075;
+            font-size: .52rem;
+        }
+
+    .empty-reference {
+        padding: 28px 20px;
+        color: #8996a5;
+        text-align: center;
+    }
+
+        .empty-reference .icon {
+            color: #bdc6d0;
+        }
+
+        .empty-reference strong,
+        .empty-reference span {
+            display: block;
+        }
+
+        .empty-reference strong {
+            margin-top: 7px;
+            color: #56677a;
+            font-size: .62rem;
+        }
+
+        .empty-reference span {
+            margin-top: 3px;
+            font-size: .5rem;
+        }
+
+    .tips-list {
+        padding: 7px 14px;
+    }
+
+    .tip-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+        .tip-item:last-child {
+            border-bottom: none;
+        }
+
+    .tip-icon {
+        width: 29px;
+        height: 29px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .tip-icon.blue {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .tip-icon.green {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+        .tip-icon.gold {
+            background: #fff6e4;
+            color: #a47517;
+        }
+
+        .tip-icon.gray {
+            background: #eef1f4;
+            color: #718093;
+        }
+
+    .tip-item strong,
+    .tip-item span {
+        display: block;
+    }
+
+    .tip-item strong {
+        color: #4c5d70;
+        font-size: .54rem;
+    }
+
+    .tip-item span {
+        margin-top: 2px;
+        color: #8794a4;
+        font-size: .48rem;
+        line-height: 1.4;
+    }
+
+    .count-badge {
+        padding: 4px 7px;
+        border-radius: 999px;
+        background: #eef3f7;
+        color: #67788b !important;
+        font-size: .47rem !important;
+    }
+
+    .recent-list {
+        padding: 3px 14px;
+    }
+
+    .recent-item {
+        padding: 9px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-item strong,
+        .recent-item span {
+            display: block;
+        }
+
+        .recent-item > div strong {
+            color: #4e5f72;
+            font-size: .52rem;
+        }
+
+        .recent-item > div span {
+            margin-top: 1px;
+            color: #929dab;
+            font-size: .45rem;
+        }
+
+    .recent-value {
+        color: #17488e !important;
+        font-size: .57rem !important;
+    }
+
+    .history-link {
+        min-height: 36px;
+        padding: 0 13px;
+        border-top: 1px solid #edf1f5;
+        background: #fafbfd;
+        color: #596c80;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .5rem;
+        font-weight: 750;
+    }
+
+    .icon-spin {
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@media (max-width: 1000px) {
+        .create-layout {
+            grid-template-columns: 1fr;
+        }
+
+        aside {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+            aside .side-card:last-child:nth-child(3) {
+                grid-column: 1 / -1;
+            }
+    }
+
+    @@media (max-width: 760px) {
+        .create-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-button {
+            flex: 1;
+        }
+
+        .automatic-notice {
+            grid-template-columns: auto 1fr;
+        }
+
+        .automatic-badge {
+            grid-column: 1 / -1;
+            justify-self: stretch;
+            justify-content: center;
+        }
+
+        aside {
+            grid-template-columns: 1fr;
+        }
+
+            aside .side-card:last-child:nth-child(3) {
+                grid-column: auto;
+            }
+    }
+
+    @@media (max-width: 560px) {
+        .create-hero {
+            padding: 20px;
+        }
+
+        .hero-left {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .create-hero h1 {
+            font-size: 1.25rem;
+        }
+
+        .hero-actions,
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .hero-button,
+        .primary-button,
+        .secondary-button {
+            width: 100%;
+        }
+
+            .secondary-button.cancel {
+                margin-left: 0;
+            }
+
+        .currency-pair-card {
+            grid-template-columns: 1fr;
+        }
+
+        .currency-arrow {
+            margin: auto;
+            transform: rotate(90deg);
+        }
+
+        .exchange-input {
+            grid-template-columns: 1fr;
+        }
+
+        .exchange-equals {
+            text-align: center;
+        }
+    }
+</style>

@@ -1,0 +1,1321 @@
+@using Inventario_Vidal.DTOs
+@model EmpresaDto
+
+@{
+    ViewData["Title"] = "Datos de la Empresa";
+    ViewBag.Subtitle = "Información general y configuración del negocio";
+
+    decimal? tipoCambioActual = ViewBag.TipoCambioActual != null
+        ? Convert.ToDecimal(ViewBag.TipoCambioActual)
+        : Model?.TipoCambio;
+
+    DateOnly? fechaTipoCambio = ViewBag.TipoCambioFecha is DateOnly fecha
+        ? fecha
+        : null;
+
+    bool vieneDeCache = ViewBag.TipoCambioCache == true;
+    bool vieneDeFallback = ViewBag.TipoCambioFallback == true;
+
+    string origenTipoCambio = vieneDeFallback
+        ? "Último valor disponible"
+        : vieneDeCache
+            ? "Registrado hoy en BD"
+            : "Actualización automática";
+}
+
+<div class="empresa-page">
+
+    <!-- HERO -->
+    <section class="empresa-hero">
+        <div class="hero-left">
+            <div class="hero-icon">
+                <svg class="icon icon-xl"><use href="#icon-building"></use></svg>
+            </div>
+
+            <div>
+                <span class="hero-eyebrow">CONFIGURACIÓN GENERAL</span>
+                <h1>@(!string.IsNullOrWhiteSpace(Model?.NombreEmpresa) ? Model.NombreEmpresa : "Datos de la Empresa")</h1>
+
+                <p>
+                    <svg class="icon icon-sm"><use href="#icon-info"></use></svg>
+                    Administración de información institucional y financiera
+                </p>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a asp-action="Editar" class="hero-button light">
+                <svg class="icon icon-sm"><use href="#icon-edit"></use></svg>
+                Editar datos
+            </a>
+
+            <a asp-controller="TiposCambio" asp-action="Index" class="hero-button secondary">
+                <svg class="icon icon-sm"><use href="#icon-history"></use></svg>
+                Tipos de cambio
+            </a>
+        </div>
+    </section>
+
+    <!-- ALERTAS -->
+    @if (TempData["MensajeExito"] != null)
+    {
+        <div class="page-alert success">
+            <svg class="icon"><use href="#icon-check-circle"></use></svg>
+
+            <div>
+                <strong>Operación completada</strong>
+                <span>@TempData["MensajeExito"]</span>
+            </div>
+
+            <button type="button" class="alert-close">
+                <svg class="icon icon-sm"><use href="#icon-x"></use></svg>
+            </button>
+        </div>
+    }
+
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="page-alert danger">
+            <svg class="icon"><use href="#icon-x-circle"></use></svg>
+
+            <div>
+                <strong>No se pudo completar la operación</strong>
+                <span>@TempData["MensajeError"]</span>
+            </div>
+
+            <button type="button" class="alert-close">
+                <svg class="icon icon-sm"><use href="#icon-x"></use></svg>
+            </button>
+        </div>
+    }
+
+    <!-- RESUMEN -->
+    <section class="summary-grid">
+        <article class="summary-card">
+            <div class="summary-icon blue">
+                <svg class="icon"><use href="#icon-dollar"></use></svg>
+            </div>
+
+            <div>
+                <span>Moneda principal</span>
+                <strong>@(Model?.Moneda ?? "PEN")</strong>
+                <small>Moneda base del sistema</small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon purple">
+                <svg class="icon"><use href="#icon-exchange"></use></svg>
+            </div>
+
+            <div>
+                <span>Moneda secundaria</span>
+                <strong>@(!string.IsNullOrWhiteSpace(Model?.MonedaSecundaria) ? Model.MonedaSecundaria : "—")</strong>
+                <small>Moneda de referencia</small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon gold">
+                <svg class="icon"><use href="#icon-calculator"></use></svg>
+            </div>
+
+            <div>
+                <span>IGV</span>
+                <strong>@((Model?.Igv ?? 18m).ToString("0.##"))%</strong>
+                <small>Impuesto configurado</small>
+            </div>
+        </article>
+
+        <article class="summary-card">
+            <div class="summary-icon green">
+                <svg class="icon"><use href="#icon-exchange"></use></svg>
+            </div>
+
+            <div>
+                <span>USD / PEN</span>
+                <strong>@(tipoCambioActual.HasValue ? tipoCambioActual.Value.ToString("0.0000") : "—")</strong>
+                <small>@origenTipoCambio</small>
+            </div>
+        </article>
+    </section>
+
+    <div class="empresa-layout">
+
+        <!-- COLUMNA IZQUIERDA -->
+        <aside class="empresa-sidebar">
+
+            <!-- PERFIL -->
+            <section class="panel-card company-profile">
+                <div class="profile-cover">
+                    <div class="profile-logo">
+                        @if (!string.IsNullOrWhiteSpace(Model?.LogoUrl))
+                        {
+                            <img src="@Model.LogoUrl"
+                                 alt="Logo de @Model.NombreEmpresa" />
+                        }
+                        else
+                        {
+                            <div class="logo-placeholder">
+                                <svg class="icon icon-xl"><use href="#icon-building"></use></svg>
+                                <span>Sin logo</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="profile-body">
+                    <span class="section-eyebrow">EMPRESA</span>
+
+                    <h2>
+                        @(!string.IsNullOrWhiteSpace(Model?.NombreEmpresa)
+                            ? Model.NombreEmpresa
+                            : "Nombre pendiente")
+                    </h2>
+
+                    <div class="company-ruc">
+                        <svg class="icon icon-sm"><use href="#icon-file-text"></use></svg>
+
+                        <span>
+                            RUC:
+                            <strong>
+                                @(!string.IsNullOrWhiteSpace(Model?.Ruc)
+                                    ? Model.Ruc
+                                    : "No registrado")
+                            </strong>
+                        </span>
+                    </div>
+
+                    <div class="profile-status">
+                        <span></span>
+                        Configuración disponible
+                    </div>
+
+                    <a asp-action="Editar" class="profile-edit">
+                        <svg class="icon icon-sm"><use href="#icon-edit"></use></svg>
+                        Editar información
+                    </a>
+                </div>
+            </section>
+
+            <!-- CONTACTO -->
+            <section class="panel-card">
+                <div class="panel-heading">
+                    <div class="heading-icon gray">
+                        <svg class="icon"><use href="#icon-mail"></use></svg>
+                    </div>
+
+                    <div>
+                        <span>CONTACTO</span>
+                        <h2>Datos de contacto</h2>
+                    </div>
+                </div>
+
+                <div class="contact-list">
+
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <svg class="icon icon-sm"><use href="#icon-smartphone"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Teléfono</span>
+                            <strong>
+                                @(!string.IsNullOrWhiteSpace(Model?.Telefono)
+                                    ? Model.Telefono
+                                    : "No registrado")
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <svg class="icon icon-sm"><use href="#icon-mail"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Correo electrónico</span>
+                            <strong>
+                                @(!string.IsNullOrWhiteSpace(Model?.CorreoElectronico)
+                                    ? Model.CorreoElectronico
+                                    : "No registrado")
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <svg class="icon icon-sm"><use href="#icon-location"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Dirección</span>
+                            <strong>
+                                @(!string.IsNullOrWhiteSpace(Model?.Direccion)
+                                    ? Model.Direccion
+                                    : "No registrada")
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <svg class="icon icon-sm"><use href="#icon-link"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Sitio web</span>
+
+                            @if (!string.IsNullOrWhiteSpace(Model?.SitioWeb))
+                            {
+                                <a href="@Model.SitioWeb"
+                                   target="_blank"
+                                   rel="noopener noreferrer">
+                                    @Model.SitioWeb
+                                </a>
+                            }
+                            else
+                            {
+                                <strong>No registrado</strong>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <!-- COLUMNA DERECHA -->
+        <main class="empresa-main">
+
+            <!-- INFORMACIÓN GENERAL -->
+            <section class="panel-card">
+                <div class="panel-heading">
+                    <div class="heading-left">
+                        <div class="heading-icon blue">
+                            <svg class="icon"><use href="#icon-building"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>INFORMACIÓN GENERAL</span>
+                            <h2>Datos institucionales</h2>
+                            <p>Información principal utilizada por el sistema y los reportes.</p>
+                        </div>
+                    </div>
+
+                    <a asp-action="Editar" class="panel-action">
+                        <svg class="icon icon-sm"><use href="#icon-edit"></use></svg>
+                        Modificar
+                    </a>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span>Razón social / nombre</span>
+                        <strong>
+                            @(!string.IsNullOrWhiteSpace(Model?.NombreEmpresa)
+                                ? Model.NombreEmpresa
+                                : "No registrado")
+                        </strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>RUC</span>
+                        <strong>
+                            @(!string.IsNullOrWhiteSpace(Model?.Ruc)
+                                ? Model.Ruc
+                                : "No registrado")
+                        </strong>
+                    </div>
+
+                    <div class="info-item full">
+                        <span>Dirección</span>
+                        <strong>
+                            @(!string.IsNullOrWhiteSpace(Model?.Direccion)
+                                ? Model.Direccion
+                                : "No registrada")
+                        </strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Teléfono</span>
+                        <strong>
+                            @(!string.IsNullOrWhiteSpace(Model?.Telefono)
+                                ? Model.Telefono
+                                : "No registrado")
+                        </strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Correo electrónico</span>
+                        <strong>
+                            @(!string.IsNullOrWhiteSpace(Model?.CorreoElectronico)
+                                ? Model.CorreoElectronico
+                                : "No registrado")
+                        </strong>
+                    </div>
+
+                    <div class="info-item full">
+                        <span>Sitio web</span>
+                        <strong>
+                            @(!string.IsNullOrWhiteSpace(Model?.SitioWeb)
+                                ? Model.SitioWeb
+                                : "No registrado")
+                        </strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONFIGURACIÓN FINANCIERA -->
+            <section class="panel-card">
+                <div class="panel-heading">
+                    <div class="heading-left">
+                        <div class="heading-icon gold">
+                            <svg class="icon"><use href="#icon-dollar"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>CONFIGURACIÓN FINANCIERA</span>
+                            <h2>Monedas e impuestos</h2>
+                            <p>Configuración utilizada para importes y documentos del sistema.</p>
+                        </div>
+                    </div>
+
+                    <a asp-controller="TiposCambio"
+                       asp-action="Index"
+                       class="panel-action">
+
+                        <svg class="icon icon-sm"><use href="#icon-history"></use></svg>
+                        Ver historial
+                    </a>
+                </div>
+
+                <div class="finance-grid">
+
+                    <div class="finance-card">
+                        <div class="finance-icon blue">
+                            <svg class="icon"><use href="#icon-dollar"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Moneda principal</span>
+                            <strong>@(Model?.Moneda ?? "PEN")</strong>
+
+                            <small>
+                                Moneda principal utilizada en el sistema.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="finance-card">
+                        <div class="finance-icon purple">
+                            <svg class="icon"><use href="#icon-exchange"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Moneda secundaria</span>
+
+                            <strong>
+                                @(!string.IsNullOrWhiteSpace(Model?.MonedaSecundaria)
+                                    ? Model.MonedaSecundaria
+                                    : "No configurada")
+                            </strong>
+
+                            <small>
+                                Moneda alternativa de referencia.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="finance-card">
+                        <div class="finance-icon gold">
+                            <svg class="icon"><use href="#icon-calculator"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>IGV</span>
+                            <strong>@((Model?.Igv ?? 18m).ToString("0.##"))%</strong>
+
+                            <small>
+                                Impuesto General a las Ventas.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="finance-card exchange-current">
+                        <div class="finance-icon green">
+                            <svg class="icon"><use href="#icon-exchange"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Tipo de cambio USD/PEN</span>
+
+                            <strong>
+                                @(tipoCambioActual.HasValue
+                                    ? tipoCambioActual.Value.ToString("0.0000")
+                                    : "No disponible")
+                            </strong>
+
+                            <small>
+                                @origenTipoCambio
+                                @if (fechaTipoCambio.HasValue)
+                                {
+                                    <text> · @fechaTipoCambio.Value.ToString("dd/MM/yyyy")</text>
+                                }
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exchange-info">
+                    <div class="exchange-info-icon">
+                        <svg class="icon"><use href="#icon-info"></use></svg>
+                    </div>
+
+                    <div>
+                        <strong>Tipo de cambio automático</strong>
+
+                        <span>
+                            El sistema utiliza el valor USD/PEN registrado para el día.
+                            Cuando todavía no existe un registro diario, el servicio consulta
+                            la fuente configurada y guarda el resultado en la base de datos.
+                        </span>
+                    </div>
+
+                    <a asp-controller="TiposCambio" asp-action="Index">
+                        <svg class="icon icon-sm"><use href="#icon-history"></use></svg>
+                        Historial
+                    </a>
+                </div>
+            </section>
+
+            <!-- PIE DE PÁGINA -->
+            <section class="panel-card">
+                <div class="panel-heading">
+                    <div class="heading-left">
+                        <div class="heading-icon gray">
+                            <svg class="icon"><use href="#icon-file-text"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>DOCUMENTOS</span>
+                            <h2>Pie de página</h2>
+                            <p>Texto institucional utilizado en reportes y documentos.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-preview">
+                    <div class="footer-preview-icon">
+                        <svg class="icon"><use href="#icon-file-text"></use></svg>
+                    </div>
+
+                    <div>
+                        @if (!string.IsNullOrWhiteSpace(Model?.PiePagina))
+                        {
+                            <strong>Vista previa</strong>
+                            <p>@Model.PiePagina</p>
+                        }
+                        else
+                        {
+                            <strong>Sin texto configurado</strong>
+                            <p>
+                                Puedes definir un texto institucional desde la edición
+                                de los datos de la empresa.
+                            </p>
+                        }
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.alert-close').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const alert = button.closest('.page-alert');
+
+                    if (alert)
+                        alert.remove();
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .empresa-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #405066;
+        --muted: #8793a3;
+        --success: #168957;
+        --danger: #c93f55;
+    }
+
+    .empresa-hero {
+        min-height: 120px;
+        padding: 24px 30px;
+        margin-bottom: 16px;
+        border-radius: 20px;
+        background: linear-gradient(100deg, #102947 0%, #17488e 50%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .empresa-hero::after {
+            content: "";
+            position: absolute;
+            width: 310px;
+            height: 310px;
+            right: -90px;
+            top: -155px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-left {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 62px;
+        height: 62px;
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 15px;
+        background: rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-eyebrow {
+        display: block;
+        color: rgba(255,255,255,.55);
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .empresa-hero h1 {
+        margin: 2px 0 0;
+        font-size: 1.55rem;
+        font-weight: 800;
+    }
+
+    .empresa-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.72);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .69rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-button {
+        min-height: 40px;
+        padding: 0 13px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .62rem;
+        font-weight: 750;
+    }
+
+        .hero-button.light {
+            border: 1px solid white;
+            background: white;
+            color: var(--navy);
+        }
+
+        .hero-button.secondary {
+            border: 1px solid rgba(255,255,255,.3);
+            background: rgba(255,255,255,.06);
+            color: white;
+        }
+
+    .page-alert {
+        margin-bottom: 14px;
+        padding: 11px 13px;
+        border-radius: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+    }
+
+        .page-alert.success {
+            border-left: 4px solid var(--success);
+            background: #edf9f3;
+            color: #146f48;
+        }
+
+        .page-alert.danger {
+            border-left: 4px solid var(--danger);
+            background: #fff1f3;
+            color: #a73547;
+        }
+
+        .page-alert > div {
+            flex: 1;
+        }
+
+        .page-alert strong,
+        .page-alert span {
+            display: block;
+        }
+
+        .page-alert strong {
+            font-size: .62rem;
+        }
+
+        .page-alert span {
+            margin-top: 2px;
+            font-size: .54rem;
+        }
+
+    .alert-close {
+        border: none;
+        background: transparent;
+        color: currentColor;
+        cursor: pointer;
+    }
+
+    .summary-grid {
+        margin-bottom: 16px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .summary-card {
+        min-height: 103px;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: white;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .summary-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .summary-icon.blue,
+        .finance-icon.blue {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .summary-icon.purple,
+        .finance-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+        .summary-icon.gold,
+        .finance-icon.gold {
+            background: #fff6e4;
+            color: #a47517;
+        }
+
+        .summary-icon.green,
+        .finance-icon.green {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+    .summary-card span {
+        display: block;
+        color: #8995a5;
+        font-size: .47rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .summary-card strong {
+        display: block;
+        margin-top: 3px;
+        color: var(--navy);
+        font-size: .85rem;
+        font-weight: 850;
+    }
+
+    .summary-card small {
+        display: block;
+        margin-top: 2px;
+        color: #97a2af;
+        font-size: .46rem;
+    }
+
+    .empresa-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, .72fr) minmax(0, 1.65fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .empresa-sidebar,
+    .empresa-main {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .panel-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: white;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+        overflow: hidden;
+    }
+
+    .profile-cover {
+        height: 94px;
+        background: linear-gradient(135deg, #102947, #226cc2);
+        position: relative;
+    }
+
+    .profile-logo {
+        width: 92px;
+        height: 92px;
+        padding: 5px;
+        border-radius: 18px;
+        background: white;
+        position: absolute;
+        left: 50%;
+        bottom: -46px;
+        transform: translateX(-50%);
+        box-shadow: 0 8px 24px rgba(16,41,71,.13);
+    }
+
+        .profile-logo img,
+        .logo-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+        }
+
+        .profile-logo img {
+            object-fit: contain;
+        }
+
+    .logo-placeholder {
+        background: #f2f5f8;
+        color: #9ba6b2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .logo-placeholder span {
+            margin-top: 3px;
+            font-size: .45rem;
+            font-weight: 700;
+        }
+
+    .profile-body {
+        padding: 57px 18px 18px;
+        text-align: center;
+    }
+
+    .section-eyebrow {
+        color: #97a1ae;
+        font-size: .46rem;
+        font-weight: 800;
+        letter-spacing: .7px;
+    }
+
+    .profile-body h2 {
+        margin: 3px 0 7px;
+        color: var(--navy);
+        font-size: .84rem;
+        font-weight: 800;
+    }
+
+    .company-ruc {
+        color: #758496;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .53rem;
+    }
+
+        .company-ruc strong {
+            color: #556579;
+        }
+
+    .profile-status {
+        margin: 14px 0;
+        padding: 7px;
+        border-radius: 8px;
+        background: #edf8f2;
+        color: #168957;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .49rem;
+        font-weight: 750;
+    }
+
+        .profile-status > span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+    .profile-edit {
+        min-height: 38px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .56rem;
+        font-weight: 750;
+    }
+
+    .panel-heading {
+        padding: 14px 16px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .heading-left {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .heading-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .heading-icon.blue {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .heading-icon.gold {
+            background: #fff6e4;
+            color: #a47517;
+        }
+
+        .heading-icon.gray {
+            background: #eef2f5;
+            color: #6f7f91;
+        }
+
+    .panel-heading span,
+    .heading-left span {
+        display: block;
+        color: #929dab;
+        font-size: .46rem;
+        font-weight: 800;
+        letter-spacing: .6px;
+    }
+
+    .panel-heading h2 {
+        margin: 2px 0 0;
+        color: var(--navy);
+        font-size: .76rem;
+        font-weight: 800;
+    }
+
+    .heading-left p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .51rem;
+    }
+
+    .panel-action {
+        min-height: 33px;
+        padding: 0 9px;
+        border: 1px solid #d8e0e9;
+        border-radius: 7px;
+        background: white;
+        color: #596b7e;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .51rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .contact-list {
+        padding: 5px 15px;
+    }
+
+    .contact-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+
+    .contact-icon {
+        width: 31px;
+        height: 31px;
+        border-radius: 8px;
+        background: #eef3f7;
+        color: #64788d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .contact-item > div:last-child {
+        min-width: 0;
+    }
+
+    .contact-item span,
+    .contact-item strong,
+    .contact-item a {
+        display: block;
+    }
+
+    .contact-item span {
+        color: #929dab;
+        font-size: .45rem;
+        text-transform: uppercase;
+    }
+
+    .contact-item strong,
+    .contact-item a {
+        margin-top: 2px;
+        color: #536377;
+        font-size: .52rem;
+        font-weight: 650;
+        overflow-wrap: anywhere;
+    }
+
+    .contact-item a {
+        color: #2263a5;
+        text-decoration: none;
+    }
+
+    .info-grid {
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .info-item {
+        min-height: 70px;
+        padding: 12px;
+        border: 1px solid #e3e8ee;
+        border-radius: 9px;
+        background: #fafbfd;
+    }
+
+        .info-item.full {
+            grid-column: 1 / -1;
+        }
+
+        .info-item span,
+        .info-item strong {
+            display: block;
+        }
+
+        .info-item span {
+            color: #929dab;
+            font-size: .45rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .info-item strong {
+            margin-top: 5px;
+            color: #45566a;
+            font-size: .58rem;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+
+    .finance-grid {
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .finance-card {
+        min-height: 94px;
+        padding: 13px;
+        border: 1px solid #e1e7ed;
+        border-radius: 10px;
+        background: #fafbfd;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+        .finance-card.exchange-current {
+            background: #f3faf6;
+            border-color: #d7ecdf;
+        }
+
+    .finance-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .finance-card span,
+    .finance-card strong,
+    .finance-card small {
+        display: block;
+    }
+
+    .finance-card span {
+        color: #8f9baa;
+        font-size: .46rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .finance-card strong {
+        margin-top: 3px;
+        color: var(--navy);
+        font-size: .72rem;
+        font-weight: 850;
+    }
+
+    .finance-card small {
+        margin-top: 3px;
+        color: #8995a4;
+        font-size: .47rem;
+        line-height: 1.4;
+    }
+
+    .exchange-info {
+        margin: 0 16px 16px;
+        padding: 11px 13px;
+        border: 1px solid #d8e6f3;
+        border-radius: 9px;
+        background: #f4f8fc;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .exchange-info-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #e3effb;
+        color: #4778aa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .exchange-info strong,
+    .exchange-info span {
+        display: block;
+    }
+
+    .exchange-info strong {
+        color: #40566d;
+        font-size: .55rem;
+    }
+
+    .exchange-info span {
+        margin-top: 2px;
+        color: #728196;
+        font-size: .48rem;
+        line-height: 1.4;
+    }
+
+    .exchange-info > a {
+        min-height: 31px;
+        padding: 0 8px;
+        border: 1px solid #ccdbe9;
+        border-radius: 7px;
+        color: #55728e;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        text-decoration: none;
+        font-size: .48rem;
+        font-weight: 750;
+    }
+
+    .footer-preview {
+        padding: 17px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .footer-preview-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        background: #eef2f5;
+        color: #6d7d90;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .footer-preview strong {
+        color: #4b5d70;
+        font-size: .57rem;
+    }
+
+    .footer-preview p {
+        margin: 4px 0 0;
+        color: #8190a1;
+        font-size: .52rem;
+        line-height: 1.55;
+    }
+
+    @@media (max-width: 1050px) {
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .empresa-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .empresa-sidebar {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 760px) {
+        .empresa-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-button {
+            flex: 1;
+        }
+
+        .empresa-sidebar,
+        .summary-grid,
+        .finance-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .exchange-info {
+            grid-template-columns: auto 1fr;
+        }
+
+            .exchange-info > a {
+                grid-column: 1 / -1;
+                justify-content: center;
+            }
+    }
+
+    @@media (max-width: 560px) {
+        .empresa-hero {
+            padding: 20px;
+        }
+
+        .hero-left {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .empresa-hero h1 {
+            font-size: 1.25rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .panel-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .panel-action {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-item.full {
+            grid-column: auto;
+        }
+    }
+</style>

@@ -1,0 +1,1081 @@
+@using Inventario_Vidal.DTOs
+@model IEnumerable<TipoCambioDto>
+@{
+    ViewData["Title"] = "Tipos de Cambio";
+    ViewBag.Subtitle = "Consulta del tipo de cambio actual e historial registrado";
+    var registros = Model?.ToList() ?? new List<TipoCambioDto>();
+    var ultimo = ViewBag.Ultimo as TipoCambioDto;
+    decimal? tipoCambioActual = ViewBag.TipoCambioActual != null ? Convert.ToDecimal(ViewBag.TipoCambioActual) : null;
+    DateOnly? fechaActual = ViewBag.FechaTipoCambioActual is DateOnly fecha ? fecha : null;
+    bool vieneDeCache = ViewBag.VieneDeCache == true;
+    bool vieneDeFallback = ViewBag.VieneDeFallback == true;
+    DateTime? desde = ViewBag.Desde as DateTime?;
+    DateTime? hasta = ViewBag.Hasta as DateTime?;
+    string origenActual = vieneDeFallback ? "Último valor disponible" : vieneDeCache ? "Registrado hoy" : "Actualizado automáticamente";
+    var registrosActuales = registros.Count(r => fechaActual.HasValue && r.Fecha == fechaActual.Value &&
+        string.Equals(r.MonedaOrigen, "USD", StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(r.MonedaDestino, "PEN", StringComparison.OrdinalIgnoreCase));
+}
+<div class="audit-page exchange-audit-page">
+    <section class="audit-hero">
+        <div class="hero-main">
+            <div class="hero-icon"><svg class="icon icon-xl"><use href="#icon-exchange"></use></svg></div>
+            <div><div class="hero-eyebrow">CONFIGURACIÓN FINANCIERA</div><h1>Tipos de Cambio</h1><p>Consulta el valor USD/PEN utilizado por el sistema y su historial diario.</p></div>
+        </div>
+        <div class="hero-actions">
+            <a asp-controller="Empresa" asp-action="Index" class="hero-btn outline"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>Configuración</a>
+            <a asp-action="Crear" class="hero-btn light"><svg class="icon icon-sm"><use href="#icon-plus"></use></svg>Registro manual</a>
+        </div>
+    </section>
+
+    <section class="metrics-grid">
+        <article class="metric-card"><div class="metric-icon blue"><svg class="icon"><use href="#icon-exchange"></use></svg></div><div><span>USD / PEN vigente</span><strong>@(tipoCambioActual.HasValue ? tipoCambioActual.Value.ToString("0.0000") : "—")</strong><small>@(fechaActual.HasValue ? fechaActual.Value.ToString("dd/MM/yyyy") : "Fecha no disponible")</small></div></article>
+        <article class="metric-card"><div class="metric-icon green"><svg class="icon"><use href="#icon-database"></use></svg></div><div><span>Registros mostrados</span><strong>@registros.Count</strong><small>Historial del filtro actual</small></div></article>
+        <article class="metric-card"><div class="metric-icon gold"><svg class="icon"><use href="#icon-calendar"></use></svg></div><div><span>Último registro</span><strong class="exchange-date-metric">@(ultimo != null ? ultimo.Fecha.ToString("dd/MM/yyyy") : "—")</strong><small>Fecha más reciente en BD</small></div></article>
+        <article class="metric-card"><div class="metric-icon purple"><svg class="icon"><use href="#icon-dollar"></use></svg></div><div><span>Último valor BD</span><strong>@(ultimo != null ? ultimo.Valor.ToString("0.0000") : "—")</strong><small>USD / PEN registrado</small></div></article>
+    </section>
+    <section class="exchange-note" aria-label="Información sobre actualización automática">
+        <div class="section-icon"><svg class="icon"><use href="#icon-info"></use></svg></div>
+        <div><strong>Actualización automática diaria</strong><p>El sistema utiliza el tipo de cambio registrado para el día. Cuando no existe un valor diario, consulta la API configurada y lo guarda para reutilizarlo.</p><small>Origen del valor vigente: @origenActual</small></div>
+        <span class="action-badge activate"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>Automático</span>
+    </section>
+    <section class="filter-card">
+        <div class="filter-header"><div class="filter-title"><div class="section-icon"><svg class="icon"><use href="#icon-search"></use></svg></div><div><span>CONSULTA</span><h2>Filtros de tipo de cambio</h2><p>Consulta los valores registrados dentro de un rango de fechas.</p></div></div><button type="button" class="filter-toggle" id="btnToggleFilters"><svg class="icon icon-sm"><use href="#icon-search"></use></svg>Filtros</button></div>
+        <form asp-action="Index" method="get" id="filterForm" class="filter-body exchange-filter-body">
+            <div class="filter-field"><label for="desde">Desde</label><input id="desde" name="desde" type="date" value="@(desde?.ToString("yyyy-MM-dd"))" class="audit-control" /></div>
+            <div class="filter-field"><label for="hasta">Hasta</label><input id="hasta" name="hasta" type="date" value="@(hasta?.ToString("yyyy-MM-dd"))" class="audit-control" /></div>
+            <div class="filter-field"><label for="pageSize">Registros por página</label><select id="pageSize" class="audit-control"><option value="15">15</option><option value="30" selected>30</option><option value="50">50</option><option value="100">100</option></select></div>
+            <div class="filter-actions"><a asp-action="Index" class="btn-secondary">Limpiar</a><button type="submit" class="btn-primary"><svg class="icon icon-sm"><use href="#icon-search"></use></svg>Aplicar filtros</button></div>
+        </form>
+    </section>
+    <section class="audit-card">
+        <div class="audit-card-header"><div class="card-heading"><div class="section-icon"><svg class="icon"><use href="#icon-history"></use></svg></div><div><span>HISTORIAL</span><h2>Tipos de cambio registrados</h2><p>Los valores históricos se conservan sin edición ni eliminación.</p></div></div><div class="table-tools"><div class="local-search"><svg class="icon icon-sm"><use href="#icon-search"></use></svg><input type="search" id="localSearch" placeholder="Buscar en esta página..." autocomplete="off" aria-label="Buscar registros" /><button type="button" id="btnClearLocal" style="display:none" aria-label="Limpiar búsqueda"><svg class="icon icon-sm"><use href="#icon-x"></use></svg></button></div><button type="button" class="btn-secondary" id="btnRefresh"><svg class="icon icon-sm"><use href="#icon-refresh"></use></svg>Actualizar</button></div></div>
+        @if (registros.Any())
+        {
+            <div class="table-wrap">
+                <table class="audit-table" id="auditTable">
+                    <thead><tr><th>Registro</th><th>Fecha</th><th>Par de monedas</th><th class="text-end">Valor</th><th>Registrado por</th><th>Fecha de registro</th><th class="text-center">Estado</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in registros)
+                        {
+                            var esActual = fechaActual.HasValue && item.Fecha == fechaActual.Value && string.Equals(item.MonedaOrigen, "USD", StringComparison.OrdinalIgnoreCase) && string.Equals(item.MonedaDestino, "PEN", StringComparison.OrdinalIgnoreCase);
+                            <tr><td><span class="record-id">#@item.IdTipoCambio</span></td><td><div class="date-cell"><strong>@item.Fecha.ToString("dd/MM/yyyy")</strong></div></td><td><span class="table-badge"><svg class="icon icon-sm"><use href="#icon-exchange"></use></svg>@item.MonedaOrigen / @item.MonedaDestino</span></td><td class="text-end"><strong class="exchange-value">@item.Valor.ToString("0.0000")</strong></td><td><div class="user-cell"><div class="user-avatar"><svg class="icon icon-sm"><use href="#icon-user"></use></svg></div><div><strong>@(string.IsNullOrWhiteSpace(item.UsuarioNombre) ? "Sistema" : item.UsuarioNombre)</strong><span>Origen del registro</span></div></div></td><td><div class="date-cell"><strong>@item.FechaRegistro.ToString("dd/MM/yyyy")</strong><span>@item.FechaRegistro.ToString("HH:mm")</span></div></td><td class="text-center"><span class="action-badge @(esActual ? "activate" : "other")"><svg class="icon icon-sm"><use href="@(esActual ? "#icon-check-circle" : "#icon-history")"></use></svg>@(esActual ? "Actual" : "Histórico")</span></td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="empty-state" id="noLocalResults" style="display:none"><div class="empty-icon"><svg class="icon icon-xl"><use href="#icon-search"></use></svg></div><h3>No se encontraron coincidencias</h3><p>La búsqueda se aplica a los registros cargados en esta página.</p><button type="button" id="btnResetLocal" class="btn-secondary">Limpiar búsqueda</button></div>
+            <div class="pagination-bar"><div class="pagination-info"><span>Mostrando</span><strong id="visibleCount">0</strong><span>de @registros.Count registros · Página <strong id="currentPageText">1</strong></span></div><div class="pagination-actions"><button type="button" id="btnPrev" class="page-button"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>Anterior</button><span class="page-current" id="currentPage">1</span><button type="button" id="btnNext" class="page-button">Siguiente<svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg></button></div></div>
+        }
+        else
+        {
+            <div class="empty-state"><div class="empty-icon"><svg class="icon icon-xl"><use href="#icon-exchange"></use></svg></div><h3>No hay registros para mostrar</h3><p>No se encontraron tipos de cambio para el rango seleccionado.</p><a asp-action="Index" class="btn-secondary">Restablecer filtros</a></div>
+        }
+    </section>
+    <section class="exchange-note manual-note"><div class="section-icon"><svg class="icon"><use href="#icon-lock"></use></svg></div><div><strong>Registro manual excepcional</strong><p>La consulta habitual es automática. El registro manual permite incorporar valores históricos o excepcionales que todavía no existan.</p></div><a asp-action="Crear" class="btn-secondary"><svg class="icon icon-sm"><use href="#icon-plus"></use></svg>Registrar manualmente</a></section>
+</div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('auditTable'), search = document.getElementById('localSearch'), size = document.getElementById('pageSize'), clear = document.getElementById('btnClearLocal'), empty = document.getElementById('noLocalResults');
+            const rows = table ? Array.from(table.querySelectorAll('tbody tr')) : [];
+            let page = 1;
+            function render() {
+                const query = (search?.value || '').trim().toLocaleLowerCase(); const matches = rows.filter(r => r.textContent.toLocaleLowerCase().includes(query)); const per = Math.max(1, Number(size?.value) || 30); const totalPages = Math.max(1, Math.ceil(matches.length / per)); page = Math.min(Math.max(1, page), totalPages);
+                rows.forEach(r => r.style.display = 'none'); matches.slice((page - 1) * per, page * per).forEach(r => r.style.display = '');
+                const count = document.getElementById('visibleCount'); if (count) count.textContent = String(matches.slice((page - 1) * per, page * per).length);
+                const pg = document.getElementById('currentPage'), txt = document.getElementById('currentPageText'); if (pg) pg.textContent = String(page); if (txt) txt.textContent = String(page);
+                const prev = document.getElementById('btnPrev'), next = document.getElementById('btnNext'); if (prev) { prev.disabled = page === 1; prev.classList.toggle('disabled', page === 1) } if (next) { next.disabled = page >= totalPages; next.classList.toggle('disabled', page >= totalPages) }
+                if (empty) empty.style.display = matches.length === 0 ? 'flex' : 'none'; if (clear) clear.style.display = query ? 'inline-flex' : 'none';
+            }
+            search?.addEventListener('input', () => { page = 1; render() }); size?.addEventListener('change', () => { page = 1; render() });
+            function resetSearch() { if (search) { search.value = ''; page = 1; render(); search.focus() } }
+            clear?.addEventListener('click', resetSearch); document.getElementById('btnResetLocal')?.addEventListener('click', resetSearch);
+            document.getElementById('btnPrev')?.addEventListener('click', () => { page--; render() }); document.getElementById('btnNext')?.addEventListener('click', () => { page++; render() });
+            document.getElementById('btnRefresh')?.addEventListener('click', () => window.location.reload());
+            document.getElementById('btnToggleFilters')?.addEventListener('click', () => document.getElementById('filterForm')?.classList.toggle('mobile-open'));
+            const desde = document.getElementById('desde'), hasta = document.getElementById('hasta'); function checkDates() { if (desde && hasta) { hasta.min = desde.value || ''; if (desde.value && hasta.value && hasta.value < desde.value) hasta.value = desde.value } } desde?.addEventListener('change', checkDates); hasta?.addEventListener('change', checkDates); checkDates();
+            document.querySelectorAll('.alert-close').forEach(b => b.addEventListener('click', () => b.closest('.audit-alert')?.remove()));
+            render();
+        });
+    </script>
+}
+<style>
+
+    
+
+    .audit-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #344357;
+        --muted: #7d8999;
+        --success: #168957;
+        --danger: #d1475b;
+        --warning: #c58918;
+    }
+
+    
+
+    .audit-hero {
+        min-height: 118px;
+        padding: 23px 30px;
+        margin-bottom: 17px;
+        border-radius: 20px;
+        background: linear-gradient( 100deg, #102947 0%, #17488e 49%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .audit-hero::after {
+            content: "";
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            top: -145px;
+            right: -85px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-main {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.11);
+        border: 1px solid rgba(255,255,255,.13);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-eyebrow {
+        margin-bottom: 3px;
+        color: rgba(255,255,255,.55);
+        font-size: .53rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .audit-hero h1 {
+        margin: 0;
+        font-size: 1.58rem;
+        font-weight: 800;
+    }
+
+    .audit-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.72);
+        font-size: .75rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-btn {
+        min-height: 41px;
+        padding: 0 14px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .68rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+        .hero-btn.light {
+            border: 1px solid white;
+            background: white;
+            color: var(--navy);
+        }
+
+        .hero-btn.outline {
+            border: 1px solid rgba(255,255,255,.28);
+            background: rgba(255,255,255,.05);
+            color: white;
+        }
+
+        .hero-btn.light:hover {
+            color: var(--navy);
+            background: #f3f7fb;
+        }
+
+        .hero-btn.outline:hover {
+            color: white;
+            background: rgba(255,255,255,.12);
+        }
+
+    
+
+    .audit-alert {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        border-radius: 11px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        transition: opacity .35s ease, transform .35s ease;
+    }
+
+        .audit-alert.success {
+            background: #edf9f3;
+            color: #146f48;
+            border-left: 4px solid var(--success);
+        }
+
+        .audit-alert.danger {
+            background: #fff1f3;
+            color: #a73547;
+            border-left: 4px solid var(--danger);
+        }
+
+        .audit-alert > div {
+            flex: 1;
+        }
+
+        .audit-alert strong,
+        .audit-alert span {
+            display: block;
+        }
+
+        .audit-alert strong {
+            font-size: .7rem;
+        }
+
+        .audit-alert span {
+            margin-top: 2px;
+            font-size: .62rem;
+        }
+
+        .audit-alert.closing {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+    .alert-close {
+        border: none;
+        padding: 2px;
+        background: transparent;
+        color: currentColor;
+        opacity: .65;
+        cursor: pointer;
+    }
+
+    
+
+    .metrics-grid {
+        margin-bottom: 17px;
+        display: grid;
+        grid-template-columns: repeat( 4, minmax(0,1fr));
+        gap: 12px;
+    }
+
+    .metric-card {
+        min-height: 86px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        box-shadow: 0 4px 15px rgba(16,41,71,.035);
+    }
+
+    .metric-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .metric-icon.blue {
+            background: #eaf2fb;
+            color: #306ca7;
+        }
+
+        .metric-icon.green {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+        .metric-icon.gold {
+            background: #fff7e5;
+            color: #a47517;
+        }
+
+        .metric-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+    .metric-card span {
+        display: block;
+        color: #8995a5;
+        font-size: .54rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .45px;
+    }
+
+    .metric-card strong {
+        display: block;
+        margin-top: 2px;
+        color: var(--navy);
+        font-size: 1.25rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .metric-card small {
+        display: block;
+        margin-top: 4px;
+        color: #99a3b0;
+        font-size: .5rem;
+    }
+
+    
+
+    .filter-card,
+    .audit-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+    }
+
+    .filter-card {
+        margin-bottom: 17px;
+        overflow: hidden;
+    }
+
+    .filter-header,
+    .audit-card-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    .filter-title,
+    .card-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356fa7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .filter-title span,
+    .card-heading span {
+        display: block;
+        color: #929dab;
+        font-size: .51rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+    }
+
+    .filter-title h2,
+    .card-heading h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .88rem;
+        font-weight: 800;
+    }
+
+    .filter-title p,
+    .card-heading p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .59rem;
+    }
+
+    .filter-toggle {
+        display: none;
+        min-height: 36px;
+        padding: 0 11px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: white;
+        color: #536579;
+        font-size: .61rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+    .filter-body {
+        padding: 16px 18px;
+        display: grid;
+        grid-template-columns: repeat( 6, minmax(0,1fr)) auto;
+        gap: 10px;
+        align-items: end;
+    }
+
+    .filter-field label {
+        display: block;
+        margin-bottom: 5px;
+        color: #526174;
+        font-size: .58rem;
+        font-weight: 750;
+    }
+
+    .audit-control {
+        width: 100%;
+        min-height: 39px;
+        padding: 7px 9px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: white;
+        color: #47566a;
+        font-size: .62rem;
+        outline: none;
+    }
+
+        .audit-control:focus {
+            border-color: #6b9bce;
+            box-shadow: 0 0 0 3px rgba(34,108,194,.07);
+        }
+
+    .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    
+
+    .btn-primary,
+    .btn-secondary,
+    .coming-button {
+        min-height: 38px;
+        padding: 0 13px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .61rem;
+        font-weight: 750;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        border: none;
+        background: linear-gradient( 135deg, #102947, #17488e);
+        color: white;
+    }
+
+        .btn-primary:hover {
+            color: white;
+        }
+
+    .btn-secondary {
+        border: 1px solid #d8e0e9;
+        background: white;
+        color: #586779;
+    }
+
+    .coming-button {
+        border: 1px solid #e6dfc8;
+        background: #fffaf0;
+        color: #8c711f;
+    }
+
+    
+
+    .table-tools {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .local-search {
+        width: 230px;
+        min-height: 38px;
+        padding: 0 9px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .local-search > .icon {
+            color: #8995a5;
+        }
+
+        .local-search input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #465569;
+            font-size: .61rem;
+        }
+
+        .local-search button {
+            border: none;
+            padding: 2px;
+            background: transparent;
+            color: #8a96a6;
+            cursor: pointer;
+        }
+
+    
+
+    .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .audit-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .audit-table thead th {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e8edf3;
+            background: #f8fafc;
+            color: #7d8999;
+            font-size: .54rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .48px;
+            white-space: nowrap;
+        }
+
+        .audit-table tbody td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #eef2f6;
+            color: #536174;
+            font-size: .63rem;
+            vertical-align: middle;
+        }
+
+        .audit-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .audit-table tbody tr {
+            transition: background .15s ease;
+        }
+
+            .audit-table tbody tr:hover {
+                background: #fafbfd;
+            }
+
+    
+
+    .date-cell {
+        min-width: 95px;
+    }
+
+        .date-cell strong {
+            display: block;
+            color: #48576a;
+            font-size: .61rem;
+        }
+
+        .date-cell span {
+            display: block;
+            margin-top: 1px;
+            color: #939dab;
+            font-size: .52rem;
+        }
+
+    .user-cell {
+        min-width: 175px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .user-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: #eaf2fb;
+        color: #356c9f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .59rem;
+        font-weight: 850;
+        flex-shrink: 0;
+    }
+
+    .user-cell strong {
+        display: block;
+        color: #415066;
+        font-size: .62rem;
+    }
+
+    .user-cell span {
+        display: block;
+        margin-top: 1px;
+        color: #959fab;
+        font-size: .5rem;
+    }
+
+    .table-badge {
+        padding: 5px 8px;
+        border-radius: 7px;
+        background: #edf3f8;
+        color: #536f8b;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .55rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    
+
+    .action-badge {
+        padding: 5px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .53rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+        .action-badge.create,
+        .action-badge.activate {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+        .action-badge.update {
+            background: #fff7e5;
+            color: #a47517;
+        }
+
+        .action-badge.delete,
+        .action-badge.deactivate {
+            background: #fff0f2;
+            color: #bf4759;
+        }
+
+        .action-badge.login {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .action-badge.logout {
+            background: #edf0f4;
+            color: #687587;
+        }
+
+        .action-badge.other {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+    .record-id {
+        padding: 4px 7px;
+        border-radius: 6px;
+        background: #f2f4f7;
+        color: #59687a;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: .55rem;
+    }
+
+    .empty-value {
+        color: #a0a9b5;
+    }
+
+    .change-summary {
+        min-width: 135px;
+        color: #697789;
+        line-height: 1.4;
+    }
+
+    .detail-button {
+        width: 31px;
+        height: 31px;
+        border: 1px solid #cfdfef;
+        border-radius: 7px;
+        background: #f1f7fc;
+        color: #3974aa;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+
+        .detail-button:hover {
+            color: #285e91;
+            transform: translateY(-1px);
+        }
+
+    
+
+    .pagination-bar {
+        padding: 13px 16px;
+        border-top: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .pagination-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #8490a1;
+        font-size: .57rem;
+    }
+
+        .pagination-info strong {
+            color: #455469;
+        }
+
+    .pagination-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .page-button {
+        min-height: 34px;
+        padding: 0 10px;
+        border: 1px solid #d8e0e9;
+        border-radius: 7px;
+        background: white;
+        color: #59687a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .57rem;
+        font-weight: 750;
+    }
+
+        .page-button.disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+    .page-current {
+        min-width: 34px;
+        height: 34px;
+        border-radius: 7px;
+        background: var(--navy);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .59rem;
+        font-weight: 800;
+    }
+
+    
+
+    .empty-state {
+        min-height: 250px;
+        padding: 30px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 15px;
+        background: #edf3f8;
+        color: #7790a8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state h3 {
+        margin: 12px 0 0;
+        color: #435267;
+        font-size: .78rem;
+        font-weight: 800;
+    }
+
+    .empty-state p {
+        max-width: 390px;
+        margin: 4px 0 0;
+        color: #8995a4;
+        font-size: .59rem;
+        line-height: 1.45;
+    }
+
+    .empty-state .btn-primary,
+    .empty-state .btn-secondary {
+        margin-top: 13px;
+    }
+
+    
+
+    @@media (max-width: 1150px) {
+
+        .filter-body {
+            grid-template-columns: repeat( 3, minmax(0,1fr));
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-end;
+        }
+
+        .audit-card-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .table-tools {
+            width: 100%;
+        }
+
+        .local-search {
+            flex: 1;
+            width: auto;
+        }
+    }
+
+    @@media (max-width: 900px) {
+
+        .metrics-grid {
+            grid-template-columns: repeat( 2, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 720px) {
+
+        .audit-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-btn {
+            flex: 1;
+        }
+
+        .filter-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .filter-body {
+            display: none;
+            grid-template-columns: 1fr;
+        }
+
+            .filter-body.mobile-open {
+                display: grid;
+            }
+
+        .filter-actions {
+            grid-column: auto;
+            flex-direction: column-reverse;
+        }
+
+            .filter-actions .btn-primary,
+            .filter-actions .btn-secondary {
+                width: 100%;
+            }
+
+        .table-tools {
+            flex-direction: column;
+        }
+
+        .local-search,
+        .coming-button {
+            width: 100%;
+        }
+
+        .pagination-bar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .pagination-actions {
+            justify-content: space-between;
+        }
+    }
+
+    @@media (max-width: 520px) {
+
+        .audit-hero {
+            padding: 20px;
+        }
+
+        .hero-main {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .audit-hero h1 {
+            font-size: 1.3rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-btn {
+            width: 100%;
+        }
+
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+
+    .exchange-audit-page .exchange-filter-body {
+        grid-template-columns: repeat(3,minmax(0,1fr)) auto
+    }
+
+    .exchange-audit-page .exchange-note {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        margin-bottom: 17px;
+        border: 1px solid #dce3eb;
+        border-radius: 13px;
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(16,41,71,.035)
+    }
+
+        .exchange-audit-page .exchange-note > div:nth-child(2) {
+            flex: 1;
+            min-width: 0
+        }
+
+        .exchange-audit-page .exchange-note strong {
+            display: block;
+            color: #102947;
+            font-size: .69rem;
+            font-weight: 800
+        }
+
+        .exchange-audit-page .exchange-note p {
+            margin: 4px 0;
+            color: #7d8999;
+            font-size: .6rem;
+            line-height: 1.55
+        }
+
+        .exchange-audit-page .exchange-note small {
+            color: #7990a6;
+            font-size: .55rem
+        }
+
+    .exchange-audit-page .exchange-date-metric {
+        font-size: 1rem
+    }
+
+    .exchange-audit-page .exchange-value {
+        font-size: .65rem;
+        color: #17488e;
+        font-weight: 850
+    }
+
+    .exchange-audit-page .manual-note {
+        margin-top: 17px
+    }
+
+    .exchange-audit-page .page-button:disabled {
+        opacity: .45;
+        cursor: not-allowed
+    }
+
+    @@media(max-width:900px) {
+        .exchange-audit-page .exchange-filter-body {
+            grid-template-columns: repeat(2,minmax(0,1fr))
+        }
+
+            .exchange-audit-page .exchange-filter-body .filter-actions {
+                grid-column: 1/-1
+            }
+    }
+
+    @@media(max-width:720px) {
+        .exchange-audit-page .exchange-filter-body {
+            display: none;
+            grid-template-columns: 1fr
+        }
+
+            .exchange-audit-page .exchange-filter-body.mobile-open {
+                display: grid
+            }
+
+            .exchange-audit-page .exchange-filter-body .filter-actions {
+                grid-column: auto
+            }
+
+        .exchange-audit-page .exchange-note {
+            flex-wrap: wrap
+        }
+
+        .exchange-audit-page .manual-note .btn-secondary {
+            width: 100%
+        }
+    }
+
+</style>

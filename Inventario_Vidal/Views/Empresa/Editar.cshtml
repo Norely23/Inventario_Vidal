@@ -1,0 +1,2022 @@
+@using Inventario_Vidal.DTOs
+@model EmpresaDto
+
+@{
+    ViewData["Title"] = "Editar Empresa";
+    ViewBag.Subtitle = "Actualizar información y configuración de la empresa";
+
+    decimal? tipoCambioActual = ViewBag.TipoCambioActual != null
+        ? Convert.ToDecimal(ViewBag.TipoCambioActual)
+        : Model.TipoCambio;
+
+    DateOnly? fechaTipoCambio = ViewBag.TipoCambioFecha is DateOnly fecha
+        ? fecha
+        : null;
+
+    bool vieneDeCache = ViewBag.TipoCambioCache == true;
+    bool vieneDeFallback = ViewBag.TipoCambioFallback == true;
+
+    string estadoTipoCambio = vieneDeFallback
+        ? "Último valor disponible"
+        : vieneDeCache
+            ? "Registrado hoy en BD"
+            : "Actualizado automáticamente";
+}
+
+<div class="empresa-edit-page">
+
+    <!-- HERO -->
+    <section class="edit-hero">
+        <div class="hero-left">
+            <div class="hero-icon">
+                <svg class="icon icon-xl"><use href="#icon-edit"></use></svg>
+            </div>
+
+            <div>
+                <span class="hero-eyebrow">CONFIGURACIÓN GENERAL</span>
+                <h1>Editar Empresa</h1>
+                <p>Actualiza los datos institucionales, financieros y el logotipo.</p>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a asp-action="Index" class="hero-button secondary">
+                <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
+                Volver
+            </a>
+
+            <button type="submit" form="empresaForm" class="hero-button light js-save-empresa">
+                <svg class="icon icon-sm"><use href="#icon-save"></use></svg>
+                Guardar cambios
+            </button>
+        </div>
+    </section>
+
+    <!-- ALERTAS -->
+    @if (TempData["MensajeExito"] != null)
+    {
+        <div class="page-alert success">
+            <svg class="icon"><use href="#icon-check-circle"></use></svg>
+            <div>
+                <strong>Operación completada</strong>
+                <span>@TempData["MensajeExito"]</span>
+            </div>
+            <button type="button" class="alert-close">
+                <svg class="icon icon-sm"><use href="#icon-x"></use></svg>
+            </button>
+        </div>
+    }
+
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="page-alert danger">
+            <svg class="icon"><use href="#icon-x-circle"></use></svg>
+            <div>
+                <strong>No se pudo completar la operación</strong>
+                <span>@TempData["MensajeError"]</span>
+            </div>
+            <button type="button" class="alert-close">
+                <svg class="icon icon-sm"><use href="#icon-x"></use></svg>
+            </button>
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="page-alert danger">
+            <svg class="icon"><use href="#icon-alert-triangle"></use></svg>
+            <div>
+                <strong>Revisa la información ingresada</strong>
+                <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+            </div>
+            <button type="button" class="alert-close">
+                <svg class="icon icon-sm"><use href="#icon-x"></use></svg>
+            </button>
+        </div>
+    }
+
+    <div class="edit-layout">
+
+        <!-- FORMULARIO PRINCIPAL -->
+        <main>
+            <form asp-action="Editar" method="post" id="empresaForm">
+                @Html.AntiForgeryToken()
+
+                <input asp-for="IdConfiguracion" type="hidden" />
+                <input asp-for="LogoUrl" type="hidden" />
+
+                <!-- DATOS GENERALES -->
+                <section class="form-card">
+                    <div class="card-header">
+                        <div class="heading-left">
+                            <div class="heading-icon blue">
+                                <svg class="icon"><use href="#icon-building"></use></svg>
+                            </div>
+
+                            <div>
+                                <span>INFORMACIÓN GENERAL</span>
+                                <h2>Datos de la empresa</h2>
+                                <p>Información institucional utilizada dentro del sistema.</p>
+                            </div>
+                        </div>
+
+                        <span class="section-badge">Obligatorio</span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-grid">
+
+                            <div class="field-group full">
+                                <label asp-for="NombreEmpresa" class="vidal-label">
+                                    Nombre de la empresa *
+                                </label>
+
+                                <div class="control-icon">
+                                    <svg class="icon icon-sm"><use href="#icon-building"></use></svg>
+
+                                    <input asp-for="NombreEmpresa"
+                                           class="vidal-control"
+                                           maxlength="200"
+                                           placeholder="Nombre o razón social"
+                                           autocomplete="organization" />
+                                </div>
+
+                                <span asp-validation-for="NombreEmpresa" class="validation-text"></span>
+                            </div>
+
+                            <div class="field-group">
+                                <label asp-for="Ruc" class="vidal-label">
+                                    RUC *
+                                </label>
+
+                                <div class="control-icon">
+                                    <svg class="icon icon-sm"><use href="#icon-file-text"></use></svg>
+
+                                    <input asp-for="Ruc"
+                                           id="Ruc"
+                                           class="vidal-control"
+                                           maxlength="20"
+                                           inputmode="numeric"
+                                           placeholder="Número de RUC" />
+                                </div>
+
+                                <span asp-validation-for="Ruc" class="validation-text"></span>
+
+                                <small class="field-help">
+                                    Solo se permiten caracteres numéricos.
+                                </small>
+                            </div>
+
+                            <div class="field-group">
+                                <label asp-for="SitioWeb" class="vidal-label">
+                                    Sitio web
+                                </label>
+
+                                <div class="control-icon">
+                                    <svg class="icon icon-sm"><use href="#icon-link"></use></svg>
+
+                                    <input asp-for="SitioWeb"
+                                           class="vidal-control"
+                                           maxlength="150"
+                                           placeholder="https://www.empresa.com"
+                                           autocomplete="url" />
+                                </div>
+
+                                <span asp-validation-for="SitioWeb" class="validation-text"></span>
+                            </div>
+
+                            <div class="field-group full">
+                                <label asp-for="Direccion" class="vidal-label">
+                                    Dirección
+                                </label>
+
+                                <div class="control-icon">
+                                    <svg class="icon icon-sm"><use href="#icon-location"></use></svg>
+
+                                    <input asp-for="Direccion"
+                                           class="vidal-control"
+                                           maxlength="250"
+                                           placeholder="Dirección de la empresa"
+                                           autocomplete="street-address" />
+                                </div>
+
+                                <span asp-validation-for="Direccion" class="validation-text"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CONTACTO -->
+                <section class="form-card">
+                    <div class="card-header">
+                        <div class="heading-left">
+                            <div class="heading-icon purple">
+                                <svg class="icon"><use href="#icon-mail"></use></svg>
+                            </div>
+
+                            <div>
+                                <span>CONTACTO</span>
+                                <h2>Información de contacto</h2>
+                                <p>Datos utilizados para comunicación y documentos institucionales.</p>
+                            </div>
+                        </div>
+
+                        <span class="section-badge optional">Opcional</span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-grid">
+
+                            <div class="field-group">
+                                <label asp-for="Telefono" class="vidal-label">
+                                    Teléfono
+                                </label>
+
+                                <div class="control-icon">
+                                    <svg class="icon icon-sm"><use href="#icon-smartphone"></use></svg>
+
+                                    <input asp-for="Telefono"
+                                           class="vidal-control"
+                                           maxlength="30"
+                                           placeholder="Número de contacto"
+                                           autocomplete="tel" />
+                                </div>
+
+                                <span asp-validation-for="Telefono" class="validation-text"></span>
+                            </div>
+
+                            <div class="field-group">
+                                <label asp-for="CorreoElectronico" class="vidal-label">
+                                    Correo electrónico
+                                </label>
+
+                                <div class="control-icon">
+                                    <svg class="icon icon-sm"><use href="#icon-mail"></use></svg>
+
+                                    <input asp-for="CorreoElectronico"
+                                           type="email"
+                                           class="vidal-control"
+                                           maxlength="150"
+                                           placeholder="correo@empresa.com"
+                                           autocomplete="email" />
+                                </div>
+
+                                <span asp-validation-for="CorreoElectronico" class="validation-text"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CONFIGURACIÓN FINANCIERA -->
+                <section class="form-card">
+                    <div class="card-header">
+                        <div class="heading-left">
+                            <div class="heading-icon gold">
+                                <svg class="icon"><use href="#icon-dollar"></use></svg>
+                            </div>
+
+                            <div>
+                                <span>CONFIGURACIÓN FINANCIERA</span>
+                                <h2>Monedas e impuestos</h2>
+                                <p>Define la moneda principal, secundaria y porcentaje de IGV.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-grid">
+
+                            <div class="field-group">
+                                <label asp-for="Moneda" class="vidal-label">
+                                    Moneda principal *
+                                </label>
+
+                                <div class="control-icon">
+                                    <svg class="icon icon-sm"><use href="#icon-dollar"></use></svg>
+
+                                    <select asp-for="Moneda" class="vidal-control select-control">
+                                        <option value="PEN">PEN - Sol peruano</option>
+                                        <option value="USD">USD - Dólar estadounidense</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                    </select>
+                                </div>
+
+                                <span asp-validation-for="Moneda" class="validation-text"></span>
+                            </div>
+
+                            <div class="field-group">
+                                <label asp-for="MonedaSecundaria" class="vidal-label">
+                                    Moneda secundaria
+                                </label>
+
+                                <div class="control-icon">
+                                    <svg class="icon icon-sm"><use href="#icon-exchange"></use></svg>
+
+                                    <select asp-for="MonedaSecundaria" class="vidal-control select-control">
+                                        <option value="">Sin moneda secundaria</option>
+                                        <option value="USD">USD - Dólar estadounidense</option>
+                                        <option value="PEN">PEN - Sol peruano</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                    </select>
+                                </div>
+
+                                <span asp-validation-for="MonedaSecundaria" class="validation-text"></span>
+                            </div>
+
+                            <div class="field-group">
+                                <label asp-for="Igv" class="vidal-label">
+                                    IGV (%) *
+                                </label>
+
+                                <div class="control-icon suffix-control">
+                                    <svg class="icon icon-sm"><use href="#icon-calculator"></use></svg>
+
+                                    <input asp-for="Igv"
+                                           id="Igv"
+                                           type="number"
+                                           min="0"
+                                           max="100"
+                                           step="0.01"
+                                           class="vidal-control"
+                                           placeholder="18.00" />
+
+                                    <span class="suffix">%</span>
+                                </div>
+
+                                <span asp-validation-for="Igv" class="validation-text"></span>
+
+                                <small class="field-help">
+                                    Porcentaje utilizado para el cálculo del impuesto.
+                                </small>
+                            </div>
+
+                            <!-- TIPO DE CAMBIO SOLO LECTURA -->
+                            <div class="field-group">
+                                <label class="vidal-label">
+                                    Tipo de cambio USD/PEN
+                                </label>
+
+                                <div class="readonly-rate">
+                                    <div class="readonly-rate-icon">
+                                        <svg class="icon"><use href="#icon-exchange"></use></svg>
+                                    </div>
+
+                                    <div class="readonly-rate-content">
+                                        <span>Valor actual</span>
+
+                                        <strong>
+                                            @(tipoCambioActual.HasValue
+                                                ? tipoCambioActual.Value.ToString("0.0000")
+                                                : "No disponible")
+                                        </strong>
+                                    </div>
+
+                                    <div class="readonly-lock">
+                                        <svg class="icon icon-sm"><use href="#icon-lock"></use></svg>
+                                    </div>
+                                </div>
+
+                                <small class="field-help">
+                                    @estadoTipoCambio
+                                    @if (fechaTipoCambio.HasValue)
+                                    {
+                                        <text> · @fechaTipoCambio.Value.ToString("dd/MM/yyyy")</text>
+                                    }
+                                </small>
+                            </div>
+
+                            <div class="automatic-rate-info full">
+                                <div class="automatic-icon">
+                                    <svg class="icon"><use href="#icon-info"></use></svg>
+                                </div>
+
+                                <div>
+                                    <strong>El tipo de cambio no se modifica desde esta pantalla</strong>
+
+                                    <span>
+                                        El sistema consulta el tipo de cambio USD/PEN mediante el servicio configurado.
+                                        Si ya existe el registro del día en la base de datos, reutiliza ese valor.
+                                        Si todavía no existe, obtiene el valor y lo registra para utilizarlo durante el día.
+                                    </span>
+                                </div>
+
+                                <a asp-controller="TiposCambio" asp-action="Index">
+                                    <svg class="icon icon-sm"><use href="#icon-history"></use></svg>
+                                    Ver historial
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- DOCUMENTOS -->
+                <section class="form-card">
+                    <div class="card-header">
+                        <div class="heading-left">
+                            <div class="heading-icon gray">
+                                <svg class="icon"><use href="#icon-file-text"></use></svg>
+                            </div>
+
+                            <div>
+                                <span>DOCUMENTOS</span>
+                                <h2>Pie de página</h2>
+                                <p>Texto institucional que podrá utilizarse en reportes y documentos.</p>
+                            </div>
+                        </div>
+
+                        <span class="section-badge optional">Opcional</span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="field-group">
+                            <label asp-for="PiePagina" class="vidal-label">
+                                Texto de pie de página
+                            </label>
+
+                            <textarea asp-for="PiePagina"
+                                      id="PiePagina"
+                                      class="vidal-control textarea-control"
+                                      maxlength="500"
+                                      rows="5"
+                                      placeholder="Texto institucional para reportes y documentos..."></textarea>
+
+                            <div class="field-footer">
+                                <span asp-validation-for="PiePagina" class="validation-text"></span>
+                                <span id="pieCounter">0 / 500</span>
+                            </div>
+                        </div>
+
+                        <div class="footer-preview">
+                            <div class="preview-icon">
+                                <svg class="icon"><use href="#icon-file-text"></use></svg>
+                            </div>
+
+                            <div>
+                                <span>Vista previa</span>
+                                <p id="piePreview">
+                                    @(string.IsNullOrWhiteSpace(Model.PiePagina)
+                                        ? "El texto aparecerá aquí mientras escribes."
+                                        : Model.PiePagina)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- BOTONES -->
+                <div class="main-actions">
+                    <button type="submit" class="primary-button js-save-empresa" id="btnGuardar">
+                        <svg class="icon icon-sm"><use href="#icon-save"></use></svg>
+                        Guardar cambios
+                    </button>
+
+                    <button type="button" class="secondary-button" id="btnRestablecer">
+                        <svg class="icon icon-sm"><use href="#icon-refresh"></use></svg>
+                        Restablecer
+                    </button>
+
+                    <a asp-action="Index" class="secondary-button cancel">
+                        <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </main>
+
+        <!-- COLUMNA DERECHA -->
+        <aside>
+
+            <!-- LOGO -->
+            <section class="side-card logo-card">
+                <div class="side-header">
+                    <div>
+                        <span>IDENTIDAD</span>
+                        <h3>Logotipo de la empresa</h3>
+                    </div>
+
+                    <div class="side-header-icon">
+                        <svg class="icon"><use href="#icon-image"></use></svg>
+                    </div>
+                </div>
+
+                <div class="logo-body">
+
+                    <div class="logo-preview" id="logoPreview">
+                        @if (!string.IsNullOrWhiteSpace(Model.LogoUrl))
+                        {
+                            <img src="@Model.LogoUrl"
+                                 alt="Logo de la empresa"
+                                 id="logoImage" />
+                        }
+                        else
+                        {
+                            <div class="logo-empty" id="logoEmpty">
+                                <svg class="icon icon-xl"><use href="#icon-building"></use></svg>
+                                <strong>Sin logotipo</strong>
+                                <span>Selecciona una imagen para agregar el logo.</span>
+                            </div>
+                        }
+                    </div>
+
+                    <form asp-action="UploadLogo"
+                          method="post"
+                          enctype="multipart/form-data"
+                          id="logoForm">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="file"
+                               name="logo"
+                               id="logoInput"
+                               accept=".jpg,.jpeg,.png,.gif,.svg,.webp"
+                               hidden />
+
+                        <button type="button"
+                                class="upload-button"
+                                id="btnSeleccionarLogo">
+
+                            <svg class="icon icon-sm"><use href="#icon-upload"></use></svg>
+                            Seleccionar imagen
+                        </button>
+
+                        <button type="submit"
+                                class="save-logo-button"
+                                id="btnSubirLogo"
+                                disabled>
+
+                            <svg class="icon icon-sm"><use href="#icon-save"></use></svg>
+                            Guardar logo
+                        </button>
+                    </form>
+
+                    <div class="logo-file-info" id="logoFileInfo" style="display:none;">
+                        <svg class="icon icon-sm"><use href="#icon-file"></use></svg>
+
+                        <div>
+                            <strong id="logoFileName">-</strong>
+                            <span id="logoFileSize">-</span>
+                        </div>
+                    </div>
+
+                    <div class="logo-requirements">
+                        <div>
+                            <svg class="icon icon-sm"><use href="#icon-check"></use></svg>
+                            JPG, JPEG, PNG, GIF, SVG o WEBP
+                        </div>
+
+                        <div>
+                            <svg class="icon icon-sm"><use href="#icon-check"></use></svg>
+                            Tamaño máximo: 2 MB
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.LogoUrl))
+                    {
+                        <button type="button"
+                                class="delete-logo-button"
+                                id="btnEliminarLogo">
+
+                            <svg class="icon icon-sm"><use href="#icon-trash"></use></svg>
+                            Eliminar logo actual
+                        </button>
+                    }
+                </div>
+            </section>
+
+            <!-- RESUMEN -->
+            <section class="side-card">
+                <div class="side-header normal">
+                    <div>
+                        <span>CONFIGURACIÓN</span>
+                        <h3>Resumen actual</h3>
+                    </div>
+
+                    <div class="side-header-icon soft">
+                        <svg class="icon"><use href="#icon-settings"></use></svg>
+                    </div>
+                </div>
+
+                <div class="summary-list">
+                    <div class="summary-row">
+                        <div class="summary-row-icon">
+                            <svg class="icon icon-sm"><use href="#icon-building"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Empresa</span>
+                            <strong id="summaryNombre">
+                                @(!string.IsNullOrWhiteSpace(Model.NombreEmpresa)
+                                    ? Model.NombreEmpresa
+                                    : "Pendiente")
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-row">
+                        <div class="summary-row-icon">
+                            <svg class="icon icon-sm"><use href="#icon-file-text"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>RUC</span>
+                            <strong id="summaryRuc">
+                                @(!string.IsNullOrWhiteSpace(Model.Ruc)
+                                    ? Model.Ruc
+                                    : "Pendiente")
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-row">
+                        <div class="summary-row-icon">
+                            <svg class="icon icon-sm"><use href="#icon-dollar"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>Moneda principal</span>
+                            <strong id="summaryMoneda">@Model.Moneda</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-row">
+                        <div class="summary-row-icon">
+                            <svg class="icon icon-sm"><use href="#icon-calculator"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>IGV</span>
+                            <strong id="summaryIgv">@Model.Igv.ToString("0.##")%</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-row">
+                        <div class="summary-row-icon">
+                            <svg class="icon icon-sm"><use href="#icon-exchange"></use></svg>
+                        </div>
+
+                        <div>
+                            <span>USD/PEN</span>
+                            <strong>
+                                @(tipoCambioActual.HasValue
+                                    ? tipoCambioActual.Value.ToString("0.0000")
+                                    : "No disponible")
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AYUDA -->
+            <section class="side-card">
+                <div class="side-header normal">
+                    <div>
+                        <span>AYUDA</span>
+                        <h3>Consideraciones</h3>
+                    </div>
+
+                    <div class="side-header-icon soft">
+                        <svg class="icon"><use href="#icon-info"></use></svg>
+                    </div>
+                </div>
+
+                <div class="tips-list">
+                    <div class="tip-item">
+                        <div class="tip-icon blue">
+                            <svg class="icon icon-sm"><use href="#icon-save"></use></svg>
+                        </div>
+
+                        <div>
+                            <strong>Datos generales</strong>
+                            <span>Guarda los cambios del formulario principal con el botón Guardar cambios.</span>
+                        </div>
+                    </div>
+
+                    <div class="tip-item">
+                        <div class="tip-icon purple">
+                            <svg class="icon icon-sm"><use href="#icon-image"></use></svg>
+                        </div>
+
+                        <div>
+                            <strong>Logotipo independiente</strong>
+                            <span>El logo se guarda de forma independiente de los demás datos.</span>
+                        </div>
+                    </div>
+
+                    <div class="tip-item">
+                        <div class="tip-icon green">
+                            <svg class="icon icon-sm"><use href="#icon-exchange"></use></svg>
+                        </div>
+
+                        <div>
+                            <strong>Tipo de cambio automático</strong>
+                            <span>El valor USD/PEN no se edita desde la configuración de empresa.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <!-- FORM ELIMINAR LOGO -->
+    <form asp-action="DeleteLogo"
+          method="post"
+          id="deleteLogoForm"
+          style="display:none;">
+
+        @Html.AntiForgeryToken()
+    </form>
+
+    <!-- MODAL ELIMINAR LOGO -->
+    <div class="modal-overlay" id="deleteLogoModal" style="display:none;">
+        <div class="confirm-modal">
+            <div class="confirm-icon danger">
+                <svg class="icon icon-xl"><use href="#icon-trash"></use></svg>
+            </div>
+
+            <h3>Eliminar logotipo</h3>
+
+            <p>
+                ¿Deseas eliminar el logo actual de la empresa?
+                Esta acción quitará la imagen de la configuración.
+            </p>
+
+            <div class="confirm-actions">
+                <button type="button"
+                        class="secondary-button"
+                        id="btnCancelarEliminar">
+
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="danger-button"
+                        id="btnConfirmarEliminar">
+
+                    <svg class="icon icon-sm"><use href="#icon-trash"></use></svg>
+                    Eliminar logo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const empresaForm = document.getElementById('empresaForm');
+            const botonesGuardar = document.querySelectorAll('.js-save-empresa');
+            const btnRestablecer = document.getElementById('btnRestablecer');
+
+            const nombreInput = document.getElementById('NombreEmpresa');
+            const rucInput = document.getElementById('Ruc');
+            const monedaInput = document.getElementById('Moneda');
+            const igvInput = document.getElementById('Igv');
+
+            const summaryNombre = document.getElementById('summaryNombre');
+            const summaryRuc = document.getElementById('summaryRuc');
+            const summaryMoneda = document.getElementById('summaryMoneda');
+            const summaryIgv = document.getElementById('summaryIgv');
+
+            const pieInput = document.getElementById('PiePagina');
+            const pieCounter = document.getElementById('pieCounter');
+            const piePreview = document.getElementById('piePreview');
+
+            const logoForm = document.getElementById('logoForm');
+            const logoInput = document.getElementById('logoInput');
+            const btnSeleccionarLogo = document.getElementById('btnSeleccionarLogo');
+            const btnSubirLogo = document.getElementById('btnSubirLogo');
+            const logoPreview = document.getElementById('logoPreview');
+            const logoFileInfo = document.getElementById('logoFileInfo');
+            const logoFileName = document.getElementById('logoFileName');
+            const logoFileSize = document.getElementById('logoFileSize');
+
+            const btnEliminarLogo = document.getElementById('btnEliminarLogo');
+            const deleteLogoModal = document.getElementById('deleteLogoModal');
+            const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
+            const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
+            const deleteLogoForm = document.getElementById('deleteLogoForm');
+
+            const extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+            const maxFileSize = 2 * 1024 * 1024;
+
+            function actualizarResumen() {
+                if (summaryNombre && nombreInput)
+                    summaryNombre.textContent = nombreInput.value.trim() || 'Pendiente';
+
+                if (summaryRuc && rucInput)
+                    summaryRuc.textContent = rucInput.value.trim() || 'Pendiente';
+
+                if (summaryMoneda && monedaInput)
+                    summaryMoneda.textContent = monedaInput.value || 'PEN';
+
+                if (summaryIgv && igvInput) {
+                    const valor = parseFloat(igvInput.value);
+                    summaryIgv.textContent = Number.isFinite(valor)
+                        ? valor.toFixed(2).replace(/\.?0+$/, '') + '%'
+                        : '—';
+                }
+            }
+
+            function actualizarPie() {
+                if (!pieInput)
+                    return;
+
+                const texto = pieInput.value || '';
+
+                if (pieCounter)
+                    pieCounter.textContent = texto.length + ' / 500';
+
+                if (piePreview)
+                    piePreview.textContent = texto.trim() || 'El texto aparecerá aquí mientras escribes.';
+            }
+
+            if (rucInput) {
+                rucInput.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, '').slice(0, 20);
+                    actualizarResumen();
+                });
+            }
+
+            nombreInput?.addEventListener('input', actualizarResumen);
+            monedaInput?.addEventListener('change', actualizarResumen);
+            igvInput?.addEventListener('input', actualizarResumen);
+            pieInput?.addEventListener('input', actualizarPie);
+
+            actualizarResumen();
+            actualizarPie();
+
+            if (btnRestablecer && empresaForm) {
+                btnRestablecer.addEventListener('click', function() {
+                    empresaForm.reset();
+
+                    setTimeout(function() {
+                        actualizarResumen();
+                        actualizarPie();
+                    }, 0);
+                });
+            }
+
+            if (empresaForm) {
+                empresaForm.addEventListener('submit', function(event) {
+                    const htmlValido = empresaForm.checkValidity();
+                    const jqueryValido = window.jQuery && $.validator
+                        ? $(empresaForm).valid()
+                        : true;
+
+                    if (!htmlValido || !jqueryValido) {
+                        event.preventDefault();
+                        empresaForm.reportValidity();
+                        return;
+                    }
+
+                    botonesGuardar.forEach(function(boton) {
+                        boton.disabled = true;
+                        boton.innerHTML =
+                            '<svg class="icon icon-sm icon-spin"><use href="#icon-refresh"></use></svg> Guardando...';
+                    });
+                });
+            }
+
+            if (btnSeleccionarLogo && logoInput) {
+                btnSeleccionarLogo.addEventListener('click', function() {
+                    logoInput.click();
+                });
+            }
+
+            if (logoInput) {
+                logoInput.addEventListener('change', function() {
+                    const file = this.files && this.files.length
+                        ? this.files[0]
+                        : null;
+
+                    if (!file) {
+                        if (btnSubirLogo)
+                            btnSubirLogo.disabled = true;
+
+                        if (logoFileInfo)
+                            logoFileInfo.style.display = 'none';
+
+                        return;
+                    }
+
+                    const extension = file.name.includes('.')
+                        ? file.name.split('.').pop().toLowerCase()
+                        : '';
+
+                    if (!extensionesPermitidas.includes(extension)) {
+                        alert('Formato no permitido. Use JPG, JPEG, PNG, GIF, SVG o WEBP.');
+                        this.value = '';
+
+                        if (btnSubirLogo)
+                            btnSubirLogo.disabled = true;
+
+                        return;
+                    }
+
+                    if (file.size > maxFileSize) {
+                        alert('El archivo supera el tamaño máximo permitido de 2 MB.');
+                        this.value = '';
+
+                        if (btnSubirLogo)
+                            btnSubirLogo.disabled = true;
+
+                        return;
+                    }
+
+                    if (logoFileName)
+                        logoFileName.textContent = file.name;
+
+                    if (logoFileSize)
+                        logoFileSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+
+                    if (logoFileInfo)
+                        logoFileInfo.style.display = 'flex';
+
+                    if (btnSubirLogo)
+                        btnSubirLogo.disabled = false;
+
+                    const reader = new FileReader();
+
+                    reader.onload = function(event) {
+                        if (!logoPreview)
+                            return;
+
+                        logoPreview.innerHTML =
+                            '<img src="' + event.target.result +
+                            '" alt="Vista previa del logo" id="logoImage" />';
+                    };
+
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            if (logoForm && btnSubirLogo) {
+                logoForm.addEventListener('submit', function() {
+                    if (!logoInput?.files?.length)
+                        return;
+
+                    btnSubirLogo.disabled = true;
+                    btnSubirLogo.innerHTML =
+                        '<svg class="icon icon-sm icon-spin"><use href="#icon-refresh"></use></svg> Guardando...';
+                });
+            }
+
+            if (btnEliminarLogo && deleteLogoModal) {
+                btnEliminarLogo.addEventListener('click', function() {
+                    deleteLogoModal.style.display = 'flex';
+                });
+            }
+
+            if (btnCancelarEliminar && deleteLogoModal) {
+                btnCancelarEliminar.addEventListener('click', function() {
+                    deleteLogoModal.style.display = 'none';
+                });
+            }
+
+            if (deleteLogoModal) {
+                deleteLogoModal.addEventListener('click', function(event) {
+                    if (event.target === deleteLogoModal)
+                        deleteLogoModal.style.display = 'none';
+                });
+            }
+
+            if (btnConfirmarEliminar && deleteLogoForm) {
+                btnConfirmarEliminar.addEventListener('click', function() {
+                    btnConfirmarEliminar.disabled = true;
+                    deleteLogoForm.submit();
+                });
+            }
+
+            document.querySelectorAll('.alert-close').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const alert = button.closest('.page-alert');
+
+                    if (alert)
+                        alert.remove();
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .empresa-edit-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #405066;
+        --muted: #8793a3;
+        --success: #168957;
+        --danger: #c93f55;
+    }
+
+    .edit-hero {
+        min-height: 120px;
+        padding: 24px 30px;
+        margin-bottom: 16px;
+        border-radius: 20px;
+        background: linear-gradient(100deg, #102947 0%, #17488e 50%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .edit-hero::after {
+            content: "";
+            position: absolute;
+            width: 310px;
+            height: 310px;
+            right: -90px;
+            top: -155px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-left {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 62px;
+        height: 62px;
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 15px;
+        background: rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-eyebrow {
+        display: block;
+        color: rgba(255,255,255,.55);
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .edit-hero h1 {
+        margin: 2px 0 0;
+        font-size: 1.55rem;
+        font-weight: 800;
+    }
+
+    .edit-hero p {
+        margin: 5px 0 0;
+        color: rgba(255,255,255,.72);
+        font-size: .68rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-button {
+        min-height: 40px;
+        padding: 0 13px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: .62rem;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+        .hero-button.light {
+            border: 1px solid white;
+            background: white;
+            color: var(--navy);
+        }
+
+        .hero-button.secondary {
+            border: 1px solid rgba(255,255,255,.3);
+            background: rgba(255,255,255,.06);
+            color: white;
+        }
+
+    .page-alert {
+        margin-bottom: 14px;
+        padding: 11px 13px;
+        border-radius: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+    }
+
+        .page-alert.success {
+            border-left: 4px solid var(--success);
+            background: #edf9f3;
+            color: #146f48;
+        }
+
+        .page-alert.danger {
+            border-left: 4px solid var(--danger);
+            background: #fff1f3;
+            color: #a73547;
+        }
+
+        .page-alert > div {
+            flex: 1;
+        }
+
+        .page-alert strong,
+        .page-alert span {
+            display: block;
+        }
+
+        .page-alert strong {
+            font-size: .62rem;
+        }
+
+        .page-alert span,
+        .validation-summary {
+            margin-top: 2px;
+            font-size: .53rem;
+        }
+
+    .alert-close {
+        border: none;
+        background: transparent;
+        color: currentColor;
+        cursor: pointer;
+    }
+
+    .edit-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.65fr) minmax(290px, .72fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    main {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    #empresaForm {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    aside {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .form-card,
+    .side-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: white;
+        box-shadow: 0 4px 17px rgba(16,41,71,.04);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 14px 16px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .heading-left {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .heading-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .heading-icon.blue {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .heading-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+        .heading-icon.gold {
+            background: #fff6e4;
+            color: #a47517;
+        }
+
+        .heading-icon.gray {
+            background: #eef2f5;
+            color: #6f7f91;
+        }
+
+    .heading-left span {
+        display: block;
+        color: #929dab;
+        font-size: .46rem;
+        font-weight: 800;
+        letter-spacing: .6px;
+    }
+
+    .heading-left h2 {
+        margin: 2px 0 0;
+        color: var(--navy);
+        font-size: .77rem;
+        font-weight: 800;
+    }
+
+    .heading-left p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .51rem;
+    }
+
+    .section-badge {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #eaf2fb;
+        color: #356fa7;
+        font-size: .47rem;
+        font-weight: 800;
+    }
+
+        .section-badge.optional {
+            background: #eef2f5;
+            color: #718093;
+        }
+
+    .card-body {
+        padding: 17px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .field-group.full,
+    .automatic-rate-info.full {
+        grid-column: 1 / -1;
+    }
+
+    .vidal-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #405066;
+        font-size: .57rem;
+        font-weight: 750;
+    }
+
+    .control-icon {
+        position: relative;
+    }
+
+        .control-icon > .icon {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8492a3;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+    .vidal-control {
+        width: 100%;
+        min-height: 42px;
+        padding: 8px 11px 8px 35px;
+        border: 1px solid #d7e0e9;
+        border-radius: 8px;
+        background: white;
+        color: #405066;
+        font-size: .61rem;
+        outline: none;
+    }
+
+        .vidal-control:focus {
+            border-color: #6797ca;
+            box-shadow: 0 0 0 3px rgba(34,108,194,.07);
+        }
+
+    .select-control {
+        appearance: auto;
+    }
+
+    .textarea-control {
+        min-height: 115px;
+        padding: 10px 11px;
+        resize: vertical;
+        line-height: 1.55;
+    }
+
+    .suffix-control .vidal-control {
+        padding-right: 38px;
+    }
+
+    .suffix {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c7c8e;
+        font-size: .55rem;
+        font-weight: 800;
+    }
+
+    .validation-text {
+        display: block;
+        margin-top: 4px;
+        color: var(--danger);
+        font-size: .49rem;
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 4px;
+        color: #8d99a8;
+        font-size: .48rem;
+        line-height: 1.4;
+    }
+
+    .readonly-rate {
+        min-height: 58px;
+        padding: 8px 10px;
+        border: 1px solid #d7e9de;
+        border-radius: 9px;
+        background: #f3faf6;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .readonly-rate-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 9px;
+        background: #e2f3e9;
+        color: #168957;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .readonly-rate-content {
+        flex: 1;
+    }
+
+        .readonly-rate-content span,
+        .readonly-rate-content strong {
+            display: block;
+        }
+
+        .readonly-rate-content span {
+            color: #779087;
+            font-size: .45rem;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .readonly-rate-content strong {
+            margin-top: 2px;
+            color: #186b49;
+            font-size: .77rem;
+            font-weight: 850;
+        }
+
+    .readonly-lock {
+        color: #769587;
+    }
+
+    .automatic-rate-info {
+        padding: 11px 12px;
+        border: 1px solid #d8e6f3;
+        border-radius: 9px;
+        background: #f4f8fc;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .automatic-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #e3effb;
+        color: #4778aa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .automatic-rate-info strong,
+    .automatic-rate-info span {
+        display: block;
+    }
+
+    .automatic-rate-info strong {
+        color: #40566d;
+        font-size: .54rem;
+    }
+
+    .automatic-rate-info span {
+        margin-top: 2px;
+        color: #728196;
+        font-size: .47rem;
+        line-height: 1.45;
+    }
+
+    .automatic-rate-info a {
+        min-height: 32px;
+        padding: 0 8px;
+        border: 1px solid #ccdbe9;
+        border-radius: 7px;
+        background: white;
+        color: #55728e;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        text-decoration: none;
+        font-size: .48rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .field-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+        .field-footer > span:last-child {
+            margin-top: 4px;
+            color: #929dab;
+            font-size: .47rem;
+        }
+
+    .footer-preview {
+        margin-top: 10px;
+        padding: 11px 12px;
+        border-radius: 9px;
+        background: #f6f8fa;
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+    }
+
+    .preview-icon {
+        width: 31px;
+        height: 31px;
+        border-radius: 8px;
+        background: #e9edf1;
+        color: #6f7f91;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .footer-preview span {
+        color: #919ca9;
+        font-size: .45rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .footer-preview p {
+        margin: 3px 0 0;
+        color: #677689;
+        font-size: .51rem;
+        line-height: 1.5;
+    }
+
+    .main-actions {
+        padding: 13px 15px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .primary-button,
+    .secondary-button,
+    .danger-button {
+        min-height: 39px;
+        padding: 0 12px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .56rem;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .primary-button {
+        border: none;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: white;
+    }
+
+    .secondary-button {
+        border: 1px solid #d6dee7;
+        background: white;
+        color: #59697b;
+    }
+
+        .secondary-button.cancel {
+            margin-left: auto;
+        }
+
+    .danger-button {
+        border: none;
+        background: #c93f55;
+        color: white;
+    }
+
+    button:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
+    .side-header {
+        padding: 14px 15px;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+        .side-header.normal {
+            border-bottom: 1px solid #edf1f5;
+            background: white;
+            color: var(--navy);
+        }
+
+        .side-header span {
+            display: block;
+            color: rgba(255,255,255,.55);
+            font-size: .46rem;
+            font-weight: 800;
+            letter-spacing: .6px;
+        }
+
+        .side-header.normal span {
+            color: #929dab;
+        }
+
+        .side-header h3 {
+            margin: 2px 0 0;
+            font-size: .68rem;
+            font-weight: 800;
+        }
+
+    .side-header-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: rgba(255,255,255,.11);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .side-header-icon.soft {
+            background: #eef4fa;
+            color: #527fa9;
+        }
+
+    .logo-body {
+        padding: 15px;
+    }
+
+    .logo-preview {
+        min-height: 180px;
+        padding: 15px;
+        margin-bottom: 12px;
+        border: 1px dashed #ccd6e1;
+        border-radius: 11px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .logo-preview img {
+            display: block;
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+        }
+
+    .logo-empty {
+        color: #9aa5b1;
+        text-align: center;
+    }
+
+        .logo-empty strong,
+        .logo-empty span {
+            display: block;
+        }
+
+        .logo-empty strong {
+            margin-top: 7px;
+            color: #617184;
+            font-size: .59rem;
+        }
+
+        .logo-empty span {
+            max-width: 190px;
+            margin-top: 3px;
+            font-size: .48rem;
+            line-height: 1.4;
+        }
+
+    #logoForm {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+    }
+
+    .upload-button,
+    .save-logo-button,
+    .delete-logo-button {
+        min-height: 37px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .52rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+    .upload-button {
+        border: 1px solid #d5dee8;
+        background: white;
+        color: #596a7d;
+    }
+
+    .save-logo-button {
+        border: none;
+        background: linear-gradient(135deg, #102947, #17488e);
+        color: white;
+    }
+
+    .delete-logo-button {
+        width: 100%;
+        margin-top: 11px;
+        border: 1px solid #f0cbd1;
+        background: #fff5f6;
+        color: #bd3c50;
+    }
+
+    .logo-file-info {
+        margin-top: 9px;
+        padding: 8px 9px;
+        border-radius: 8px;
+        background: #f3f6f9;
+        color: #647589;
+        align-items: center;
+        gap: 7px;
+    }
+
+        .logo-file-info strong,
+        .logo-file-info span {
+            display: block;
+        }
+
+        .logo-file-info strong {
+            max-width: 190px;
+            color: #526276;
+            font-size: .5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .logo-file-info span {
+            margin-top: 1px;
+            color: #929dab;
+            font-size: .44rem;
+        }
+
+    .logo-requirements {
+        margin-top: 10px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: #f7f9fb;
+        color: #7f8d9e;
+        font-size: .46rem;
+    }
+
+        .logo-requirements > div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+            .logo-requirements > div + div {
+                margin-top: 4px;
+            }
+
+    .summary-list {
+        padding: 5px 14px;
+    }
+
+    .summary-row {
+        padding: 9px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+    .summary-row-icon {
+        width: 29px;
+        height: 29px;
+        border-radius: 7px;
+        background: #eef3f7;
+        color: #64788d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .summary-row span,
+    .summary-row strong {
+        display: block;
+    }
+
+    .summary-row span {
+        color: #929dab;
+        font-size: .44rem;
+        text-transform: uppercase;
+    }
+
+    .summary-row strong {
+        margin-top: 2px;
+        color: #526276;
+        font-size: .52rem;
+    }
+
+    .tips-list {
+        padding: 6px 14px;
+    }
+
+    .tip-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+        .tip-item:last-child {
+            border-bottom: none;
+        }
+
+    .tip-icon {
+        width: 29px;
+        height: 29px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .tip-icon.blue {
+            background: #eaf2fb;
+            color: #356fa7;
+        }
+
+        .tip-icon.purple {
+            background: #f0ebf8;
+            color: #7554aa;
+        }
+
+        .tip-icon.green {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+    .tip-item strong,
+    .tip-item span {
+        display: block;
+    }
+
+    .tip-item strong {
+        color: #4d5e71;
+        font-size: .53rem;
+    }
+
+    .tip-item span {
+        margin-top: 2px;
+        color: #8794a4;
+        font-size: .47rem;
+        line-height: 1.4;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        padding: 20px;
+        background: rgba(9,22,38,.58);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-modal {
+        width: min(420px, 100%);
+        padding: 24px;
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 24px 60px rgba(0,0,0,.2);
+        text-align: center;
+    }
+
+    .confirm-icon {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .confirm-icon.danger {
+            background: #fff0f2;
+            color: #c93f55;
+        }
+
+    .confirm-modal h3 {
+        margin: 12px 0 0;
+        color: var(--navy);
+        font-size: .82rem;
+        font-weight: 800;
+    }
+
+    .confirm-modal p {
+        margin: 6px 0 0;
+        color: #7d8998;
+        font-size: .54rem;
+        line-height: 1.5;
+    }
+
+    .confirm-actions {
+        margin-top: 18px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .icon-spin {
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@media (max-width: 1000px) {
+        .edit-layout {
+            grid-template-columns: 1fr;
+        }
+
+        aside {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .logo-card {
+            grid-row: span 2;
+        }
+    }
+
+    @@media (max-width: 760px) {
+        .edit-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-button {
+            flex: 1;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .field-group.full,
+        .automatic-rate-info.full {
+            grid-column: auto;
+        }
+
+        .automatic-rate-info {
+            grid-template-columns: auto 1fr;
+        }
+
+            .automatic-rate-info a {
+                grid-column: 1 / -1;
+                justify-content: center;
+            }
+
+        aside {
+            grid-template-columns: 1fr;
+        }
+
+        .logo-card {
+            grid-row: auto;
+        }
+    }
+
+    @@media (max-width: 560px) {
+        .edit-hero {
+            padding: 20px;
+        }
+
+        .hero-left {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .edit-hero h1 {
+            font-size: 1.25rem;
+        }
+
+        .hero-actions,
+        .main-actions,
+        .confirm-actions {
+            flex-direction: column;
+        }
+
+        .hero-button,
+        .primary-button,
+        .secondary-button,
+        .danger-button {
+            width: 100%;
+        }
+
+            .secondary-button.cancel {
+                margin-left: 0;
+            }
+
+        #logoForm {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

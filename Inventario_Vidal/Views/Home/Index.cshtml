@@ -1,213 +1,2010 @@
-﻿@model Inventario_Vidal.Controllers.DashboardViewModel
+﻿</style>@using Inventario_Vidal.DTOs
+@model DashboardViewModel
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Dashboard";
+    ViewBag.Subtitle = "Panel de control e inteligencia de negocios";
+    var comprasBI = ViewBag.ResumenComprasBI as Inventario_Vidal.DTOs.ResumenComprasBiDto;
+    var esPE = CultureInfo.GetCultureInfo("es-PE");
 }
 
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h3 class="fw-bold">
-                <i class="bi bi-speedometer2 text-primary"></i> Panel de Control
-            </h3>
-            <p class="text-muted">Bienvenido al sistema logístico de Fabricaciones Vidal E.I.R.L.</p>
+<div class="vidal-dashboard-page">
+    <header class="vidal-dashboard-hero">
+        <div class="vidal-dashboard-hero-main">
+            <span class="vidal-dashboard-hero-icon"><svg class="icon icon-xl"><use href="#icon-grid"></use></svg></span>
+            <div>
+                <span class="vidal-dashboard-overline">CENTRO DE CONTROL · VIDAL E.I.R.L.</span><h1>Dashboard</h1>
+                <p>Inventario, compras, proyectos y actividad operativa en un solo lugar.</p>
+            </div>
         </div>
+        <div class="vidal-dashboard-hero-actions">
+            <span class="vidal-dashboard-updated"><svg class="icon icon-sm"><use href="#icon-clock"></use></svg> Actualizado @Model.FechaActualizacion.ToString("dd/MM/yyyy HH:mm")</span>
+            <button type="button" class="vidal-dashboard-hero-btn outline" onclick="window.location.reload()"><svg class="icon icon-sm"><use href="#icon-refresh"></use></svg> Actualizar</button>
+            <button type="button" class="vidal-dashboard-hero-btn light" onclick="generarPdfDashboard()"><svg class="icon icon-sm"><use href="#icon-file-pdf"></use></svg> Exportar reporte</button>
+        </div>
+    </header>
+
+    @* Análisis BI: conclusiones derivadas de los datos reales ya cargados por HomeService. *@
+    @{
+        var proyectosEnSeguimiento = Model.ProyectosPorEstado
+            .Where(p => p.Estado != null && (p.Estado.Contains("proceso", StringComparison.OrdinalIgnoreCase)
+                || p.Estado.Contains("activo", StringComparison.OrdinalIgnoreCase)
+                || p.Estado.Contains("progreso", StringComparison.OrdinalIgnoreCase)))
+            .Sum(p => p.Cantidad);
+        var materialLider = Model.MaterialesMasUsados
+            .OrderByDescending(m => m.Cantidad)
+            .FirstOrDefault();
+        var requiereCambio = comprasBI != null && !comprasBI.TotalConsolidadoPEN.HasValue;
+    }
+    <section class="vd-bi-insights" aria-label="Hallazgos de inteligencia de negocios">
+        <div class="vd-bi-insights-head">
+            <div class="vd-bi-insights-title">
+                <span class="vd-bi-insights-eyebrow">INTELIGENCIA DE NEGOCIOS</span>
+                <h2>Hallazgos y prioridades</h2>
+                <p>Indicadores interpretados a partir de los datos registrados, sin estimaciones.</p>
+            </div>
+            <span class="vd-bi-data-label">Datos del sistema · @Model.FechaActualizacion.ToString("dd/MM/yyyy HH:mm")</span>
+        </div>
+        <div class="vd-bi-insights-grid">
+            <article class="vd-bi-insight @(Model.NumeroAlertasStock > 0 ? "vd-bi-attention" : "vd-bi-normal")">
+                <div class="vd-bi-insight-top"><span>INVENTARIO</span><strong>@Model.NumeroAlertasStock</strong></div>
+                <h3>@(Model.NumeroAlertasStock > 0 ? "Materiales que requieren revisión" : "Sin alertas de stock bajo")</h3>
+                <p>@(Model.NumeroAlertasStock > 0 ? "Hay materiales con existencias por debajo del mínimo configurado. Revisa el detalle antes de planificar nuevas entregas." : "No hay alertas de stock bajo reportadas en la consulta actual.")</p>
+                <a asp-controller="Materiales" asp-action="Index">Revisar materiales <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="vd-bi-insight">
+                <div class="vd-bi-insight-top"><span>PROYECTOS EN ACTIVIDAD</span><strong>@proyectosEnSeguimiento</strong></div>
+                <h3>Proyectos en seguimiento</h3>
+                <p>Conteo de los estados activos o en proceso devueltos por el sistema. Consulta el avance y las asignaciones para identificar necesidades operativas.</p>
+                <a asp-controller="Proyectos" asp-action="Index">Revisar proyectos <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="vd-bi-insight">
+                <div class="vd-bi-insight-top"><span>CONSUMO DE MATERIALES</span><strong>@(materialLider == null ? "—" : materialLider.Cantidad.ToString("N2", esPE))</strong></div>
+                <h3>@(materialLider?.Material ?? "Sin consumo registrado")</h3>
+                <p>@(materialLider == null ? "Todavía no hay información suficiente para identificar el material más utilizado." : "Material con mayor cantidad registrada en el análisis de consumo de los últimos 30 días. Unidad: " + materialLider.Unidad + ".")</p>
+                <a asp-controller="Materiales" asp-action="Index">Consultar inventario <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="vd-bi-insight @(requiereCambio ? "vd-bi-attention" : "vd-bi-normal")">
+                <div class="vd-bi-insight-top"><span>CONSISTENCIA FINANCIERA</span><strong>@(comprasBI == null ? "—" : comprasBI.CantidadComprobantes.ToString("N0"))</strong></div>
+                <h3>@(comprasBI == null ? "Resumen de compras no disponible" : requiereCambio ? "Consolidado pendiente de validar" : "Consolidado en soles disponible")</h3>
+                <p>@(comprasBI == null ? "No se pudo consultar el resumen financiero." : requiereCambio ? "Faltan tipos de cambio o existen monedas sin identificar. No se mostrará una conversión incompleta como total definitivo." : "Los importes del período se consolidaron en soles utilizando los tipos de cambio históricos registrados.")</p>
+                <a asp-controller="Compras" asp-action="Index">Revisar compras <span aria-hidden="true">→</span></a>
+            </article>
+        </div>
+    </section>
+
+    <div id="vd-resumen" class="vidal-dashboard-section-title"><div><span>INDICADORES CLAVE</span><h2>Panorama general</h2><p>Información consolidada de los módulos operativos.</p></div><a asp-controller="Materiales" asp-action="Index" class="vidal-dashboard-textlink">Ver inventario <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg></a></div>
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card kpi-primary">
+                <div class="kpi-icon">
+                    <svg class="icon icon-lg"><use href="#icon-box"></use></svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value">@Model.TotalMateriales.ToString("N0")</span>
+                    <span class="kpi-label">Materiales</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card kpi-success">
+                <div class="kpi-icon">
+                    <svg class="icon icon-lg"><use href="#icon-folder"></use></svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value">@Model.TotalProyectos.ToString("N0")</span>
+                    <span class="kpi-label">Proyectos</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card kpi-warning">
+                <div class="kpi-icon">
+                    <svg class="icon icon-lg"><use href="#icon-truck"></use></svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value">@Model.TotalProveedores.ToString("N0")</span>
+                    <span class="kpi-label">Proveedores</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card kpi-danger">
+                <div class="kpi-icon">
+                    <svg class="icon icon-lg"><use href="#icon-users"></use></svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value">@Model.TotalClientes.ToString("N0")</span>
+                    <span class="kpi-label">Clientes</span>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Tarjetas de KPIs Principales -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #2563eb !important;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1 small">Materiales Activos</p>
-                            <h3 class="fw-bold mb-0">@Model.TotalMateriales</h3>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                            <i class="bi bi-box-seam text-primary fs-3"></i>
-                        </div>
-                    </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card kpi-info">
+                <div class="kpi-icon">
+                    <svg class="icon icon-lg"><use href="#icon-hardhat"></use></svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value">@Model.TotalContratistas.ToString("N0")</span>
+                    <span class="kpi-label">Contratistas</span>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #10b981 !important;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1 small">Proyectos Activos</p>
-                            <h3 class="fw-bold mb-0">@Model.ProyectosActivos</h3>
-                        </div>
-                        <div class="bg-success bg-opacity-10 rounded-circle p-3">
-                            <i class="bi bi-folder-fill text-success fs-3"></i>
-                        </div>
-                    </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card kpi-secondary">
+                <div class="kpi-icon">
+                    <svg class="icon icon-lg"><use href="#icon-user"></use></svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value">@Model.TotalEmpleados.ToString("N0")</span>
+                    <span class="kpi-label">Empleados</span>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #f59e0b !important;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1 small">Compras Último Mes</p>
-                            <h3 class="fw-bold mb-0">S/ @Model.ComprasUltimoMes.ToString("N2")</h3>
-                        </div>
-                        <div class="bg-warning bg-opacity-10 rounded-circle p-3">
-                            <i class="bi bi-cart-check text-warning fs-3"></i>
-                        </div>
-                    </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card kpi-dark">
+                <div class="kpi-icon">
+                    <svg class="icon icon-lg"><use href="#icon-tools"></use></svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value">@Model.TotalMaquinarias.ToString("N0")</span>
+                    <span class="kpi-label">Maquinarias</span>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #ef4444 !important;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1 small">Alertas de Stock</p>
-                            <h3 class="fw-bold mb-0">@Model.MaterialesStockBajo</h3>
-                        </div>
-                        <div class="bg-danger bg-opacity-10 rounded-circle p-3">
-                            <i class="bi bi-exclamation-triangle text-danger fs-3"></i>
-                        </div>
-                    </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="kpi-card kpi-purple">
+                <div class="kpi-icon">
+                    <svg class="icon icon-lg"><use href="#icon-dollar"></use></svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value">@((comprasBI == null || !comprasBI.TotalConsolidadoPEN.HasValue) ? "—" : "S/ " + comprasBI.TotalConsolidadoPEN.Value.ToString("N2", esPE))</span>
+                    <span class="kpi-label">Compras consolidadas del período (PEN)</span>
                 </div>
             </div>
         </div>
+
+    </div>
+
+    <section id="vd-finanzas" class="vidal-dashboard-section-title"><div><span>GESTIÓN DE COMPRAS</span><h2>Resumen financiero</h2><p>Importes, moneda y equivalencias calculadas desde los registros de VIDAL.</p></div><a asp-controller="Compras" asp-action="Index" class="vidal-dashboard-textlink">Ir a Compras <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg></a></section>
+    <section id="vidal-bi-compras" class="vidal-bi-compras vidal-dashboard-finance">
+        <div class="vidal-bi-heading">
+            <div class="vidal-bi-heading-title">
+                <span class="vidal-bi-eyebrow">CONTROL FINANCIERO</span>
+                <h2>Compras y conversión monetaria</h2>
+                <p>Soles y dólares separados, con consolidación en PEN según el tipo de cambio de cada operación.</p>
+            </div>
+        </div>
+        <form method="get" asp-controller="Home" asp-action="Index" class="vidal-bi-filter" aria-label="Filtrar compras por fechas">
+            <label>Desde <input type="date" name="desde" value="@(comprasBI?.Desde.ToString("yyyy-MM-dd"))" required /></label>
+            <label>Hasta <input type="date" name="hasta" value="@(comprasBI?.Hasta.ToString("yyyy-MM-dd"))" required /></label>
+            <button type="submit">Aplicar filtros</button>
+        </form>
+        @if (comprasBI != null)
+        {
+            <div class="vidal-bi-metrics">
+                <article><span>Total compras en soles</span><strong>S/ @comprasBI.TotalPEN.ToString("N2", esPE)</strong><small>Importe original PEN</small></article>
+                <article><span>Total compras en dólares</span><strong>US$ @comprasBI.TotalUSD.ToString("N2", esPE)</strong><small>Importe original USD</small></article>
+                <article class="vidal-bi-total">
+                    <span>Total consolidado en soles</span>
+                    <strong>@(comprasBI.TotalConsolidadoPEN.HasValue ? "S/ " + comprasBI.TotalConsolidadoPEN.Value.ToString("N2", esPE) : "No disponible")</strong>
+                    <small>@comprasBI.CantidadComprobantes comprobantes en el período</small>
+                </article>
+            </div>
+            @if (!comprasBI.TotalConsolidadoPEN.HasValue)
+            {
+                <div class="vidal-bi-warning" role="alert">
+                    <strong>Consolidado pendiente:</strong> faltan tipos de cambio históricos para @comprasBI.ComprobantesSinTipoCambio compras en USD
+                    @if (comprasBI.FechasSinTipoCambio.Any())
+                    {
+                        <span>(fechas: @string.Join(", ", comprasBI.FechasSinTipoCambio))</span>
+                    }
+                    @if (comprasBI.MonedasNoReconocidas > 0)
+                    {
+                        <span>; @comprasBI.MonedasNoReconocidas compras tienen moneda no reconocida</span>
+                    }
+                    . Registra los datos correctos en Tipos de cambio y vuelve a consultar.
+                </div>
+            }
+            <p class="vidal-bi-method">Conversión: cada compra USD × tipo de cambio USD/PEN almacenado en Configuración.TiposCambio para su fecha de compra. No se emplea el tipo de cambio actual. Compras anuladas excluidas.</p>
+        }
+        else
+        {
+            <div class="vidal-bi-warning">@((string?)ViewBag.ErrorComprasBI ?? "No hay datos de compras disponibles.")</div>
+        }
+    </section>
+    <div id="vd-analisis" class="vidal-dashboard-section-title"><div><span>ANÁLISIS OPERATIVO</span><h2>Indicadores y tendencias</h2><p>Comportamiento de proyectos, materiales y movimientos.</p></div></div>
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-6">
+            <div class="card-modern">
+                <div class="card-header">
+                    <svg class="icon"><use href="#icon-chart-bar"></use></svg>
+                    Proyectos por Estado
+                    <span class="badge bg-secondary ms-2">@Model.ProyectosPorEstado.Sum(p => p.Cantidad) total</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="estadosChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card-modern">
+                <div class="card-header">
+                    <svg class="icon"><use href="#icon-chart-pie"></use></svg>
+                    Materiales más Utilizados
+                    <span class="badge bg-secondary ms-2">Últimos 30 días</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="materialesChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="row g-3 mb-4">
-        <!-- Últimos Movimientos de Kardex -->
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-journal-text text-primary"></i> Últimos Movimientos de Kardex
-                    </h6>
-                    <a asp-controller="Kardex" asp-action="Index" class="btn btn-sm btn-outline-primary">
-                        Ver Todos <i class="bi bi-arrow-right"></i>
-                    </a>
+
+        <div class="col-xl-8">
+            <div class="card-modern">
+                <div class="card-header">
+                    <svg class="icon"><use href="#icon-chart-line"></use></svg>
+                    Compras por Mes
+                    <span class="badge bg-secondary ms-2">Últimos 12 meses</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="comprasChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card-modern">
+                <div class="card-header">
+                    <svg class="icon"><use href="#icon-clock"></use></svg>
+                    Resumen Rápido
+                </div>
+                <div class="card-body">
+                    <div class="quick-stats">
+                        <div class="quick-stat">
+                            <span class="quick-stat-value">@Model.ProyectosActivos</span>
+                            <span class="quick-stat-label">Proyectos Activos</span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="quick-stat-value">@Model.ProyectosCompletados</span>
+                            <span class="quick-stat-label">Proyectos Completados</span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="quick-stat-value">@Model.NumeroAlertasStock</span>
+                            <span class="quick-stat-label">Alertas de Stock</span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="quick-stat-value">@Model.TotalUsuarios</span>
+                            <span class="quick-stat-label">Usuarios Activos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @if (Model.AlertasStockBajo.Any())
+    {
+        <div class="card-modern mb-4">
+            <div class="card-header">
+                <svg class="icon"><use href="#icon-alert-triangle"></use></svg>
+                Alertas de Stock Bajo
+                <span class="badge bg-danger ms-2">@Model.NumeroAlertasStock alertas</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table-modern table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Material</th>
+                                <th>Categoría</th>
+                                <th>Stock Actual</th>
+                                <th>Stock Mínimo</th>
+                                <th>Nivel</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.AlertasStockBajo.Take(8))
+                            {
+                                <tr>
+                                    <td><code>@item.CodigoBarras</code></td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (!string.IsNullOrEmpty(item.ImagenUrl))
+                                            {
+                                                <img src="@item.ImagenUrl" alt="@item.Nombre" style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px;" />
+                                            }
+                                            else
+                                            {
+                                                <div class="material-thumb">
+                                                    <svg class="icon"><use href="#icon-box"></use></svg>
+                                                </div>
+                                            }
+                                            <span>@item.Nombre</span>
+                                        </div>
+                                    </td>
+                                    <td>@item.Categoria</td>
+                                    <td>@item.StockActual.ToString("N2")</td>
+                                    <td>@item.StockMinimo.ToString("N2")</td>
+                                    <td>
+                                        <div class="progress" style="width: 80px; height: 6px;">
+                                            <div class="progress-bar @(item.PorcentajeAlerta > 50 ? "bg-danger" : "bg-warning")"
+                                                 role="progressbar"
+                                                 style="width: @item.PorcentajeAlerta%;"
+                                                 aria-valuenow="@item.PorcentajeAlerta" aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        <small class="text-muted ms-1">@item.PorcentajeAlerta%</small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (Model.AlertasStockBajo.Count > 8)
+                {
+                    <div class="text-center py-2 border-top">
+                        <a asp-controller="Alertas" asp-action="StockBajo" class="text-primary fw-semibold small">
+                            Ver todas las alertas (@Model.AlertasStockBajo.Count)
+                            <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div id="vd-actividad" class="vidal-dashboard-section-title"><div><span>OPERACIÓN DIARIA</span><h2>Actividad reciente</h2><p>Movimientos de inventario y últimos proyectos registrados.</p></div></div>
+    <div class="row g-3">
+
+        <div class="col-xl-6">
+            <div class="card-modern">
+                <div class="card-header">
+                    <svg class="icon"><use href="#icon-history"></use></svg>
+                    Últimos Movimientos de Inventario
+                    <span class="badge bg-secondary ms-2">@Model.UltimosMovimientos.Count registros</span>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Material</th>
-                                    <th>Tipo</th>
-                                    <th class="text-end">Cantidad</th>
-                                    <th>Usuario</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var mov in Model.UltimosMovimientos)
-                                {
-                                    <tr>
-                                        <td><small>@mov.FechaMovimiento.ToString("dd/MM/yyyy HH:mm")</small></td>
-                                        <td>@mov.IdMaterialNavigation?.Nombre</td>
-                                        <td>
-                                            <span class="badge @(mov.IdTipoMovimientoNavigation?.Signo == 1 ? "bg-success" : "bg-danger")">
-                                                @mov.IdTipoMovimientoNavigation?.Nombre
-                                            </span>
-                                        </td>
-                                        <td class="text-end fw-bold">@mov.Cantidad.ToString("N2")</td>
-                                        <td><small>@mov.IdUsuarioNavigation?.NombreCompleto</small></td>
-                                    </tr>
-                                }
-                                @if (!Model.UltimosMovimientos.Any())
-                                {
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">
-                                            <i class="bi bi-inbox display-4 d-block mb-2"></i>
-                                            No hay movimientos registrados
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Accesos Rápidos -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white border-0">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-lightning-charge-fill text-warning"></i> Accesos Rápidos
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a asp-controller="Compras" asp-action="Create" class="btn btn-outline-primary text-start">
-                            <i class="bi bi-cart-plus"></i> Registrar Compra
-                        </a>
-                        <a asp-controller="Materiales" asp-action="Create" class="btn btn-outline-success text-start">
-                            <i class="bi bi-plus-circle"></i> Nuevo Material
-                        </a>
-                        <a asp-controller="Proyectos" asp-action="Create" class="btn btn-outline-warning text-start">
-                            <i class="bi bi-folder-plus"></i> Nuevo Proyecto
-                        </a>
-                        <a asp-controller="Kardex" asp-action="Index" class="btn btn-outline-info text-start">
-                            <i class="bi bi-journal-text"></i> Consultar Kardex
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Materiales con Stock Bajo -->
-    @if (Model.MaterialesAlerta.Any())
-    {
-        <div class="row">
-            <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-danger text-white">
-                        <h6 class="mb-0 fw-bold">
-                            <i class="bi bi-exclamation-triangle-fill"></i> Materiales con Stock Bajo
-                        </h6>
-                    </div>
-                    <div class="card-body p-0">
+                    @if (Model.UltimosMovimientos.Any())
+                    {
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
+                            <table class="table-modern table-hover mb-0">
+                                <thead>
                                     <tr>
-                                        <th>Código</th>
                                         <th>Material</th>
-                                        <th class="text-end">Stock Actual</th>
-                                        <th class="text-end">Stock Mínimo</th>
-                                        <th class="text-center">Acciones</th>
+                                        <th>Cantidad</th>
+                                        <th>Tipo</th>
+                                        <th>Usuario</th>
+                                        <th>Fecha</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var material in Model.MaterialesAlerta)
+                                    @foreach (var item in Model.UltimosMovimientos)
                                     {
                                         <tr>
-                                            <td><span class="badge bg-secondary">@material.CodigoBarras</span></td>
-                                            <td class="fw-semibold">@material.Nombre</td>
-                                            <td class="text-end text-danger fw-bold">@material.StockActual.ToString("N2")</td>
-                                            <td class="text-end">@material.StockMinimo.ToString("N2")</td>
-                                            <td class="text-center">
-                                                <a asp-controller="Compras" asp-action="Create" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-cart-plus"></i> Comprar
-                                                </a>
+                                            <td>
+                                                <span class="fw-semibold">@item.Material</span>
+                                                <small class="text-muted d-block">@item.CodigoBarras</small>
+                                            </td>
+                                            <td>@item.Cantidad.ToString("N2")</td>
+                                            <td>
+                                                <span class="badge bg-@item.TipoBadge">@item.TipoMovimiento</span>
+                                            </td>
+                                            <td>@item.Usuario</td>
+                                            <td>
+                                                <span class="small">@item.FechaFormateada</span>
+                                                @if (!string.IsNullOrEmpty(item.Proyecto))
+                                                {
+                                                    <small class="text-muted d-block">Proyecto: @item.Proyecto</small>
+                                                }
                                             </td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                        <div class="text-center py-2 border-top">
+                            <a asp-controller="Kardex" asp-action="Index" class="text-primary fw-semibold small">
+                                Ver todos los movimientos
+                                <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <svg class="icon icon-xl"><use href="#icon-history"></use></svg>
+                            <p class="mt-2 small">No hay movimientos recientes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card-modern">
+                <div class="card-header">
+                    <svg class="icon"><use href="#icon-folder"></use></svg>
+                    Proyectos Recientes
+                    <span class="badge bg-secondary ms-2">@Model.ProyectosRecientes.Count proyectos</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.ProyectosRecientes.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Cliente</th>
+                                        <th>Estado</th>
+                                        <th>Inicio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ProyectosRecientes)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <a asp-controller="Proyectos" asp-action="Detalles" asp-route-id="@item.IdProyecto" class="fw-semibold text-primary">
+                                                    @item.CodigoProyecto
+                                                </a>
+                                            </td>
+                                            <td>@item.Cliente</td>
+                                            <td>
+                                                <span class="badge bg-@item.EstadoBadge">@item.Estado</span>
+                                            </td>
+                                            <td>@item.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center py-2 border-top">
+                            <a asp-controller="Proyectos" asp-action="Index" class="text-primary fw-semibold small">
+                                Ver todos los proyectos
+                                <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <svg class="icon icon-xl"><use href="#icon-folder"></use></svg>
+                            <p class="mt-2 small">No hay proyectos recientes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @if (Model.UsuariosActivos.Any())
+    {
+        <div class="card-modern mt-3">
+            <div class="card-header">
+                <svg class="icon"><use href="#icon-users"></use></svg>
+                Usuarios en Línea
+                <span class="badge bg-success ms-2">@Model.UsuariosActivos.Count conectados</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-3">
+                    @foreach (var item in Model.UsuariosActivos)
+                    {
+                        <div class="user-online">
+                            <div class="user-online-avatar">
+                                @item.Iniciales
+                                <span class="online-dot"></span>
+                            </div>
+                            <div class="user-online-info">
+                                <span class="user-online-name">@item.NombreCompleto</span>
+                                <span class="user-online-role">@item.NombreRol</span>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     }
+
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            var estadoLabels = @Html.Raw(Json.Serialize(Model.ProyectosPorEstado.Select(p => p.Estado)));
+            var estadoData = @Html.Raw(Json.Serialize(Model.ProyectosPorEstado.Select(p => p.Cantidad)));
+            var estadoColors = @Html.Raw(Json.Serialize(Model.ProyectosPorEstado.Select(p => p.Color)));
+
+            if (estadoLabels.length > 0) {
+                var ctx1 = document.getElementById('estadosChart');
+                if (ctx1) {
+                    new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: estadoLabels,
+                            datasets: [{
+                                label: 'Cantidad de Proyectos',
+                                data: estadoData,
+                                backgroundColor: estadoColors.map(function(c) {
+                                    var colors = {
+                                        'primary': 'rgba(13, 110, 253, 0.8)',
+                                        'success': 'rgba(25, 135, 84, 0.8)',
+                                        'warning': 'rgba(255, 193, 7, 0.8)',
+                                        'danger': 'rgba(220, 53, 69, 0.8)',
+                                        'secondary': 'rgba(108, 117, 125, 0.8)',
+                                        'info': 'rgba(13, 202, 240, 0.8)'
+                                    };
+                                    return colors[c] || 'rgba(108, 117, 125, 0.8)';
+                                }),
+                                borderColor: estadoColors.map(function(c) {
+                                    var colors = {
+                                        'primary': 'rgba(13, 110, 253, 1)',
+                                        'success': 'rgba(25, 135, 84, 1)',
+                                        'warning': 'rgba(255, 193, 7, 1)',
+                                        'danger': 'rgba(220, 53, 69, 1)',
+                                        'secondary': 'rgba(108, 117, 125, 1)',
+                                        'info': 'rgba(13, 202, 240, 1)'
+                                    };
+                                    return colors[c] || 'rgba(108, 117, 125, 1)';
+                                }),
+                                borderWidth: 2,
+                                borderRadius: 9,
+                                maxBarThickness: 46
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1,
+                                        font: { size: 11 }
+                                    },
+                                    grid: {
+                                        color: 'rgba(0,0,0,0.05)'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        font: { size: 11 }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            var materialLabels = @Html.Raw(Json.Serialize(Model.MaterialesMasUsados.Select(m => m.Material)));
+            var materialData = @Html.Raw(Json.Serialize(Model.MaterialesMasUsados.Select(m => m.Cantidad)));
+
+            if (materialLabels.length > 0) {
+                var ctx2 = document.getElementById('materialesChart');
+                if (ctx2) {
+                    new Chart(ctx2, {
+                        type: 'doughnut',
+
+                        data: {
+                            labels: materialLabels.map(function(label, i) {
+                                var cantidad = materialData[i];
+                                return label + ' (' + cantidad.toFixed(1) + ')';
+                            }),
+                            datasets: [{
+                                data: materialData,
+                                backgroundColor: [
+                                    '#17488e',
+                                    '#3675bb',
+                                    '#78a9df',
+                                    '#9cbddd',
+                                    '#c5d8ed'
+                                ],
+                                borderColor: '#ffffff',
+                                borderWidth: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: { size: 11 },
+                                        padding: 15,
+                                        usePointStyle: true,
+                                        pointStyle: 'circle'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            var comprasData = @Html.Raw(Json.Serialize(Model.ComprasPorMes));
+            var comprasLabels = comprasData.map(function(c) { return c.Mes; });
+            var comprasValues = comprasData.map(function(c) { return c.Total; });
+
+            if (comprasLabels.length > 0) {
+                var ctx3 = document.getElementById('comprasChart');
+                if (ctx3) {
+                    new Chart(ctx3, {
+                        type: 'line',
+                        data: {
+                            labels: comprasLabels,
+                            datasets: [{
+                                label: 'Total Compras',
+                                data: comprasValues,
+                                borderColor: '#17488e',
+                                backgroundColor: 'rgba(23, 72, 142, 0.09)',
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#17488e',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 7,
+                                borderWidth: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        font: { size: 11 },
+                                        callback: function(value) {
+                                            return 'S/ ' + value.toLocaleString();
+                                        }
+                                    },
+                                    grid: {
+                                        color: 'rgba(0,0,0,0.05)'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        font: { size: 10 },
+                                        maxTicksLimit: 12
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+        });
+
+        function generarPdfDashboard() {
+            var btn = document.querySelector('.vidal-dashboard-hero-btn.light');
+            if (!btn) return;
+            var originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Generando...';
+            btn.disabled = true;
+
+            fetch('@Url.Action("ExportarDashboardPdf", "Home")')
+                .then(function(response) {
+                    if (!response.ok) throw new Error('Error al generar el PDF');
+                    return response.blob();
+                })
+                .then(function(blob) {
+                    var url = window.URL.createObjectURL(blob);
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'Dashboard_' + new Date().toISOString().slice(0, 10) + '.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                })
+                .catch(function(error) {
+                    console.error('Error:', error);
+                    alert('Error al generar el PDF. Intente nuevamente.');
+                })
+                .finally(function() {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                });
+        }
+    </script>
+}
+
+<style>
+    .page-header-gradient {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 50%, var(--primary-light) 100%);
+        border-radius: var(--radius-lg);
+        padding: 1.8rem 2.2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(13, 71, 161, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+    .page-header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        background: rgba(255,255,255,0.12);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.15);
+        backdrop-filter: blur(4px);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+        .header-actions .btn {
+            font-size: 0.82rem;
+            padding: 0.4rem 1.2rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+        }
+
+        .header-actions .btn-light {
+            background: var(--white);
+            color: var(--primary-dark);
+        }
+
+            .header-actions .btn-light:hover {
+                background: rgba(255,255,255,0.9);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            }
+
+        .header-actions .btn-outline-light {
+            border-color: rgba(255,255,255,0.3);
+            color: var(--white);
+        }
+
+            .header-actions .btn-outline-light:hover {
+                background: rgba(255,255,255,0.1);
+                border-color: rgba(255,255,255,0.5);
+                transform: translateY(-2px);
+            }
+
+    .kpi-card {
+        background: var(--white);
+        border-radius: var(--radius-md);
+        padding: 1.2rem 1.4rem;
+        border: 1px solid var(--gray-light);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: var(--transition-normal);
+        position: relative;
+        overflow: hidden;
+        min-height: 90px;
+    }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.4rem;
+    }
+
+    .kpi-content {
+        flex: 1;
+    }
+
+    .kpi-value {
+        display: block;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--black);
+        line-height: 1.2;
+    }
+
+    .kpi-label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray);
+    }
+
+    .kpi-primary .kpi-icon {
+        background: rgba(13, 110, 253, 0.12);
+        color: #0d6efd;
+    }
+
+    .kpi-success .kpi-icon {
+        background: rgba(25, 135, 84, 0.12);
+        color: #198754;
+    }
+
+    .kpi-warning .kpi-icon {
+        background: rgba(255, 193, 7, 0.12);
+        color: #d97706;
+    }
+
+    .kpi-danger .kpi-icon {
+        background: rgba(220, 53, 69, 0.12);
+        color: #dc3545;
+    }
+
+    .kpi-info .kpi-icon {
+        background: rgba(13, 202, 240, 0.12);
+        color: #0dcaf0;
+    }
+
+    .kpi-secondary .kpi-icon {
+        background: rgba(108, 117, 125, 0.12);
+        color: #6c757d;
+    }
+
+    .kpi-dark .kpi-icon {
+        background: rgba(10, 22, 40, 0.12);
+        color: var(--primary-dark);
+    }
+
+    .kpi-purple .kpi-icon {
+        background: rgba(111, 66, 193, 0.12);
+        color: #6f42c1;
+    }
+
+    .quick-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .quick-stat {
+        text-align: center;
+        padding: 0.6rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-light);
+    }
+
+    .quick-stat-value {
+        display: block;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--black);
+        line-height: 1.2;
+    }
+
+    .quick-stat-label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray);
+    }
+
+    .material-thumb {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: var(--gray-50);
+        border: 1px solid var(--gray-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray);
+        flex-shrink: 0;
+    }
+
+    .user-online {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.5rem 0.9rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-light);
+        min-width: 160px;
+        transition: var(--transition-fast);
+    }
+
+        .user-online:hover {
+            background: var(--white);
+            border-color: var(--primary-light);
+        }
+
+    .user-online-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-medium));
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.78rem;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+        .user-online-avatar .online-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #16a34a;
+            border: 2px solid var(--white);
+            animation: pulse-status 2s infinite;
+        }
+
+    .user-online-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .user-online-name {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--black);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-online-role {
+        display: block;
+        font-size: 0.65rem;
+        font-weight: 500;
+        color: var(--gray);
+    }
+
+    @@keyframes pulse-status {
+        0%, 100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.2);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .kpi-card {
+            padding: 1rem;
+            min-height: 70px;
+        }
+
+            .kpi-card .kpi-value {
+                font-size: 1.2rem;
+            }
+
+            .kpi-card .kpi-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+        .quick-stats {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .user-online {
+            min-width: 140px;
+            padding: 0.4rem 0.7rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .quick-stats {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+        }
+
+        .quick-stat .quick-stat-value {
+            font-size: 1.1rem;
+        }
+
+        .user-online {
+            min-width: 100%;
+        }
+
+        .page-header-gradient {
+            padding: 1rem 1rem;
+        }
+
+        .header-actions {
+            flex-direction: column;
+        }
+
+            .header-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+    }
+
+    @@media print {
+        .page-header-gradient {
+            background: #0a1628 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+            .page-header-gradient .text-white {
+                color: white !important;
+            }
+
+            .page-header-gradient .text-white-50 {
+                color: rgba(255,255,255,0.5) !important;
+            }
+
+        .header-actions .btn {
+            display: none !important;
+        }
+
+        .card-modern {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+            break-inside: avoid;
+        }
+
+        .kpi-card {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .kpi-icon {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+
+    .vidal-dashboard-page {
+        --vd-navy: #102947;
+        --vd-blue: #17488e;
+        --vd-border: #dce3eb;
+        --vd-ink: #102947;
+        --vd-muted: #687b8e;
+        color: var(--vd-ink);
+        padding-bottom: 28px
+    }
+
+        .vidal-dashboard-page .vidal-dashboard-hero {
+            min-height: 120px;
+            padding: 24px 30px;
+            margin-bottom: 16px;
+            border-radius: 20px;
+            background: linear-gradient(100deg,#102947,#17488e 50%,#226cc2);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: none
+        }
+
+            .vidal-dashboard-page .vidal-dashboard-hero:after {
+                content: "";
+                position: absolute;
+                width: 300px;
+                height: 300px;
+                right: -90px;
+                top: -150px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.05);
+                pointer-events: none
+            }
+
+        .vidal-dashboard-page .vidal-dashboard-hero-main {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #fff;
+            min-width: 0;
+            z-index: 1
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-hero-icon {
+            width: 62px;
+            height: 62px;
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 15px;
+            background: rgba(255,255,255,.11);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            color: #fff
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-overline {
+            display: block;
+            font-size: .52rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,.65);
+            margin-bottom: 3px
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-hero h1 {
+            margin: 2px 0 0;
+            font-size: 1.55rem;
+            line-height: 1.3;
+            font-weight: 800;
+            color: #fff
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-hero p {
+            margin: 5px 0 0;
+            font-size: .68rem;
+            line-height: 1.5;
+            color: rgba(255,255,255,.78)
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-hero-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+            z-index: 1
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-updated {
+            font-size: .68rem;
+            color: rgba(255,255,255,.8);
+            margin-right: 6px;
+            white-space: nowrap
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-hero-btn {
+            min-height: 40px;
+            padding: 0 13px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: .62rem;
+            font-weight: 750;
+            text-decoration: none;
+            cursor: pointer
+        }
+
+            .vidal-dashboard-page .vidal-dashboard-hero-btn.outline {
+                border: 1px solid rgba(255,255,255,.3);
+                background: transparent;
+                color: #fff
+            }
+
+            .vidal-dashboard-page .vidal-dashboard-hero-btn.light {
+                border: 1px solid #fff;
+                background: #fff;
+                color: #102947
+            }
+
+            .vidal-dashboard-page .vidal-dashboard-hero-btn:hover {
+                filter: brightness(.95)
+            }
+
+        .vidal-dashboard-page .vidal-dashboard-section-title {
+            margin: 22px 0 14px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+            .vidal-dashboard-page .vidal-dashboard-section-title > div > span {
+                font-weight: 800;
+                font-size: .58rem;
+                letter-spacing: 1px;
+                color: #356fa7
+            }
+
+            .vidal-dashboard-page .vidal-dashboard-section-title h2 {
+                font-size: 1.2rem;
+                font-weight: 800;
+                margin: 3px 0;
+                color: #102947
+            }
+
+            .vidal-dashboard-page .vidal-dashboard-section-title p {
+                font-size: .73rem;
+                color: #687b8e;
+                margin: 0
+            }
+
+        .vidal-dashboard-page .vidal-dashboard-textlink {
+            font-size: .73rem;
+            font-weight: 750;
+            color: #17488e;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px
+        }
+
+        .vidal-dashboard-page .kpi-card {
+            border: 1px solid #dce3eb;
+            border-radius: 13px;
+            min-height: 94px;
+            padding: 15px 17px;
+            box-shadow: 0 4px 17px rgba(16,41,71,.04);
+            gap: 13px
+        }
+
+        .vidal-dashboard-page .kpi-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 11px
+        }
+
+        .vidal-dashboard-page .kpi-value {
+            font-size: clamp(20px,2vw,28px);
+            font-weight: 800;
+            line-height: 1.2;
+            overflow-wrap: anywhere
+        }
+
+        .vidal-dashboard-page .kpi-label {
+            font-weight: 650;
+            font-size: 11px;
+            line-height: 1.4
+        }
+
+        .vidal-dashboard-page .card-modern {
+            border: 1px solid #dce3eb;
+            border-radius: 13px;
+            box-shadow: 0 4px 17px rgba(16,41,71,.04);
+            overflow: hidden;
+            background: #fff
+        }
+
+            .vidal-dashboard-page .card-modern > .card-header {
+                padding: 14px 16px;
+                background: #fff;
+                border-bottom: 1px solid #edf1f5;
+                font-size: 13px;
+                font-weight: 800;
+                color: #102947;
+                display: flex;
+                align-items: center;
+                gap: 9px
+            }
+
+                .vidal-dashboard-page .card-modern > .card-header .badge {
+                    margin-left: auto !important;
+                    font-weight: 650;
+                    font-size: 10px
+                }
+
+        .vidal-dashboard-page .vidal-bi-compras {
+            border: 1px solid #dce3eb;
+            border-radius: 14px;
+            background: #fff;
+            margin: 0 0 22px;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(16,41,71,.06)
+        }
+
+        .vidal-dashboard-page .vidal-bi-heading {
+            display: block;
+            background: linear-gradient(105deg,#102947 0%,#17488e 64%,#2265ae 100%) !important;
+            background-image: linear-gradient(105deg,#102947 0%,#17488e 64%,#2265ae 100%) !important;
+            color: #fff !important;
+            padding: 19px 22px;
+            margin: 0 !important;
+            border: 0;
+            box-shadow: none
+        }
+
+        .vidal-dashboard-page .vidal-bi-heading-title {
+            display: block
+        }
+
+        .vidal-dashboard-page .vidal-bi-heading .vidal-bi-eyebrow {
+            display: block;
+            color: #b8d6fc !important;
+            font-size: .62rem;
+            font-weight: 800;
+            letter-spacing: 1px
+        }
+
+        .vidal-dashboard-page .vidal-bi-heading h2 {
+            font-size: 1.09rem;
+            font-weight: 800;
+            color: #fff !important;
+            margin: 5px 0 4px
+        }
+
+        .vidal-dashboard-page .vidal-bi-heading p {
+            font-size: .75rem;
+            line-height: 1.5;
+            color: #e1edfc !important;
+            margin: 0
+        }
+
+        .vidal-dashboard-page .vidal-bi-filter {
+            display: flex;
+            align-items: end;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #f7f9fc;
+            border-bottom: 1px solid #e3eaf2;
+            padding: 15px 21px;
+            margin: 0
+        }
+
+            .vidal-dashboard-page .vidal-bi-filter label {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                color: #243c5b !important;
+                font-size: .74rem;
+                font-weight: 750
+            }
+
+            .vidal-dashboard-page .vidal-bi-filter input {
+                min-height: 40px;
+                border: 1px solid #ccd9e7;
+                border-radius: 8px;
+                background: #fff;
+                color: #102947;
+                font-size: .8rem;
+                padding: 7px 10px
+            }
+
+            .vidal-dashboard-page .vidal-bi-filter button {
+                min-height: 40px;
+                border-radius: 8px;
+                border: 1px solid #17488e;
+                background: #17488e;
+                color: #fff;
+                font-size: .74rem;
+                font-weight: 750;
+                padding: 0 16px;
+                cursor: pointer
+            }
+
+                .vidal-dashboard-page .vidal-bi-filter button:hover {
+                    background: #102947
+                }
+
+        .vidal-dashboard-page .vidal-bi-metrics {
+            display: grid;
+            grid-template-columns: repeat(3,minmax(0,1fr));
+            gap: 14px;
+            padding: 19px 21px 15px;
+            margin: 0
+        }
+
+            .vidal-dashboard-page .vidal-bi-metrics article {
+                background: #f8fafc;
+                border: 1px solid #dce3eb;
+                border-radius: 11px;
+                padding: 17px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-width: 0
+            }
+
+                .vidal-dashboard-page .vidal-bi-metrics article > span {
+                    font-size: .76rem;
+                    font-weight: 750;
+                    color: #526c8b
+                }
+
+                .vidal-dashboard-page .vidal-bi-metrics article strong {
+                    font-size: clamp(21px,2.2vw,29px);
+                    font-weight: 800;
+                    color: #102947;
+                    overflow-wrap: anywhere
+                }
+
+                .vidal-dashboard-page .vidal-bi-metrics article small {
+                    font-size: .69rem;
+                    color: #687b8e
+                }
+
+                .vidal-dashboard-page .vidal-bi-metrics article.vidal-bi-total {
+                    background: #eaf2fb;
+                    border-color: #bfdbf3;
+                    border-left: 4px solid #17488e
+                }
+
+        .vidal-dashboard-page .vidal-bi-warning {
+            background: #fff8e8;
+            border: 1px solid #f0dba2;
+            border-radius: 9px;
+            padding: 10px 13px;
+            font-size: 12px;
+            color: #76561a;
+            margin: 0 21px 13px
+        }
+
+        .vidal-dashboard-page .vidal-bi-method {
+            font-size: 11px;
+            color: #687b8e;
+            margin: 0 21px 17px;
+            line-height: 1.5
+        }
+
+    @@media(max-width:1050px) {
+        .vidal-dashboard-page .vidal-bi-metrics {
+            grid-template-columns: repeat(2,minmax(0,1fr))
+        }
+
+        .vidal-dashboard-page .vidal-bi-total {
+            grid-column: 1/-1
+        }
+    }
+
+    @@media(max-width:660px) {
+        .vidal-dashboard-page .vidal-dashboard-hero {
+            padding: 20px
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-hero-actions {
+            justify-content: flex-start
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-updated {
+            width: 100%
+        }
+
+        .vidal-dashboard-page .vidal-bi-metrics {
+            grid-template-columns: 1fr
+        }
+
+        .vidal-dashboard-page .vidal-bi-total {
+            grid-column: auto
+        }
+
+        .vidal-dashboard-page .vidal-bi-filter label {
+            flex: 1;
+            min-width: 110px
+        }
+
+        .vidal-dashboard-page .vidal-bi-filter button {
+            width: 100%
+        }
+    }
+
+    .vidal-dashboard-page .card-modern {
+        border: 1px solid #dce5ef;
+        border-radius: 14px;
+        box-shadow: 0 5px 18px rgba(16,41,71,.055);
+        background: #fff;
+        overflow: hidden;
+        height: 100%
+    }
+
+        .vidal-dashboard-page .card-modern > .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 18px;
+            background: linear-gradient(100deg,#102947,#17488e) !important;
+            color: #fff !important;
+            border: 0 !important;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .1px;
+            min-height: 53px
+        }
+
+            .vidal-dashboard-page .card-modern > .card-header .icon {
+                width: 18px;
+                height: 18px;
+                color: #fff;
+                flex-shrink: 0
+            }
+
+            .vidal-dashboard-page .card-modern > .card-header .badge {
+                margin-left: auto !important;
+                flex-shrink: 0;
+                font-size: 10px;
+                font-weight: 750;
+                background: rgba(255,255,255,.14) !important;
+                color: #fff !important;
+                border: 1px solid rgba(255,255,255,.22) !important;
+                border-radius: 7px;
+                padding: 6px 9px
+            }
+
+        .vidal-dashboard-page .card-modern > .card-body {
+            background: #fff;
+            padding: 20px !important;
+            color: #102947;
+            min-width: 0
+        }
+
+            .vidal-dashboard-page .card-modern > .card-body.p-0 {
+                padding: 0 !important
+            }
+
+        .vidal-dashboard-page .card-modern canvas {
+            display: block;
+            width: 100% !important;
+            max-width: 100%;
+            height: 255px !important
+        }
+
+    .vidal-dashboard-page #comprasChart {
+        height: 255px !important
+    }
+
+    .vidal-dashboard-page .quick-stats {
+        gap: 12px
+    }
+
+    .vidal-dashboard-page .quick-stat {
+        border: 1px solid #dce5ef;
+        border-radius: 10px;
+        background: #f5f8fc;
+        padding: 15px 10px;
+        min-height: 92px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px
+    }
+
+    .vidal-dashboard-page .quick-stat-value {
+        font-weight: 850;
+        color: #17488e;
+        font-size: 24px
+    }
+
+    .vidal-dashboard-page .quick-stat-label {
+        font-weight: 750;
+        color: #59728c;
+        line-height: 1.4;
+        text-align: center
+    }
+
+    .vidal-dashboard-page .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0
+    }
+
+        .vidal-dashboard-page .table-modern thead th {
+            background: #edf3fa !important;
+            color: #143a65 !important;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .15px;
+            border-bottom: 1px solid #d6e2ef;
+            padding: 12px 13px;
+            white-space: nowrap
+        }
+
+        .vidal-dashboard-page .table-modern tbody td {
+            font-size: 12px;
+            color: #244360;
+            padding: 11px 13px;
+            border-bottom: 1px solid #eef2f6;
+            vertical-align: middle
+        }
+
+        .vidal-dashboard-page .table-modern tbody tr:hover {
+            background: #f4f8fd
+        }
+
+    .vidal-dashboard-page .card-modern .user-online {
+        background: #f6f9fd;
+        border-color: #dce5ef;
+        border-radius: 10px
+    }
+
+    .vidal-dashboard-page .card-modern .material-thumb {
+        background: #edf3fa;
+        border-color: #dce5ef
+    }
+
+    .vidal-dashboard-page .vidal-dashboard-section-title {
+        margin: 27px 0 15px
+    }
+
+    @@media(max-width:767px) {
+        .vidal-dashboard-page .card-modern > .card-body {
+            padding: 15px !important
+        }
+
+        .vidal-dashboard-page .card-modern canvas {
+            height: 225px !important
+        }
+    }
+
+    @@media print {
+        .vidal-dashboard-page .card-modern {
+            break-inside: avoid;
+            box-shadow: none
+        }
+
+            .vidal-dashboard-page .card-modern > .card-header, .vidal-dashboard-page .vidal-bi-heading {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact
+            }
+    }
+
+    .vidal-dashboard-page .vd-bi-insights {
+        margin: 4px 0 24px
+    }
+
+    .vidal-dashboard-page .vd-bi-insights-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px
+    }
+
+        .vidal-dashboard-page .vd-bi-insights-head > div > span {
+            color: #3977b3;
+            font-size: 10px;
+            letter-spacing: 1px;
+            font-weight: 800
+        }
+
+        .vidal-dashboard-page .vd-bi-insights-head h2 {
+            font-size: 19px;
+            font-weight: 800;
+            color: #1a385d;
+            margin: 4px 0
+        }
+
+        .vidal-dashboard-page .vd-bi-insights-head p {
+            color: #66758a;
+            font-size: 12px;
+            margin: 0
+        }
+
+    .vidal-dashboard-page .vd-bi-data-label {
+        color: #66758a;
+        font-size: 11px
+    }
+
+    .vidal-dashboard-page .vd-bi-insights-grid {
+        display: grid;
+        grid-template-columns: repeat(4,minmax(0,1fr));
+        gap: 14px
+    }
+
+    .vidal-dashboard-page .vd-bi-insight {
+        border: 1px solid #e1e8f2;
+        border-top: 3px solid #2670b7;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 3px 12px #193f6c0c;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        min-width: 0
+    }
+
+        .vidal-dashboard-page .vd-bi-insight.vd-bi-attention {
+            border-top-color: #d49128
+        }
+
+        .vidal-dashboard-page .vd-bi-insight.vd-bi-normal {
+            border-top-color: #288769
+        }
+
+    .vidal-dashboard-page .vd-bi-insight-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px
+    }
+
+        .vidal-dashboard-page .vd-bi-insight-top span {
+            font-size: 10px;
+            font-weight: 800;
+            color: #60748a;
+            letter-spacing: .5px
+        }
+
+        .vidal-dashboard-page .vd-bi-insight-top strong {
+            font-size: 20px;
+            color: #183c66;
+            font-weight: 800
+        }
+
+    .vidal-dashboard-page .vd-bi-insight h3 {
+        font-size: 14px;
+        line-height: 1.35;
+        font-weight: 800;
+        color: #193d69;
+        margin: 0;
+        overflow-wrap: anywhere
+    }
+
+    .vidal-dashboard-page .vd-bi-insight p {
+        font-size: 12px;
+        line-height: 1.5;
+        color: #62748a;
+        margin: 0;
+        flex: 1
+    }
+
+    .vidal-dashboard-page .vd-bi-insight a {
+        font-size: 12px;
+        font-weight: 750;
+        text-decoration: none;
+        color: #245d9c
+    }
+
+        .vidal-dashboard-page .vd-bi-insight a:hover {
+            text-decoration: underline
+        }
+
+    @@media(max-width:1150px) {
+        .vidal-dashboard-page .vd-bi-insights-grid {
+            grid-template-columns: repeat(2,minmax(0,1fr))
+        }
+    }
+
+    @@media(max-width:650px) {
+        .vidal-dashboard-page .vd-bi-insights-grid {
+            grid-template-columns: 1fr
+        }
+    }
+
+    .vidal-dashboard-page .vd-bi-insights-head {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin: 0 0 15px;
+        padding: 19px 22px 19px 27px;
+        background: #fff;
+        border: 1px solid #dce5ef;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(16,41,71,.055);
+        overflow: hidden;
+    }
+
+        .vidal-dashboard-page .vd-bi-insights-head::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: linear-gradient(180deg,#123c70 0%,#2469ac 100%);
+        }
+
+    .vidal-dashboard-page .vd-bi-insights-title {
+        flex: 1 1 320px;
+        min-width: 0
+    }
+
+    .vidal-dashboard-page .vd-bi-insights-head .vd-bi-insights-eyebrow {
+        display: block;
+        color: #2469ac;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .vidal-dashboard-page .vd-bi-insights-head h2 {
+        font-size: 20px;
+        line-height: 1.3;
+        font-weight: 800;
+        color: #102947;
+        margin: 5px 0 5px;
+    }
+
+    .vidal-dashboard-page .vd-bi-insights-head p {
+        color: #62748a;
+        font-size: 12px;
+        line-height: 1.5;
+        margin: 0
+    }
+
+    .vidal-dashboard-page .vd-bi-insights-head .vd-bi-data-label {
+        color: #57708b;
+        background: #f1f6fc;
+        border: 1px solid #deebf8;
+        border-radius: 7px;
+        padding: 8px 11px;
+        font-size: 11px;
+        font-weight: 650;
+    }
+
+    @@media(max-width:650px) {
+        .vidal-dashboard-page .vd-bi-insights-head {
+            padding: 16px 15px 16px 21px;
+            gap: 10px
+        }
+
+            .vidal-dashboard-page .vd-bi-insights-head h2 {
+                font-size: 18px
+            }
+
+            .vidal-dashboard-page .vd-bi-insights-head .vd-bi-data-label {
+                width: 100%;
+                text-align: left
+            }
+    }
+
+    .vidal-dashboard-page .vidal-dashboard-section-title {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin: 22px 0 15px;
+        padding: 19px 22px 19px 27px;
+        background: #fff;
+        border: 1px solid #dce5ef;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(16,41,71,.055);
+        overflow: hidden;
+    }
+
+        .vidal-dashboard-page .vidal-dashboard-section-title::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 5px;
+            background: linear-gradient(180deg,#123c70 0%,#2469ac 100%);
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-section-title > div {
+            flex: 1 1 320px;
+            min-width: 0
+        }
+
+            .vidal-dashboard-page .vidal-dashboard-section-title > div > span {
+                display: block;
+                color: #2469ac;
+                font-size: 10px;
+                font-weight: 800;
+                letter-spacing: 1px;
+            }
+
+        .vidal-dashboard-page .vidal-dashboard-section-title h2 {
+            color: #102947;
+            font-size: 20px;
+            line-height: 1.3;
+            font-weight: 800;
+            margin: 5px 0;
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-section-title p {
+            color: #62748a;
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .vidal-dashboard-page .vidal-dashboard-section-title .vidal-dashboard-textlink {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 11px;
+            color: #245d9c;
+            background: #f1f6fc;
+            border: 1px solid #deebf8;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+            .vidal-dashboard-page .vidal-dashboard-section-title .vidal-dashboard-textlink:hover {
+                color: #123c70;
+                background: #e5f0fb;
+                border-color: #c8def5;
+            }
+
+    @@media(max-width:650px) {
+        .vidal-dashboard-page .vidal-dashboard-section-title {
+            padding: 16px 15px 16px 21px;
+            gap: 10px
+        }
+
+            .vidal-dashboard-page .vidal-dashboard-section-title h2 {
+                font-size: 18px
+            }
+
+            .vidal-dashboard-page .vidal-dashboard-section-title .vidal-dashboard-textlink {
+                max-width: 100%;
+                white-space: normal
+            }
+    }
+</style>
