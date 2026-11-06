@@ -1,0 +1,1569 @@
+@using Inventario_Vidal.DTOs
+@model IEnumerable<EmpleadoRecursoAsignadoDto>
+@{
+    ViewData["Title"] = "Devoluciones pendientes - Empleados";
+    ViewBag.Subtitle = "Recursos pendientes de devolución de empleados";
+    var registros = Model?.ToList() ?? new List<EmpleadoRecursoAsignadoDto>();
+    var hoy = DateOnly.FromDateTime(DateTime.Today);
+    var total = registros.Count;
+    var vencidas = registros.Count(r => r.FechaDevolucionEstimada.HasValue && r.FechaDevolucionEstimada.Value < hoy);
+    var proximas = registros.Count(r => r.FechaDevolucionEstimada.HasValue && r.FechaDevolucionEstimada.Value >= hoy && r.FechaDevolucionEstimada.Value.DayNumber - hoy.DayNumber <= 3);
+    var totalPendiente = registros.Sum(r => r.PendienteDevolucion);
+}
+<div class="users-page alertas-page devol-page">
+    <!-- Encabezado oficial VIDAL -->
+    <section class="users-hero">
+        <div class="hero-left">
+            <div class="hero-icon"><svg class="icon icon-xl"><use href="#icon-hardhat"></use></svg></div>
+            <div>
+                <h1>Devoluciones de empleados</h1>
+                <div class="hero-subtitle">
+                    <svg class="icon icon-sm"><use href="#icon-info"></use></svg>
+                    <span>Controla los recursos entregados a empleados que aún deben devolverse.</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-actions">
+            <a asp-action="Index" class="hero-secondary"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>Centro de alertas</a>
+            <button type="button" class="hero-secondary" id="btnActualizar"><svg class="icon icon-sm"><use href="#icon-refresh"></use></svg>Actualizar</button>
+        </div>
+    </section>
+    @if (TempData["MensajeExito"] != null)
+    {
+        <div class="page-alert success" role="status">
+            <svg class="icon"><use href="#icon-check-circle"></use></svg>
+            <div class="page-alert-content"><strong>Operación realizada</strong><span>@TempData["MensajeExito"]</span></div>
+        </div>
+    }
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="page-alert danger" role="alert">
+            <svg class="icon"><use href="#icon-x-circle"></use></svg>
+            <div class="page-alert-content"><strong>No se pudo completar la operación</strong><span>@TempData["MensajeError"]</span></div>
+        </div>
+    }
+    <!-- Indicadores -->
+    <section class="stats-grid" aria-label="Indicadores de devoluciones de empleados">
+        <div class="stat-card"><div class="stat-icon blue"><svg class="icon"><use href="#icon-list"></use></svg></div><div><span class="stat-label">Registros pendientes</span><strong class="stat-value">@total</strong></div></div>
+        <div class="stat-card"><div class="stat-icon red"><svg class="icon"><use href="#icon-alert-triangle"></use></svg></div><div><span class="stat-label">Vencidas</span><strong class="stat-value">@vencidas</strong></div></div>
+        <div class="stat-card"><div class="stat-icon gold"><svg class="icon"><use href="#icon-clock"></use></svg></div><div><span class="stat-label">Vencen en 3 días</span><strong class="stat-value">@proximas</strong></div></div>
+        <div class="stat-card"><div class="stat-icon gray"><svg class="icon"><use href="#icon-box"></use></svg></div><div><span class="stat-label">Unidades pendientes</span><strong class="stat-value">@totalPendiente.ToString("N2")</strong></div></div>
+    </section>
+    <section class="users-card">
+        <header class="users-card-header">
+            <div class="card-heading">
+                <div class="heading-icon"><svg class="icon"><use href="#icon-list"></use></svg></div><div>
+                <span>SEGUIMIENTO LOGÍSTICO</span><h2>Devoluciones pendientes</h2>
+                <p>Consulta los saldos y registra las devoluciones recibidas.</p>
+            </div>
+        </div>
+        <span class="alert-total">@total registros</span>
+    </header>
+    <div class="alertas-toolbar">
+        <nav class="alertas-tabs" aria-label="Categorías de alertas">
+            <a asp-action="Index" class="alert-tab">Todas las alertas</a>
+            <a asp-action="StockBajo" class="alert-tab">Stock bajo</a>
+            <a asp-action="DevolucionesEmpleados" class="alert-tab selected" aria-current="page">Empleados <span>@total</span></a>
+            <a asp-action="DevolucionesEmpleados" class="alert-tab">Empleados</a>
+            <a asp-action="PrestamosVencidos" class="alert-tab">Préstamos</a>
+        </nav>
+        <div class="alert-filters">
+            <label class="alert-search">
+                <svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+                <input type="search" id="searchInput" placeholder="Buscar empleado, material o proyecto..." aria-label="Buscar devoluciones" autocomplete="off" />
+            </label>
+            <select id="estadoFiltro" aria-label="Filtrar vencimientos">
+                <option value="">Todos los vencimientos</option>
+                <option value="vencida">Vencidas</option>
+                <option value="proxima">Vencen en 3 días</option>
+                <option value="pendiente">Otras pendientes</option>
+            </select>
+        </div>
+    </div>
+    @if (registros.Any())
+    {
+        <div class="table-container">
+            <table class="users-table alertas-table devol-table" id="devolucionesTable">
+                <thead>
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Material</th>
+                        <th>Proyecto</th>
+                        <th>Entregado</th>
+                        <th>Devuelto</th>
+                        <th>Consumido</th>
+                        <th>Dañado</th>
+                        <th>Pendiente</th>
+                        <th>Entrega</th>
+                        <th>Dev. estimada</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in registros.OrderBy(r => r.FechaDevolucionEstimada))
+                    {
+                        var dias = item.FechaDevolucionEstimada.HasValue ? item.FechaDevolucionEstimada.Value.DayNumber - hoy.DayNumber : (int?)null;
+                        var vencida = dias.HasValue && dias.Value < 0;
+                        var proxima = dias.HasValue && dias.Value >= 0 && dias.Value <= 3;
+                        var nivel = vencida ? "vencida" : proxima ? "proxima" : "pendiente";
+                        var nombre = item.Empleado ?? "";
+                        var partes = nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        var iniciales = partes.Length == 0 ? "C" : partes.Length == 1 ? partes[0].Substring(0, Math.Min(2, partes[0].Length)).ToUpperInvariant() : (partes[0][0].ToString() + partes[^1][0]).ToUpperInvariant();
+                        <tr class="devol-row @(vencida ? "row-critical" : proxima ? "row-warning" : "")" data-level="@nivel">
+                            <td><div class="devol-person"><span class="empleado-avatar-mini">@iniciales</span><div><strong>@item.Empleado</strong><small>ID: #@item.IdEmpleado</small></div></div></td>
+                            <td><strong class="devol-material">@item.Material</strong></td>
+                            <td><span class="alert-muted">@(item.CodigoProyecto ?? "Sin proyecto")</span></td>
+                            <td class="devol-num">@item.Cantidad.ToString("N2")</td>
+                            <td class="devol-num">@item.CantidadDevuelta.ToString("N2")</td>
+                            <td class="devol-num">@item.CantidadConsumida.ToString("N2")</td>
+                            <td class="devol-num">@item.CantidadDanada.ToString("N2")</td>
+                            <td><strong class="devol-pending">@item.PendienteDevolucion.ToString("N2")</strong></td>
+                            <td><span class="alert-muted">@item.FechaEntregaFormateada</span></td>
+                            <td>
+                                <div class="devol-date">
+                                    <strong>@item.FechaDevolucionEstimadaFormateada</strong>
+                                    @if (vencida)
+                                    {
+                                        <small class="devol-overdue">@Math.Abs(dias!.Value) días vencida</small>
+                                    }
+                                    else if (proxima)
+                                    {
+
+                                        <small class="devol-soon">@(dias == 0 ? "Vence hoy" : $"Faltan {dias} días")</small>
+                                    }
+                                    else if (dias.HasValue)
+                                    {
+
+                                        <small>Faltan @dias días</small>
+                                    }
+                                    else
+                                    {
+
+                                        <small>Sin fecha estimada</small>
+                                    }
+                                </div>
+                            </td>
+                            <td><span class="alert-chip @(vencida ? "danger" : proxima ? "warning" : "neutral")">@item.Estado</span></td>
+                            <td>
+                                <div class="devol-actions">
+                                    <a asp-controller="Empleados" asp-action="RegistrarDevolucion" asp-route-idAsignacion="@item.IdAsignacionRecursoEmpleado" class="alert-action warning" title="Registrar devolución" aria-label="Registrar devolución de @item.Material"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg></a>
+                                    <a asp-controller="Empleados" asp-action="Detalles" asp-route-id="@item.IdEmpleado" class="alert-action" title="Ver empleado" aria-label="Ver detalles de @item.Empleado"><svg class="icon icon-sm"><use href="#icon-eye"></use></svg></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="devol-no-match" id="sinResultados" hidden><svg class="icon icon-xl"><use href="#icon-search"></use></svg><strong>No se encontraron devoluciones</strong><span>Modifica la búsqueda o el filtro de vencimiento.</span></div>
+        <footer class="devol-footer"><span id="contadorVisible" aria-live="polite">Mostrando @total de @total registros</span></footer>
+    }
+    else
+    {
+        <div class="alertas-empty">
+            <svg class="icon icon-xl"><use href="#icon-check-circle"></use></svg><strong>No hay devoluciones pendientes</strong><span>Los empleados no tienen recursos pendientes de devolución.</span>
+            <a asp-action="Index" class="devol-return"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>Volver al centro de alertas</a>
+        </div>
+    }
+</section>
+</div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const search = document.getElementById('searchInput');
+            const level = document.getElementById('estadoFiltro');
+            const table = document.getElementById('devolucionesTable');
+            const noMatch = document.getElementById('sinResultados');
+            const counter = document.getElementById('contadorVisible');
+            document.getElementById('btnActualizar')?.addEventListener('click', () => window.location.reload());
+            if (!table || !search || !level) return;
+            const rows = Array.from(table.querySelectorAll('tbody tr.devol-row'));
+            function filtrar() {
+                const termino = search.value.trim().toLocaleLowerCase('es');
+                const filtro = level.value;
+                let visibles = 0;
+                rows.forEach(row => {
+                    const visible = row.textContent.toLocaleLowerCase('es').includes(termino) && (!filtro || row.dataset.level === filtro);
+                    row.hidden = !visible;
+                    if (visible) visibles++;
+                });
+                if (noMatch) noMatch.hidden = visibles !== 0;
+                if (counter) counter.textContent = `Mostrando ${visibles} de ${rows.length} registros`;
+            }
+            search.addEventListener('input', filtrar);
+            level.addEventListener('change', filtrar);
+        });
+    </script>
+}
+
+<style>
+
+    /* ================================================================
+               BASE
+               ================================================================ */
+
+    .users-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #344357;
+        --muted: #7d8999;
+        --surface: #ffffff;
+        --success: #168957;
+        --danger: #d1475b;
+        --warning: #d99a24;
+    }
+
+    /* ================================================================
+               HERO
+               ================================================================ */
+
+    .users-hero {
+        min-height: 114px;
+        padding: 23px 30px;
+        margin-bottom: 17px;
+        border-radius: 20px;
+        background: linear-gradient( 100deg, #102947 0%, #17488e 49%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .users-hero::after {
+            content: "";
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            top: -130px;
+            right: -80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.11);
+        border: 1px solid rgba(255,255,255,.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .users-hero h1 {
+        margin: 0;
+        font-size: 1.65rem;
+        font-weight: 800;
+    }
+
+    .hero-subtitle {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: rgba(255,255,255,.72);
+        font-size: .8rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-primary,
+    .hero-secondary {
+        min-height: 41px;
+        padding: 0 15px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        font-size: .72rem;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .18s ease;
+    }
+
+    .hero-primary {
+        border: 1px solid white;
+        background: white;
+        color: var(--navy);
+    }
+
+    .hero-secondary {
+        border: 1px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.05);
+        color: white;
+    }
+
+    .hero-primary:hover {
+        background: #f3f7fb;
+        color: var(--navy);
+        transform: translateY(-1px);
+    }
+
+    .hero-secondary:hover {
+        background: rgba(255,255,255,.12);
+        transform: translateY(-1px);
+    }
+
+    /* ================================================================
+               ALERTS
+               ================================================================ */
+
+    .page-alert {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        border-radius: 11px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        transition: opacity .35s ease, transform .35s ease;
+    }
+
+        .page-alert.success {
+            background: #edf9f3;
+            color: #146f48;
+            border-left: 4px solid var(--success);
+        }
+
+        .page-alert.danger {
+            background: #fff1f3;
+            color: #a73547;
+            border-left: 4px solid var(--danger);
+        }
+
+    .page-alert-content {
+        flex: 1;
+    }
+
+        .page-alert-content strong,
+        .page-alert-content span {
+            display: block;
+        }
+
+        .page-alert-content strong {
+            font-size: .72rem;
+        }
+
+        .page-alert-content span {
+            margin-top: 2px;
+            font-size: .66rem;
+        }
+
+    .page-alert.closing {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    .alert-close {
+        border: none;
+        padding: 2px;
+        background: transparent;
+        color: currentColor;
+        opacity: .6;
+        cursor: pointer;
+    }
+
+    /* ================================================================
+               STATS
+               ================================================================ */
+
+    .stats-grid {
+        margin-bottom: 17px;
+        display: grid;
+        grid-template-columns: repeat( 4, minmax(0,1fr));
+        gap: 12px;
+    }
+
+    .stat-card {
+        min-height: 84px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 15px rgba(16,41,71,.035);
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .stat-icon.blue {
+            color: #306ca7;
+            background: #eaf2fb;
+        }
+
+        .stat-icon.green {
+            color: #168957;
+            background: #e9f7f0;
+        }
+
+        .stat-icon.gray {
+            color: #687587;
+            background: #edf0f4;
+        }
+
+        .stat-icon.red {
+            color: #c34d5f;
+            background: #fff0f2;
+        }
+
+    .stat-label {
+        display: block;
+        color: #8995a5;
+        font-size: .57rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .stat-value {
+        display: block;
+        margin-top: 2px;
+        color: var(--navy);
+        font-size: 1.3rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    /* ================================================================
+               CARD
+               ================================================================ */
+
+    .users-card {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+    }
+
+    .users-card-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .card-heading {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .heading-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        color: #356fa7;
+        background: #eaf2fb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .card-heading span {
+        display: block;
+        color: #929dab;
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+    }
+
+    .card-heading h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .card-heading p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .61rem;
+    }
+
+    /* ================================================================
+               TOOLBAR
+               ================================================================ */
+
+    .users-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .search-box {
+        width: 245px;
+        min-height: 39px;
+        padding: 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+        .search-box:focus-within {
+            border-color: #6f9ed0;
+            box-shadow: 0 0 0 3px rgba(34,108,194,.08);
+        }
+
+        .search-box > .icon {
+            color: #8b97a7;
+        }
+
+        .search-box input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #445368;
+            font-size: .67rem;
+        }
+
+    .search-clear {
+        padding: 2px;
+        border: none;
+        background: transparent;
+        color: #929dab;
+        cursor: pointer;
+    }
+
+    .toolbar-select {
+        min-height: 39px;
+        padding: 0 29px 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: white;
+        color: #536174;
+        font-size: .66rem;
+        outline: none;
+    }
+
+    /* ================================================================
+               TABLE
+               ================================================================ */
+
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .users-table thead th {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e8edf3;
+            background: #f8fafc;
+            color: #7d8999;
+            font-size: .56rem;
+            font-weight: 800;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .users-table tbody td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #eef2f6;
+            color: #536174;
+            font-size: .66rem;
+            vertical-align: middle;
+        }
+
+        .users-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .users-table tbody tr {
+            transition: background .16s ease;
+        }
+
+            .users-table tbody tr:hover {
+                background: #fafbfd;
+            }
+
+    /* ================================================================
+               USER
+               ================================================================ */
+
+    .user-cell {
+        min-width: 180px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .user-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        color: #346b9e;
+        background: #eaf2fb;
+        border: 1px solid #dce9f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .66rem;
+        font-weight: 850;
+        flex-shrink: 0;
+    }
+
+    .user-main strong {
+        display: block;
+        color: #344357;
+        font-size: .7rem;
+    }
+
+    .user-main span {
+        display: block;
+        margin-top: 2px;
+        color: #939dab;
+        font-size: .54rem;
+    }
+
+    /* ================================================================
+               ACCOUNT / MAIL
+               ================================================================ */
+
+    .account-cell,
+    .mail-cell {
+        min-width: 125px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #59687b;
+    }
+
+        .account-cell .icon,
+        .mail-cell .icon {
+            color: #8796a5;
+            flex-shrink: 0;
+        }
+
+    .mail-cell {
+        max-width: 220px;
+    }
+
+        .mail-cell span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .empty-value {
+        color: #a1aab6;
+        font-style: italic;
+    }
+
+    /* ================================================================
+               ROLE
+               ================================================================ */
+
+    .role-badge {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #edf3f8;
+        color: #496783;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: .58rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    /* ================================================================
+               STATUS
+               ================================================================ */
+
+    .status-badge {
+        padding: 5px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: .57rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+        .status-badge.active {
+            color: #15744b;
+            background: #e9f7f0;
+        }
+
+        .status-badge.inactive {
+            color: #667384;
+            background: #edf0f4;
+        }
+
+        .status-badge.blocked {
+            color: #b34052;
+            background: #fff0f2;
+        }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    /* ================================================================
+               LAST ACCESS
+               ================================================================ */
+
+    .last-access {
+        min-width: 95px;
+    }
+
+        .last-access strong {
+            display: block;
+            color: #4d5c6f;
+            font-size: .63rem;
+        }
+
+        .last-access span {
+            display: block;
+            margin-top: 1px;
+            color: #939dab;
+            font-size: .54rem;
+        }
+
+        .last-access .never-access {
+            color: #8793a3;
+        }
+
+    /* ================================================================
+               SECURITY
+               ================================================================ */
+
+    .security-state {
+        min-width: 92px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-align: left;
+    }
+
+        .security-state > .icon {
+            flex-shrink: 0;
+        }
+
+        .security-state strong {
+            display: block;
+            font-size: .57rem;
+        }
+
+        .security-state span {
+            display: block;
+            margin-top: 1px;
+            font-size: .5rem;
+        }
+
+        .security-state.ok {
+            color: #168957;
+        }
+
+        .security-state.warning {
+            color: #ad7514;
+        }
+
+        .security-state.blocked {
+            color: #ba4053;
+        }
+
+    /* ================================================================
+               ACTIONS
+               ================================================================ */
+
+    .actions-column {
+        width: 125px;
+    }
+
+    .action-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .action-btn {
+        width: 31px;
+        height: 31px;
+        padding: 0;
+        border-radius: 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .16s ease;
+    }
+
+        .action-btn.view {
+            border: 1px solid #cfe0f0;
+            background: #f1f7fc;
+            color: #3974aa;
+        }
+
+        .action-btn.edit {
+            border: 1px solid #d9e3ee;
+            background: #f7f9fc;
+            color: #526e8b;
+        }
+
+        .action-btn.disable {
+            border: 1px solid #f0ced4;
+            background: #fff3f4;
+            color: #c24d60;
+        }
+
+        .action-btn.enable {
+            border: 1px solid #cce8da;
+            background: #eefaf4;
+            color: #168957;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(.97);
+        }
+
+    .toggle-form {
+        margin: 0;
+    }
+
+    /* ================================================================
+               EMPTY
+               ================================================================ */
+
+    .empty-state {
+        min-height: 260px;
+        padding: 35px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 16px;
+        color: #7591ac;
+        background: #edf3f8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state h3 {
+        margin: 14px 0 0;
+        color: #344357;
+        font-size: .86rem;
+        font-weight: 800;
+    }
+
+    .empty-state p {
+        max-width: 390px;
+        margin: 5px 0 0;
+        color: #8995a4;
+        font-size: .66rem;
+        line-height: 1.5;
+    }
+
+    .primary-button,
+    .secondary-button {
+        min-height: 38px;
+        padding: 0 14px;
+        margin-top: 14px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: .66rem;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .primary-button {
+        border: none;
+        background: linear-gradient( 135deg, #102947, #17488e);
+        color: white;
+    }
+
+    .secondary-button {
+        border: 1px solid #d8e0e9;
+        background: white;
+        color: #576678;
+    }
+
+    /* ================================================================
+               CONFIRM MODAL
+               ================================================================ */
+
+    .confirm-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 11000;
+        padding: 20px;
+        background: rgba(12,26,45,.58);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-modal {
+        width: min( 390px, 100%);
+        padding: 24px;
+        border-radius: 15px;
+        background: white;
+        box-shadow: 0 20px 60px rgba(11,27,48,.2);
+        text-align: center;
+    }
+
+    .confirm-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto;
+        border-radius: 13px;
+        color: #496f95;
+        background: #edf4fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-modal h3 {
+        margin: 14px 0 0;
+        color: #2f4054;
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .confirm-modal p {
+        margin: 6px 0 0;
+        color: #7c8898;
+        font-size: .68rem;
+        line-height: 1.5;
+    }
+
+    .confirm-warning {
+        margin-top: 12px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: #fff7e8;
+        color: #89641b;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        text-align: left;
+        font-size: .58rem;
+        line-height: 1.45;
+    }
+
+    .confirm-actions {
+        margin-top: 19px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .confirm-actions .secondary-button {
+            margin-top: 0;
+        }
+
+    .confirm-button {
+        min-height: 38px;
+        padding: 0 15px;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: .66rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+        .confirm-button.danger {
+            background: #c8475a;
+        }
+
+        .confirm-button.success {
+            background: #168957;
+        }
+
+    /* ================================================================
+               RESPONSIVE
+               ================================================================ */
+
+    @@media (max-width: 1100px) {
+
+        .users-card-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .users-toolbar {
+            width: 100%;
+        }
+
+        .search-box {
+            flex: 1;
+            width: auto;
+        }
+    }
+
+    @@media (max-width: 900px) {
+
+        .stats-grid {
+            grid-template-columns: repeat( 2, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 760px) {
+
+        .users-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-primary,
+        .hero-secondary {
+            flex: 1;
+        }
+
+        .users-toolbar {
+            flex-direction: column;
+        }
+
+        .search-box,
+        .toolbar-select {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 520px) {
+
+        .users-hero {
+            padding: 20px;
+        }
+
+        .hero-left {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .users-hero h1 {
+            font-size: 1.35rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-primary,
+        .hero-secondary {
+            width: 100%;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .confirm-actions {
+            flex-direction: column-reverse;
+        }
+
+            .confirm-actions button {
+                width: 100%;
+            }
+    }
+
+
+    /* Adaptaciones exclusivas de alertas; la base visual corresponde a Usuarios/Index. */
+    .alertas-page .inline-form {
+        margin: 0
+    }
+
+    .alertas-page .users-card-header h2 {
+        margin: 0;
+        color: var(--navy);
+        font-size: .87rem;
+        font-weight: 800
+    }
+
+    .alertas-page .users-card-header p {
+        margin: 3px 0 0;
+        color: #8793a3;
+        font-size: .6rem
+    }
+
+    .alert-total {
+        color: #728197;
+        background: #f2f6fa;
+        border: 1px solid #e6ebf1;
+        border-radius: 20px;
+        padding: 6px 10px;
+        font-size: .58rem;
+        font-weight: 750
+    }
+
+    .alertas-toolbar {
+        padding: 15px 18px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 13px
+    }
+
+    .alertas-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px
+    }
+
+    .alert-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        border: 1px solid #e0e7ee;
+        text-decoration: none;
+        color: #637489;
+        background: white;
+        font-weight: 750;
+        font-size: .62rem
+    }
+
+        .alert-tab:hover {
+            background: #f2f6fb;
+            color: #17488e
+        }
+
+        .alert-tab.selected {
+            background: #eaf2fb;
+            color: #17488e;
+            border-color: #bfd5ef
+        }
+
+        .alert-tab span {
+            font-size: .57rem;
+            color: inherit;
+            opacity: .78
+        }
+
+    .alert-filters {
+        display: flex;
+        gap: 8px;
+        align-items: center
+    }
+
+    .alert-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px;
+        border: 1px solid #dce3eb;
+        border-radius: 9px;
+        height: 39px;
+        color: #8995a5
+    }
+
+        .alert-search input {
+            border: 0;
+            outline: 0;
+            width: 170px;
+            min-width: 0;
+            font-size: .66rem;
+            color: #344357;
+            background: transparent
+        }
+
+    .alert-filters select {
+        height: 39px;
+        border: 1px solid #dce3eb;
+        border-radius: 9px;
+        padding: 0 9px;
+        font-size: .66rem;
+        color: #344357;
+        background: white
+    }
+
+    .alertas-table {
+        width: 100%;
+        min-width: 1050px
+    }
+
+        .alertas-table thead th {
+            font-size: .57rem
+        }
+
+        .alertas-table tbody td {
+            font-size: .65rem;
+            vertical-align: middle
+        }
+
+            .alertas-table tbody td:nth-child(4) {
+                min-width: 200px
+            }
+
+    .alert-primary-text {
+        display: block;
+        font-size: .68rem;
+        font-weight: 800;
+        color: #344357
+    }
+
+    .alert-muted {
+        color: #8793a3;
+        font-size: .58rem
+    }
+
+    .alert-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: 7px;
+        padding: 5px 8px;
+        font-size: .56rem;
+        font-weight: 800;
+        white-space: nowrap
+    }
+
+        .alert-chip.danger {
+            color: #b83c50;
+            background: #fff0f2
+        }
+
+        .alert-chip.warning {
+            color: #a57420;
+            background: #fff7e5
+        }
+
+        .alert-chip.neutral {
+            color: #657387;
+            background: #edf0f4
+        }
+
+        .alert-chip.info {
+            color: #286fa9;
+            background: #eaf2fb
+        }
+
+    .alert-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 31px;
+        height: 31px;
+        border: 1px solid #dce7f1;
+        border-radius: 8px;
+        background: #f4f8fc;
+        color: #47749d;
+        text-decoration: none
+    }
+
+        .alert-action:hover {
+            color: #17488e;
+            background: #e8f1fa
+        }
+
+        .alert-action.positive {
+            color: #168957;
+            background: #eef8f2;
+            border-color: #d5ebdf
+        }
+
+        .alert-action.warning {
+            color: #aa7725;
+            background: #fff7e7;
+            border-color: #f4e7c9
+        }
+
+    .alertas-table tbody tr.row-critical {
+        background: #fff9fa
+    }
+
+    .alertas-table tbody tr.row-warning {
+        background: #fffdf7
+    }
+
+    .material-thumb-mini, .empleado-avatar-mini, .empleado-avatar-mini, .maquinaria-thumb-mini {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #edf3f8;
+        color: #526f8d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-weight: 800;
+        font-size: .62rem
+    }
+
+    .alertas-empty, .alertas-empty-search {
+        padding: 45px 20px;
+        text-align: center;
+        color: #8190a2;
+        font-size: .67rem
+    }
+
+    .alertas-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px
+    }
+
+        .alertas-empty strong {
+            color: #344357;
+            font-size: .82rem
+        }
+
+        .alertas-empty svg {
+            color: #168957
+        }
+
+    .alertas-page .hero-primary {
+        white-space: nowrap
+    }
+
+    @@media(max-width:900px) {
+        .alertas-toolbar {
+            flex-direction: column;
+            align-items: stretch
+        }
+
+        .alert-filters {
+            width: 100%
+        }
+
+        .alert-search {
+            flex: 1
+        }
+
+            .alert-search input {
+                width: 100%
+            }
+    }
+
+    @@media(max-width:540px) {
+        .alert-filters {
+            flex-direction: column;
+            align-items: stretch
+        }
+
+            .alert-filters select {
+                width: 100%
+            }
+
+        .alertas-page .hero-actions {
+            flex-wrap: wrap
+        }
+
+            .alertas-page .hero-actions button {
+                width: 100%
+            }
+    }
+
+
+
+    /* Adaptaciones exclusivas de devoluciones de empleados */
+    .devol-page .stats-grid {
+        grid-template-columns: repeat(4,minmax(0,1fr))
+    }
+
+    .devol-page .devol-table {
+        min-width: 1280px
+    }
+
+        .devol-page .devol-table tbody td:nth-child(4) {
+            min-width: 0
+        }
+
+    .devol-person {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 145px
+    }
+
+        .devol-person > div {
+            min-width: 0
+        }
+
+        .devol-person strong, .devol-material {
+            display: block;
+            color: #344357;
+            font-weight: 800;
+            font-size: .67rem
+        }
+
+        .devol-person small {
+            display: block;
+            margin-top: 3px;
+            color: #8995a4;
+            font-size: .56rem
+        }
+
+    .devol-num {
+        color: #687789;
+        font-variant-numeric: tabular-nums
+    }
+
+    .devol-pending {
+        color: #c64759;
+        font-weight: 800;
+        font-size: .68rem
+    }
+
+    .devol-date {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        white-space: nowrap
+    }
+
+        .devol-date strong {
+            font-size: .59rem;
+            color: #485a70;
+            font-weight: 750
+        }
+
+        .devol-date small {
+            font-size: .53rem;
+            color: #8d99a8
+        }
+
+        .devol-date .devol-overdue {
+            color: #bb4053;
+            font-weight: 750
+        }
+
+        .devol-date .devol-soon {
+            color: #af8124;
+            font-weight: 750
+        }
+
+    .devol-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        justify-content: center
+    }
+
+    .devol-no-match {
+        padding: 35px 20px;
+        text-align: center;
+        color: #8895a4;
+        font-size: .62rem
+    }
+
+        .devol-no-match:not([hidden]) {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center
+        }
+
+        .devol-no-match strong {
+            font-size: .76rem;
+            color: #344357
+        }
+
+    .devol-footer {
+        padding: 11px 18px;
+        border-top: 1px solid #edf1f5;
+        color: #8995a4;
+        font-size: .59rem
+    }
+
+    .devol-return {
+        margin-top: 7px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        color: #17488e;
+        font-size: .64rem;
+        font-weight: 750
+    }
+
+    .devol-page .devol-row[hidden], .devol-page .devol-no-match[hidden] {
+        display: none !important
+    }
+
+    .devol-page .stat-icon.gold {
+        background: #fff7e5;
+        color: #a47517
+    }
+
+    @@media(max-width:950px) {
+        .devol-page .stats-grid {
+            grid-template-columns: repeat(2,minmax(0,1fr))
+        }
+    }
+
+    @@media(max-width:540px) {
+        .devol-page .stats-grid {
+            grid-template-columns: 1fr
+        }
+    }
+
+</style>

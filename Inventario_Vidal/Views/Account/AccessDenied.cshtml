@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Acceso denegado";
+}
+
+<style>
+    .denied-wrap{min-height:calc(100vh - 150px);display:flex;align-items:center;justify-content:center;padding:28px}
+    .denied-card{width:min(680px,100%);background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 16px 46px rgba(16,41,71,.08);overflow:hidden}
+    .denied-top{padding:28px;background:linear-gradient(135deg,#102947,#17488e);color:#fff}
+    .denied-top span{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.11);font-size:.58rem;font-weight:800}
+    .denied-top h1{margin:12px 0 0;font-size:1.6rem}
+    .denied-top p{margin:7px 0 0;color:rgba(255,255,255,.72);font-size:.72rem;line-height:1.55}
+    .denied-body{padding:24px}
+    .denied-body p{margin:0;color:#687a8d;font-size:.70rem;line-height:1.65}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+    .btn-v{height:40px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;text-decoration:none;font-size:.65rem;font-weight:700;cursor:pointer}
+    .btn-primary-v{border:0;background:#17488e;color:#fff}
+    .btn-secondary-v{border:1px solid #d8e1ea;background:#fff;color:#53667b}
+</style>
+
+<div class="denied-wrap">
+    <section class="denied-card">
+        <div class="denied-top">
+            <span>SEGURIDAD</span>
+            <h1>Acceso denegado</h1>
+            <p>Tu cuenta inició sesión correctamente, pero no tiene permiso para acceder a este recurso.</p>
+        </div>
+        <div class="denied-body">
+            <p>Si necesitas esta funcionalidad, solicita al administrador que revise el rol y los permisos asignados a tu cuenta.</p>
+
+            <div class="actions">
+                <a asp-controller="Home" asp-action="Index" class="btn-v btn-primary-v">Ir al inicio</a>
+                <a asp-controller="Account" asp-action="Perfil" class="btn-v btn-secondary-v">Mi perfil</a>
+
+                <form asp-controller="Auth" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-v btn-secondary-v">Cerrar sesión</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>

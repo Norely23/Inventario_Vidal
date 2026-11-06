@@ -1,0 +1,1962 @@
+@using Inventario_Vidal.DTOs
+@model UsuarioEditDto
+
+@{
+    ViewData["Title"] = "Editar Usuario";
+    ViewBag.Subtitle = "Modificar información del usuario";
+
+    var roles =
+        ViewBag.Roles as IEnumerable<UsuarioRolDto>
+        ?? new List<UsuarioRolDto>();
+}
+
+<div class="user-edit-page">
+
+    <!-- ============================================================
+    HERO
+    ============================================================ -->
+    <section class="edit-hero">
+
+        <div class="hero-left">
+
+            <div class="hero-icon">
+
+                <svg class="icon icon-xl">
+                    <use href="#icon-edit"></use>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <div class="hero-title-row">
+
+                    <h1>
+                        Editar usuario
+                    </h1>
+
+                    <span class="hero-id">
+                        ID #@Model.IdUsuario
+                    </span>
+
+                </div>
+
+                <div class="hero-subtitle">
+
+                    <svg class="icon icon-sm">
+                        <use href="#icon-info"></use>
+                    </svg>
+
+                    <span>
+                        Actualiza la información, rol y estado de la cuenta.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="hero-actions">
+
+            <a asp-action="Detalles"
+               asp-route-id="@Model.IdUsuario"
+               class="hero-button outline">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-eye"></use>
+                </svg>
+
+                Ver detalles
+
+            </a>
+
+            <a asp-action="Index"
+               class="hero-button outline">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-arrow-left"></use>
+                </svg>
+
+                Volver
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- ============================================================
+    ALERTAS
+    ============================================================ -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="page-alert danger">
+
+            <svg class="icon">
+                <use href="#icon-alert-triangle"></use>
+            </svg>
+
+            <div>
+
+                <strong>
+                    Revisa la información ingresada
+                </strong>
+
+                <div asp-validation-summary="ModelOnly"
+                     class="validation-summary">
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- ============================================================
+    FORMULARIO
+    ============================================================ -->
+    <form asp-action="Editar"
+          method="post"
+          id="usuarioForm">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="IdUsuario"
+               type="hidden" />
+
+        <div class="edit-layout">
+
+            <!-- ========================================================
+            CONTENIDO
+            ======================================================== -->
+            <main>
+
+                <!-- ====================================================
+                INFORMACIÓN PERSONAL
+                ==================================================== -->
+                <section class="form-card">
+
+                    <div class="card-header">
+
+                        <div class="section-icon blue">
+
+                            <svg class="icon">
+                                <use href="#icon-user"></use>
+                            </svg>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                INFORMACIÓN
+                            </span>
+
+                            <h2>
+                                Datos personales
+                            </h2>
+
+                            <p>
+                                Actualiza los datos identificativos de la cuenta.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="field-group">
+
+                            <label asp-for="NombreCompleto"
+                                   class="vidal-label">
+
+                                Nombre completo *
+
+                            </label>
+
+                            <div class="input-with-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-user"></use>
+                                </svg>
+
+                                <input asp-for="NombreCompleto"
+                                       id="NombreCompleto"
+                                       class="vidal-control with-icon"
+                                       maxlength="150"
+                                       autocomplete="name"
+                                       placeholder="Nombre completo" />
+
+                            </div>
+
+                            <span asp-validation-for="NombreCompleto"
+                                  class="validation-text">
+                            </span>
+
+                            <small class="field-help">
+                                Ingresa nombres y apellidos completos.
+                            </small>
+
+                        </div>
+
+                        <div class="field-group">
+
+                            <label asp-for="CorreoElectronico"
+                                   class="vidal-label">
+
+                                Correo electrónico
+
+                            </label>
+
+                            <div class="input-with-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-mail"></use>
+                                </svg>
+
+                                <input asp-for="CorreoElectronico"
+                                       id="CorreoElectronico"
+                                       type="email"
+                                       class="vidal-control with-icon"
+                                       maxlength="150"
+                                       autocomplete="email"
+                                       placeholder="usuario@correo.com" />
+
+                            </div>
+
+                            <span asp-validation-for="CorreoElectronico"
+                                  class="validation-text">
+                            </span>
+
+                            <small class="field-help">
+                                El correo es opcional, pero no puede estar registrado en otra cuenta.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                CUENTA
+                ==================================================== -->
+                <section class="form-card mt-card">
+
+                    <div class="card-header">
+
+                        <div class="section-icon purple">
+
+                            <svg class="icon">
+                                <use href="#icon-lock"></use>
+                            </svg>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                CUENTA
+                            </span>
+
+                            <h2>
+                                Identificación de acceso
+                            </h2>
+
+                            <p>
+                                Información utilizada para identificar la cuenta.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="field-group">
+
+                            <label asp-for="NombreUsuario"
+                                   class="vidal-label">
+
+                                Nombre de usuario
+
+                            </label>
+
+                            <div class="input-with-icon readonly-control">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-user"></use>
+                                </svg>
+
+                                <input asp-for="NombreUsuario"
+                                       id="NombreUsuario"
+                                       class="vidal-control with-icon"
+                                       readonly
+                                       autocomplete="username" />
+
+                                <span class="readonly-badge">
+                                    No editable
+                                </span>
+
+                            </div>
+
+                            <span asp-validation-for="NombreUsuario"
+                                  class="validation-text">
+                            </span>
+
+                            <div class="locked-note">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-lock"></use>
+                                </svg>
+
+                                <span>
+                                    El nombre de usuario identifica permanentemente esta cuenta.
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="password-note">
+
+                            <div class="password-note-icon">
+
+                                <svg class="icon">
+                                    <use href="#icon-lock"></use>
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Contraseña
+                                </strong>
+
+                                <span>
+                                    La contraseña no se modifica desde este formulario de edición.
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                ROL Y ESTADO
+                ==================================================== -->
+                <section class="form-card mt-card">
+
+                    <div class="card-header">
+
+                        <div class="section-icon gold">
+
+                            <svg class="icon">
+                                <use href="#icon-shield"></use>
+                            </svg>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                ACCESO
+                            </span>
+
+                            <h2>
+                                Rol y estado
+                            </h2>
+
+                            <p>
+                                Administra el perfil de permisos y disponibilidad de la cuenta.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="field-group">
+
+                            <label asp-for="IdRol"
+                                   class="vidal-label">
+
+                                Rol *
+
+                            </label>
+
+                            <div class="input-with-icon">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-shield"></use>
+                                </svg>
+
+                                <select asp-for="IdRol"
+                                        id="IdRol"
+                                        class="vidal-control with-icon">
+
+                                    <option value="">
+                                        Seleccione un rol...
+                                    </option>
+
+                                    @foreach (var rol in roles)
+                                    {
+                                        <option value="@rol.IdRol"
+                                                data-description="@rol.Descripcion">
+
+                                            @rol.NombreRol
+
+                                        </option>
+                                    }
+
+                                </select>
+
+                            </div>
+
+                            <span asp-validation-for="IdRol"
+                                  class="validation-text">
+                            </span>
+
+                            <div class="role-description"
+                                 id="roleDescription">
+
+                                <svg class="icon icon-sm">
+                                    <use href="#icon-info"></use>
+                                </svg>
+
+                                <span>
+                                    Selecciona un rol para consultar su descripción.
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ============================================
+                        ESTADO
+                        ============================================ -->
+                        <div class="status-box">
+
+                            <div class="status-icon"
+                                 id="statusIcon">
+
+                                <svg class="icon">
+                                    <use href="#icon-check-circle"></use>
+                                </svg>
+
+                            </div>
+
+                            <div class="status-content">
+
+                                <strong id="statusTitle">
+                                    Cuenta activa
+                                </strong>
+
+                                <span id="statusDescription">
+                                    El usuario puede utilizar esta cuenta para ingresar al sistema.
+                                </span>
+
+                            </div>
+
+                            <label class="switch-control">
+
+                                <input asp-for="Activo"
+                                       id="Activo"
+                                       type="checkbox" />
+
+                                <span class="switch-slider"></span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                INFORMACIÓN DE SEGURIDAD
+                ==================================================== -->
+                <section class="information-card">
+
+                    <div class="information-icon">
+
+                        <svg class="icon">
+                            <use href="#icon-info"></use>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Efecto del cambio de rol
+                        </strong>
+
+                        <p>
+                            Al guardar un rol diferente, los accesos efectivos del usuario pasarán a depender de los permisos asignados a ese rol.
+                        </p>
+
+                    </div>
+
+                </section>
+
+            </main>
+
+            <!-- ========================================================
+            VISTA PREVIA
+            ======================================================== -->
+            <aside>
+
+                <section class="summary-card">
+
+                    <div class="summary-title">
+
+                        <svg class="icon">
+                            <use href="#icon-eye"></use>
+                        </svg>
+
+                        Vista previa
+
+                    </div>
+
+                    <div class="profile-preview">
+
+                        <div class="profile-avatar"
+                             id="previewAvatar">
+
+                            U
+
+                        </div>
+
+                        <div class="profile-main">
+
+                            <strong id="previewNombre">
+                                @Model.NombreCompleto
+                            </strong>
+
+                            <span id="previewUsername">
+                                @@Model.NombreUsuario
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="summary-status">
+
+                        <span>
+                            Estado
+                        </span>
+
+                        <span id="previewEstado"
+                              class="status-preview @(Model.Activo ? "active" : "inactive")">
+
+                            @(Model.Activo ? "Activo" : "Inactivo")
+
+                        </span>
+
+                    </div>
+
+                    <div class="summary-data">
+
+                        <div>
+
+                            <span>
+                                ID
+                            </span>
+
+                            <strong>
+                                #@Model.IdUsuario
+                            </strong>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                Correo
+                            </span>
+
+                            <strong id="previewCorreo">
+
+                                @(string.IsNullOrWhiteSpace(Model.CorreoElectronico)
+                                    ? "Sin correo"
+                                    : Model.CorreoElectronico)
+
+                            </strong>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                Rol
+                            </span>
+
+                            <strong id="previewRol">
+                                Sin seleccionar
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                    <div class="summary-note">
+
+                        <svg class="icon icon-sm">
+                            <use href="#icon-shield"></use>
+                        </svg>
+
+                        <span>
+                            Los permisos no se asignan directamente al usuario, sino mediante su rol.
+                        </span>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                IDENTIDAD DE CUENTA
+                ==================================================== -->
+                <section class="account-card">
+
+                    <div class="account-card-icon">
+
+                        <svg class="icon">
+                            <use href="#icon-user"></use>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Cuenta existente
+                        </strong>
+
+                        <span>
+                            Esta edición modifica una cuenta ya registrada en VIDAL.
+                        </span>
+
+                    </div>
+
+                </section>
+
+                <!-- ====================================================
+                ROLES
+                ==================================================== -->
+                <section class="roles-card">
+
+                    <div class="roles-card-title">
+
+                        <svg class="icon">
+                            <use href="#icon-shield"></use>
+                        </svg>
+
+                        <strong>
+                            Roles disponibles
+                        </strong>
+
+                    </div>
+
+                    <span>
+                        @roles.Count()
+                        @(roles.Count() == 1
+                            ? "rol activo disponible"
+                            : "roles activos disponibles")
+                    </span>
+
+                    <a asp-controller="Roles"
+                       asp-action="Index">
+
+                        Administrar roles
+
+                        <svg class="icon icon-sm">
+                            <use href="#icon-arrow-right"></use>
+                        </svg>
+
+                    </a>
+
+                </section>
+
+            </aside>
+
+        </div>
+
+        <!-- ============================================================
+        ACCIONES
+        ============================================================ -->
+        <div class="form-actions">
+
+            <a asp-action="Index"
+               class="cancel-button">
+
+                Cancelar
+
+            </a>
+
+            <button type="reset"
+                    class="reset-button"
+                    id="btnReset">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-refresh"></use>
+                </svg>
+
+                Restablecer
+
+            </button>
+
+            <button type="submit"
+                    class="submit-button"
+                    id="btnSubmit">
+
+                <svg class="icon icon-sm">
+                    <use href="#icon-save"></use>
+                </svg>
+
+                Guardar cambios
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
+
+                // ========================================================
+                // ELEMENTOS
+                // ========================================================
+
+                const nombre =
+                    document.getElementById(
+                        'NombreCompleto');
+
+                const usuario =
+                    document.getElementById(
+                        'NombreUsuario');
+
+                const correo =
+                    document.getElementById(
+                        'CorreoElectronico');
+
+                const rol =
+                    document.getElementById(
+                        'IdRol');
+
+                const activo =
+                    document.getElementById(
+                        'Activo');
+
+                const btnReset =
+                    document.getElementById(
+                        'btnReset');
+
+                const btnSubmit =
+                    document.getElementById(
+                        'btnSubmit');
+
+                const form =
+                    document.getElementById(
+                        'usuarioForm');
+
+                // ========================================================
+                // PREVIEW
+                // ========================================================
+
+                const previewAvatar =
+                    document.getElementById(
+                        'previewAvatar');
+
+                const previewNombre =
+                    document.getElementById(
+                        'previewNombre');
+
+                const previewUsername =
+                    document.getElementById(
+                        'previewUsername');
+
+                const previewCorreo =
+                    document.getElementById(
+                        'previewCorreo');
+
+                const previewRol =
+                    document.getElementById(
+                        'previewRol');
+
+                const previewEstado =
+                    document.getElementById(
+                        'previewEstado');
+
+                const roleDescription =
+                    document.getElementById(
+                        'roleDescription');
+
+                const statusTitle =
+                    document.getElementById(
+                        'statusTitle');
+
+                const statusDescription =
+                    document.getElementById(
+                        'statusDescription');
+
+                const statusIcon =
+                    document.getElementById(
+                        'statusIcon');
+
+                // ========================================================
+                // INICIALES
+                // ========================================================
+
+                function obtenerIniciales(
+                    valor) {
+
+                    if (!valor ||
+                        !valor.trim()) {
+
+                        return 'U';
+                    }
+
+                    const partes =
+                        valor
+                            .trim()
+                            .split(/\s+/)
+                            .filter(Boolean);
+
+                    if (partes.length === 1) {
+
+                        return partes[0]
+                            .substring(0, 2)
+                            .toUpperCase();
+                    }
+
+                    return (
+                        partes[0][0] +
+                        partes[partes.length - 1][0]
+                    ).toUpperCase();
+                }
+
+                // ========================================================
+                // ESCAPAR HTML
+                // ========================================================
+
+                function escaparHtml(
+                    value) {
+
+                    return String(
+                        value || '')
+                        .replaceAll(
+                            '&',
+                            '&amp;')
+                        .replaceAll(
+                            '<',
+                            '&lt;')
+                        .replaceAll(
+                            '>',
+                            '&gt;')
+                        .replaceAll(
+                            '"',
+                            '&quot;')
+                        .replaceAll(
+                            "'",
+                            '&#039;');
+                }
+
+                // ========================================================
+                // ROL
+                // ========================================================
+
+                function actualizarRol() {
+
+                    const option =
+                        rol.options[
+                        rol.selectedIndex];
+
+                    if (!option ||
+                        !option.value) {
+
+                        previewRol.textContent =
+                            'Sin seleccionar';
+
+                        roleDescription.innerHTML =
+                            '<svg class="icon icon-sm">' +
+                            '<use href="#icon-info"></use>' +
+                            '</svg>' +
+                            '<span>' +
+                            'Selecciona un rol para consultar su descripción.' +
+                            '</span>';
+
+                        return;
+                    }
+
+                    previewRol.textContent =
+                        option.text.trim();
+
+                    const descripcion =
+                        option.dataset.description ||
+                        'Este rol no tiene una descripción registrada.';
+
+                    roleDescription.innerHTML =
+                        '<svg class="icon icon-sm">' +
+                        '<use href="#icon-info"></use>' +
+                        '</svg>' +
+                        '<span>' +
+                        escaparHtml(
+                            descripcion) +
+                        '</span>';
+                }
+
+                // ========================================================
+                // ESTADO
+                // ========================================================
+
+                function actualizarEstado() {
+
+                    const esActivo =
+                        activo.checked;
+
+                    previewEstado.textContent =
+                        esActivo
+                            ? 'Activo'
+                            : 'Inactivo';
+
+                    previewEstado.className =
+                        esActivo
+                            ? 'status-preview active'
+                            : 'status-preview inactive';
+
+                    statusTitle.textContent =
+                        esActivo
+                            ? 'Cuenta activa'
+                            : 'Cuenta inactiva';
+
+                    statusDescription.textContent =
+                        esActivo
+                            ? 'El usuario puede utilizar esta cuenta para ingresar al sistema.'
+                            : 'El usuario no podrá utilizar esta cuenta mientras permanezca inactiva.';
+
+                    statusIcon.className =
+                        esActivo
+                            ? 'status-icon active'
+                            : 'status-icon inactive';
+
+                    statusIcon.innerHTML =
+                        '<svg class="icon">' +
+                        '<use href="#icon-' +
+                        (esActivo
+                            ? 'check-circle'
+                            : 'x-circle') +
+                        '"></use>' +
+                        '</svg>';
+                }
+
+                // ========================================================
+                // PREVIEW
+                // ========================================================
+
+                function actualizarPreview() {
+
+                    const nombreTexto =
+                        nombre.value.trim();
+
+                    const correoTexto =
+                        correo.value.trim();
+
+                    previewAvatar.textContent =
+                        obtenerIniciales(
+                            nombreTexto);
+
+                    previewNombre.textContent =
+                        nombreTexto ||
+                        'Usuario sin nombre';
+
+                    previewUsername.textContent =
+                        usuario.value
+                            ? '@@' +
+                            usuario.value
+                            : '@@usuario';
+
+                    previewCorreo.textContent =
+                        correoTexto ||
+                        'Sin correo';
+
+                    actualizarRol();
+                    actualizarEstado();
+                }
+
+                // ========================================================
+                // LISTENERS
+                // ========================================================
+
+                nombre.addEventListener(
+                    'input',
+                    actualizarPreview);
+
+                correo.addEventListener(
+                    'input',
+                    actualizarPreview);
+
+                rol.addEventListener(
+                    'change',
+                    actualizarPreview);
+
+                activo.addEventListener(
+                    'change',
+                    actualizarPreview);
+
+                // ========================================================
+                // RESET
+                // ========================================================
+
+                btnReset.addEventListener(
+                    'click',
+                    function() {
+
+                        setTimeout(
+                            actualizarPreview,
+                            0);
+                    });
+
+                // ========================================================
+                // SUBMIT
+                // ========================================================
+
+                form.addEventListener(
+                    'submit',
+                    function() {
+
+                        if (!form.checkValidity()) {
+                            return;
+                        }
+
+                        btnSubmit.disabled =
+                            true;
+
+                        btnSubmit.innerHTML =
+                            '<svg class="icon icon-sm icon-spin">' +
+                            '<use href="#icon-refresh"></use>' +
+                            '</svg>' +
+                            ' Guardando...';
+                    });
+
+                actualizarPreview();
+            });
+
+    </script>
+}
+
+<style>
+
+    /* ================================================================
+           BASE
+           ================================================================ */
+
+    .user-edit-page {
+        --navy: #102947;
+        --blue: #17488e;
+        --blue-light: #226cc2;
+        --border: #dce3eb;
+        --text: #344357;
+        --muted: #7d8999;
+        --success: #168957;
+        --danger: #d1475b;
+    }
+
+    /* ================================================================
+           HERO
+           ================================================================ */
+
+    .edit-hero {
+        min-height: 114px;
+        padding: 23px 30px;
+        margin-bottom: 17px;
+        border-radius: 20px;
+        background: linear-gradient( 100deg, #102947 0%, #17488e 49%, #226cc2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .edit-hero::after {
+            content: "";
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            top: -130px;
+            right: -80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+        }
+
+    .hero-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.11);
+        border: 1px solid rgba(255,255,255,.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-title-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+    }
+
+        .hero-title-row h1 {
+            margin: 0;
+            font-size: 1.65rem;
+            font-weight: 800;
+        }
+
+    .hero-id {
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.1);
+        color: rgba(255,255,255,.85);
+        font-size: .57rem;
+        font-weight: 750;
+    }
+
+    .hero-subtitle {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: rgba(255,255,255,.72);
+        font-size: .79rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-button {
+        min-height: 41px;
+        padding: 0 14px;
+        border-radius: 9px;
+        border: 1px solid rgba(255,255,255,.28);
+        background: rgba(255,255,255,.05);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-size: .69rem;
+        font-weight: 750;
+    }
+
+        .hero-button:hover {
+            color: white;
+            background: rgba(255,255,255,.12);
+        }
+
+    /* ================================================================
+           ALERTS
+           ================================================================ */
+
+    .page-alert {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        border-radius: 11px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+        .page-alert.danger {
+            background: #fff1f3;
+            color: #a73547;
+            border-left: 4px solid var(--danger);
+        }
+
+        .page-alert > div {
+            flex: 1;
+        }
+
+        .page-alert strong {
+            display: block;
+            font-size: .72rem;
+        }
+
+        .page-alert span {
+            display: block;
+            margin-top: 2px;
+            font-size: .63rem;
+        }
+
+    .validation-summary {
+        margin-top: 5px;
+        font-size: .61rem;
+    }
+
+    /* ================================================================
+           LAYOUT
+           ================================================================ */
+
+    .edit-layout {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) 310px;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .form-card,
+    .summary-card,
+    .account-card,
+    .roles-card,
+    .information-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+    }
+
+    .mt-card {
+        margin-top: 16px;
+    }
+
+    /* ================================================================
+           FORM CARD
+           ================================================================ */
+
+    .card-header {
+        padding: 17px 19px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .section-icon {
+        width: 37px;
+        height: 37px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .section-icon.blue {
+            color: #356fa7;
+            background: #eaf2fb;
+        }
+
+        .section-icon.purple {
+            color: #7554aa;
+            background: #f0ebf8;
+        }
+
+        .section-icon.gold {
+            color: #a47517;
+            background: #fff7e5;
+        }
+
+    .card-header span {
+        display: block;
+        color: #929dab;
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: .8px;
+    }
+
+    .card-header h2 {
+        margin: 1px 0 0;
+        color: var(--navy);
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .card-header p {
+        margin: 2px 0 0;
+        color: #8793a3;
+        font-size: .61rem;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* ================================================================
+           CAMPOS
+           ================================================================ */
+
+    .field-group + .field-group {
+        margin-top: 18px;
+    }
+
+    .vidal-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #33445a;
+        font-size: .69rem;
+        font-weight: 750;
+    }
+
+    .vidal-control {
+        width: 100%;
+        min-height: 42px;
+        padding: 9px 11px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: white;
+        color: #344357;
+        font-size: .69rem;
+        outline: none;
+        transition: .18s ease;
+    }
+
+        .vidal-control:focus {
+            border-color: #6797ca;
+            box-shadow: 0 0 0 3px rgba(34,108,194,.08);
+        }
+
+        .vidal-control.with-icon {
+            padding-left: 37px;
+        }
+
+    .input-with-icon {
+        position: relative;
+    }
+
+        .input-with-icon > .icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8391a2;
+            pointer-events: none;
+        }
+
+    .vidal-control[readonly] {
+        background: #f4f6f9;
+        color: #788596;
+        cursor: not-allowed;
+        padding-right: 83px;
+    }
+
+    .readonly-control {
+        position: relative;
+    }
+
+    .readonly-badge {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 3px 6px;
+        border-radius: 999px;
+        background: #e7ebf0;
+        color: #748091;
+        font-size: .49rem;
+        font-weight: 800;
+        pointer-events: none;
+    }
+
+    .validation-text {
+        display: block;
+        margin-top: 5px;
+        color: var(--danger);
+        font-size: .61rem;
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 5px;
+        color: #8a96a6;
+        font-size: .58rem;
+    }
+
+    .locked-note {
+        margin-top: 7px;
+        padding: 8px 9px;
+        border-radius: 7px;
+        background: #f5f7fa;
+        color: #718094;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .56rem;
+    }
+
+    /* ================================================================
+           PASSWORD NOTE
+           ================================================================ */
+
+    .password-note {
+        margin-top: 18px;
+        padding: 13px;
+        border: 1px solid #e3e9f0;
+        border-radius: 9px;
+        background: #fafbfd;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .password-note-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #edf3f8;
+        color: #5b7692;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .password-note strong {
+        display: block;
+        color: #445368;
+        font-size: .65rem;
+    }
+
+    .password-note span {
+        display: block;
+        margin-top: 2px;
+        color: #8793a3;
+        font-size: .56rem;
+    }
+
+    /* ================================================================
+           ROLE
+           ================================================================ */
+
+    .role-description {
+        margin-top: 8px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: #f4f8fc;
+        color: #61768c;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: .58rem;
+        line-height: 1.45;
+    }
+
+    /* ================================================================
+           STATUS
+           ================================================================ */
+
+    .status-box {
+        margin-top: 19px;
+        padding: 13px;
+        border: 1px solid #dfe6ee;
+        border-radius: 10px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .status-icon.active {
+            background: #e9f7f0;
+            color: #168957;
+        }
+
+        .status-icon.inactive {
+            background: #fff0f2;
+            color: #c2495c;
+        }
+
+    .status-content {
+        flex: 1;
+    }
+
+        .status-content strong {
+            display: block;
+            color: #344357;
+            font-size: .67rem;
+        }
+
+        .status-content span {
+            display: block;
+            margin-top: 2px;
+            color: #7f8c9c;
+            font-size: .57rem;
+            line-height: 1.4;
+        }
+
+    .switch-control {
+        width: 42px;
+        height: 23px;
+        position: relative;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+        .switch-control input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
+
+    .switch-slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #cfd7e1;
+        transition: .2s ease;
+    }
+
+        .switch-slider::before {
+            content: "";
+            position: absolute;
+            width: 17px;
+            height: 17px;
+            top: 3px;
+            left: 3px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 1px 4px rgba(0,0,0,.18);
+            transition: .2s ease;
+        }
+
+    .switch-control input:checked +
+    .switch-slider {
+        background: #168957;
+    }
+
+        .switch-control input:checked +
+        .switch-slider::before {
+            transform: translateX(19px);
+        }
+
+    /* ================================================================
+           INFO CARD
+           ================================================================ */
+
+    .information-card {
+        margin-top: 16px;
+        padding: 13px 15px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .information-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #eef5fd;
+        color: #49709a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .information-card strong {
+        display: block;
+        color: #344357;
+        font-size: .64rem;
+    }
+
+    .information-card p {
+        margin: 3px 0 0;
+        color: #7f8c9d;
+        font-size: .56rem;
+        line-height: 1.5;
+    }
+
+    /* ================================================================
+           SUMMARY
+           ================================================================ */
+
+    .summary-card {
+        padding: 18px;
+        position: sticky;
+        top: 90px;
+    }
+
+    .summary-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--navy);
+        font-size: .7rem;
+        font-weight: 800;
+    }
+
+    .profile-preview {
+        margin-top: 17px;
+        padding: 13px;
+        border-radius: 11px;
+        background: #f7f9fc;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .profile-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 11px;
+        color: #346b9e;
+        background: #e8f1f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .72rem;
+        font-weight: 850;
+        flex-shrink: 0;
+    }
+
+    .profile-main {
+        min-width: 0;
+    }
+
+        .profile-main strong {
+            display: block;
+            overflow: hidden;
+            color: #344357;
+            font-size: .7rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .profile-main span {
+            display: block;
+            margin-top: 2px;
+            color: #8b96a5;
+            font-size: .56rem;
+        }
+
+    .summary-status {
+        margin-top: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #edf1f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+        .summary-status > span:first-child {
+            color: #8995a4;
+            font-size: .56rem;
+        }
+
+    .status-preview {
+        padding: 4px 7px;
+        border-radius: 999px;
+        font-size: .53rem;
+        font-weight: 800;
+    }
+
+        .status-preview.active {
+            color: #168957;
+            background: #e9f7f0;
+        }
+
+        .status-preview.inactive {
+            color: #687587;
+            background: #edf0f4;
+        }
+
+    .summary-data {
+        margin-top: 8px;
+    }
+
+        .summary-data > div {
+            padding: 7px 0;
+            border-bottom: 1px solid #edf1f5;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .summary-data span {
+            color: #8995a4;
+            font-size: .55rem;
+        }
+
+        .summary-data strong {
+            max-width: 170px;
+            overflow: hidden;
+            color: #4c5b6d;
+            font-size: .56rem;
+            text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .summary-note {
+        margin-top: 12px;
+        padding: 9px;
+        border-radius: 8px;
+        background: #eef5fd;
+        color: #4f6d8b;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: .55rem;
+        line-height: 1.45;
+    }
+
+    /* ================================================================
+           SIDE CARDS
+           ================================================================ */
+
+    .account-card,
+    .roles-card {
+        margin-top: 13px;
+        padding: 13px;
+    }
+
+    .account-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+    }
+
+    .account-card-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #edf3f8;
+        color: #526f8d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .account-card strong {
+        display: block;
+        color: #344357;
+        font-size: .63rem;
+    }
+
+    .account-card span {
+        display: block;
+        margin-top: 2px;
+        color: #8793a3;
+        font-size: .54rem;
+        line-height: 1.45;
+    }
+
+    .roles-card-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #4f6d8b;
+    }
+
+        .roles-card-title strong {
+            color: #344357;
+            font-size: .63rem;
+        }
+
+    .roles-card > span {
+        display: block;
+        margin-top: 6px;
+        color: #8995a4;
+        font-size: .54rem;
+    }
+
+    .roles-card a {
+        min-height: 33px;
+        margin-top: 10px;
+        border-radius: 7px;
+        background: #f2f6fa;
+        color: #496a8a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        font-size: .57rem;
+        font-weight: 750;
+    }
+
+    /* ================================================================
+           ACTIONS
+           ================================================================ */
+
+    .form-actions {
+        margin-top: 17px;
+        padding-top: 16px;
+        border-top: 1px solid #e7ecf2;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .cancel-button,
+    .reset-button,
+    .submit-button {
+        min-height: 41px;
+        padding: 0 15px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: .66rem;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .cancel-button,
+    .reset-button {
+        border: 1px solid #d8e0e9;
+        background: white;
+        color: #586779;
+    }
+
+    .reset-button {
+        cursor: pointer;
+    }
+
+    .submit-button {
+        border: none;
+        background: linear-gradient( 135deg, #102947, #17488e);
+        color: white;
+        cursor: pointer;
+    }
+
+        .submit-button:disabled {
+            opacity: .65;
+            cursor: wait;
+        }
+
+    /* ================================================================
+           SPINNER
+           ================================================================ */
+
+    .icon-spin {
+        animation: userEditSpin 1s linear infinite;
+    }
+
+    @@keyframes userEditSpin {
+
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+
+    @@media (max-width: 950px) {
+
+        .edit-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-card {
+            position: static;
+        }
+    }
+
+    @@media (max-width: 720px) {
+
+        .edit-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-actions {
+            width: 100%;
+        }
+
+        .hero-button {
+            flex: 1;
+        }
+    }
+
+    @@media (max-width: 520px) {
+
+        .edit-hero {
+            padding: 20px;
+        }
+
+        .hero-left {
+            align-items: flex-start;
+        }
+
+        .hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .hero-title-row h1 {
+            font-size: 1.35rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+        }
+
+        .hero-button {
+            width: 100%;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .cancel-button,
+        .reset-button,
+        .submit-button {
+            width: 100%;
+        }
+    }
+
+</style>
