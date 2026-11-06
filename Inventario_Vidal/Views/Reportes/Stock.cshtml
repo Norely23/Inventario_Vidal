@@ -1,0 +1,650 @@
+@using Inventario_Vidal.DTOs
+@model IEnumerable<ReporteStockDto>
+
+@{
+    ViewData["Title"] = "Reporte de Stock";
+    ViewBag.Subtitle = "Existencias y alertas de inventario";
+    var registros = Model?.ToList() ?? new List<ReporteStockDto>();
+    bool soloAlertas = ViewBag.SoloAlertas is bool valorAlertas && valorAlertas;
+    string busqueda = ViewBag.Search as string ?? "";
+    int? categoriaSeleccionada = ViewBag.IdCategoria as int?;
+    var categorias = ViewBag.Categorias as System.Collections.IEnumerable;
+    int total = registros.Count;
+    int bajoStock = registros.Count(x => x.AlertaStockBajo);
+    decimal existencia = registros.Sum(x => x.StockActual);
+    decimal valorizado = registros.Sum(x => x.Valorizado ?? 0m);
+}
+
+<div class="vidal-stock-page">
+    @* Cabecera homologada al patrón oficial Views/Proveedores/Index.cshtml. *@
+    <section class="stock-hero" aria-labelledby="stock-page-title">
+        <div class="stock-hero-left">
+            <div class="stock-hero-icon">
+                <svg class="icon icon-xl"><use href="#icon-boxes"></use></svg>
+            </div>
+            <div class="stock-hero-copy">
+                <div class="stock-eyebrow">CENTRO DE REPORTES</div>
+                <h1 id="stock-page-title">Reporte de stock</h1>
+                <p>Consulta existencias, disponibilidad y alertas de materiales.</p>
+            </div>
+        </div>
+        <div class="stock-hero-actions">
+            <a asp-action="Index" class="stock-hero-btn outline"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>Volver a reportes</a>
+            <a asp-action="ExportarStockExcel" asp-route-soloAlertas="@soloAlertas" class="stock-hero-btn light"><svg class="icon icon-sm"><use href="#icon-download"></use></svg>Excel</a>
+            <a asp-action="ExportarStockPdf" asp-route-soloAlertas="@soloAlertas" class="stock-hero-btn light"><svg class="icon icon-sm"><use href="#icon-printer"></use></svg>PDF</a>
+        </div>
+    </section>
+
+    <section class="stock-metrics" aria-label="Resumen del stock filtrado">
+        <article class="stock-metric"><span class="stock-metric-icon blue"><svg class="icon"><use href="#icon-box"></use></svg></span><div><small>Materiales encontrados</small><strong>@total.ToString("N0")</strong><span class="stock-metric-caption">En la consulta actual</span></div></article>
+        <article class="stock-metric"><span class="stock-metric-icon red"><svg class="icon"><use href="#icon-alert-triangle"></use></svg></span><div><small>Alertas de stock</small><strong>@bajoStock.ToString("N0")</strong><span class="stock-metric-caption">Según el estado de alerta</span></div></article>
+        <article class="stock-metric"><span class="stock-metric-icon green"><svg class="icon"><use href="#icon-layers"></use></svg></span><div><small>Existencias (unidades de consumo)</small><strong>@existencia.ToString("N2")</strong><span class="stock-metric-caption">Suma de existencias</span></div></article>
+        <article class="stock-metric"><span class="stock-metric-icon gold"><svg class="icon"><use href="#icon-dollar"></use></svg></span><div><small>Valorizado reportado</small><strong>@valorizado.ToString("N2")</strong><span class="stock-metric-caption">Valor total del reporte</span></div></article>
+    </section>
+
+    <section class="stock-panel" aria-labelledby="stock-list-title">
+        <div class="stock-panel-heading">
+            <span class="stock-panel-heading-icon"><svg class="icon"><use href="#icon-list"></use></svg></span>
+            <div class="stock-panel-heading-copy"><span>CONTROL DE INVENTARIO</span><h2 id="stock-list-title">Existencias de materiales</h2><p>Filtra el reporte por nombre, código, categoría o alertas.</p></div>
+            <span class="stock-count">@total registro(s)</span>
+        </div>
+        <form asp-action="Stock" method="get" class="stock-filters">
+            <div class="stock-field grow"><label for="stockSearch">Buscar material</label><input id="stockSearch" name="search" class="stock-control" value="@busqueda" placeholder="Nombre o código de barras" /></div>
+            <div class="stock-field">
+                <label for="stockCategoria">Categoría</label><select id="stockCategoria" name="idCategoria" class="stock-control">
+                <option value="">Todas las categorías</option>
+                @if (categorias != null)
+                {
+                    foreach (var categoria in categorias)
+                    {
+                        var tipo = categoria.GetType();
+                        var id = tipo.GetProperty("IdCategoria")?.GetValue(categoria)?.ToString();
+                        var nombre = tipo.GetProperty("Nombre")?.GetValue(categoria)?.ToString();
+                        if (int.TryParse(id, out int categoriaId) && categoriaSeleccionada == categoriaId)
+                        {
+                            <option value="@id" selected>@nombre</option>
+                        }
+                        else
+                        {
+                            <option value="@id">@nombre</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+        <div class="stock-field"><label for="stockSoloAlertas">Estado de stock</label><select id="stockSoloAlertas" name="soloAlertas" class="stock-control">@if (soloAlertas) {
+            <option value="false">Todos</option><option value="true" selected>Solo alertas</option>
+        } else
+        {
+
+            <option value="false" selected>Todos</option><option value="true">Solo alertas</option>
+        }
+    </select></div>
+    <button type="submit" class="stock-filter-button"><svg class="icon icon-sm"><use href="#icon-filter"></use></svg> Filtrar</button>
+    <a asp-action="Stock" class="stock-reset-button">Limpiar</a>
+</form>
+
+<div class="stock-table-scroll">
+    <table class="stock-table">
+        <thead><tr><th>Material</th><th>Categoría / Marca</th><th class="right">Stock actual</th><th class="right">Stock mínimo</th><th class="right">Reservado</th><th class="right">Disponible</th><th class="right">Valorizado</th><th>Estado</th></tr></thead>
+        <tbody>
+            @foreach (var item in registros)
+            {
+                <tr>
+                    <td><div class="stock-material"><strong>@item.Nombre</strong><span>@item.CodigoBarras</span></div></td>
+                    <td><div class="stock-material"><strong>@item.Categoria</strong><span>@(string.IsNullOrWhiteSpace(item.Marca) ? "Sin marca" : item.Marca)</span></div></td>
+                    <td class="right"><strong>@item.StockActual.ToString("N2")</strong><small>@item.UnidadConsumo</small></td>
+                    <td class="right">@item.StockMinimo.ToString("N2")</td>
+                    <td class="right">@item.StockReservado.ToString("N2")</td>
+                    <td class="right">@(item.StockDisponible.HasValue ? item.StockDisponible.Value.ToString("N2") : "—")</td>
+                    <td class="right">@(item.Valorizado.HasValue ? item.Valorizado.Value.ToString("N2") : "—")</td>
+                    <td>@if (item.AlertaStockBajo) {
+                        <span class="stock-state warning"><svg class="icon icon-sm"><use href="#icon-alert-triangle"></use></svg> Stock bajo</span>
+                    } else
+                    {
+
+                        <span class="stock-state ok"><svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg> Normal</span>
+                    }
+                </td>
+            </tr>
+        }
+        @if (registros.Count == 0)
+        {
+            <tr><td colspan="8"><div class="stock-empty"><svg class="icon icon-xl"><use href="#icon-boxes"></use></svg><strong>No se encontraron materiales</strong><p>Ajusta los filtros o consulta nuevamente.</p></div></td></tr>
+        }
+    </tbody>
+</table>
+</div>
+</section>
+</div>
+
+<style>
+    .vidal-stock-page {
+        --stock-navy: #102947;
+        --stock-blue: #17488e;
+        --stock-border: #dce3eb;
+        color: #344357;
+    }
+        /* Cabecera: geometría, tipografía, acento y botones equivalentes a Proveedores/Index. */
+        .vidal-stock-page .stock-hero {
+            min-height: 118px;
+            padding: 23px 30px;
+            margin-bottom: 17px;
+            border-radius: 20px;
+            background: linear-gradient(100deg,#102947 0%,#17488e 49%,#226cc2 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .vidal-stock-page .stock-hero::after {
+                content: "";
+                position: absolute;
+                width: 290px;
+                height: 290px;
+                top: -145px;
+                right: -85px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.05);
+                pointer-events: none;
+            }
+
+        .vidal-stock-page .stock-hero-left {
+            display: flex;
+            align-items: center;
+            gap: 17px;
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+        }
+
+        .vidal-stock-page .stock-hero-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.11);
+            border: 1px solid rgba(255,255,255,.13);
+        }
+
+        .vidal-stock-page .stock-hero-copy {
+            min-width: 0;
+        }
+
+        .vidal-stock-page .stock-eyebrow {
+            margin-bottom: 3px;
+            color: rgba(255,255,255,.55);
+            font-size: .53rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .vidal-stock-page .stock-hero h1 {
+            margin: 0;
+            font-size: 1.58rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .vidal-stock-page .stock-hero p {
+            margin: 5px 0 0;
+            color: rgba(255,255,255,.72);
+            font-size: .75rem;
+        }
+
+        .vidal-stock-page .stock-hero-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vidal-stock-page .stock-hero-btn {
+            min-height: 41px;
+            padding: 0 14px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            font-size: .68rem;
+            font-weight: 750;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background .18s ease,color .18s ease;
+        }
+
+            .vidal-stock-page .stock-hero-btn.light {
+                border: 1px solid #fff;
+                background: #fff;
+                color: #102947;
+            }
+
+            .vidal-stock-page .stock-hero-btn.outline {
+                border: 1px solid rgba(255,255,255,.28);
+                background: rgba(255,255,255,.05);
+                color: #fff;
+            }
+
+            .vidal-stock-page .stock-hero-btn.light:hover {
+                background: #f3f7fb;
+                color: #102947;
+            }
+
+            .vidal-stock-page .stock-hero-btn.outline:hover {
+                background: rgba(255,255,255,.12);
+                color: #fff;
+            }
+
+            .vidal-stock-page .stock-hero-btn:focus-visible {
+                outline: 2px solid #fff;
+                outline-offset: 3px;
+            }
+
+        .vidal-stock-page .stock-metrics {
+            display: grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .vidal-stock-page .stock-metric {
+            min-width: 0;
+            min-height: 92px;
+            padding: 16px;
+            border: 1px solid var(--stock-border);
+            border-radius: 14px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(16,41,71,.04);
+        }
+
+        .vidal-stock-page .stock-metric-icon {
+            width: 41px;
+            height: 41px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+            .vidal-stock-page .stock-metric-icon.blue {
+                color: #356fa7;
+                background: #eaf2fb;
+            }
+
+            .vidal-stock-page .stock-metric-icon.red {
+                color: #c7485a;
+                background: #fff1f3;
+            }
+
+            .vidal-stock-page .stock-metric-icon.green {
+                color: #168957;
+                background: #e9f7f0;
+            }
+
+            .vidal-stock-page .stock-metric-icon.gold {
+                color: #a47517;
+                background: #fff7e5;
+            }
+
+        .vidal-stock-page .stock-metric small, .vidal-stock-page .stock-metric strong {
+            display: block;
+        }
+
+        .vidal-stock-page .stock-metric small {
+            font-size: .59rem;
+            color: #8290a2;
+            font-weight: 700;
+        }
+
+        .vidal-stock-page .stock-metric strong {
+            margin-top: 5px;
+            font-size: 1.16rem;
+            color: #102947;
+            font-weight: 800;
+        }
+
+        .vidal-stock-page .stock-panel {
+            background: white;
+            border: 1px solid var(--stock-border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(16,41,71,.045);
+        }
+
+        .vidal-stock-page .stock-panel-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 17px 20px;
+            border-bottom: 1px solid #edf1f5;
+        }
+
+        .vidal-stock-page .stock-panel-heading-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #eaf2fb;
+            color: #356fa7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .vidal-stock-page .stock-panel-heading-copy {
+            flex: 1;
+            min-width: 0;
+        }
+
+            .vidal-stock-page .stock-panel-heading-copy span {
+                color: #8995a5;
+                font-size: .53rem;
+                letter-spacing: .6px;
+                font-weight: 800;
+            }
+
+            .vidal-stock-page .stock-panel-heading-copy h2 {
+                font-size: .91rem;
+                font-weight: 800;
+                color: #102947;
+                margin: 2px 0;
+            }
+
+            .vidal-stock-page .stock-panel-heading-copy p {
+                font-size: .62rem;
+                color: #8793a3;
+                margin: 0;
+            }
+
+        .vidal-stock-page .stock-count {
+            border-radius: 8px;
+            background: #eef3f8;
+            padding: 7px 10px;
+            color: #566c84;
+            font-size: .63rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .vidal-stock-page .stock-filters {
+            display: flex;
+            align-items: end;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 17px 20px;
+            border-bottom: 1px solid #edf1f5;
+            background: #fcfdff;
+        }
+
+        .vidal-stock-page .stock-field {
+            min-width: 175px;
+            flex: 1;
+        }
+
+            .vidal-stock-page .stock-field.grow {
+                flex: 1.5;
+            }
+
+            .vidal-stock-page .stock-field label {
+                display: block;
+                margin: 0 0 5px;
+                font-size: .61rem;
+                font-weight: 700;
+                color: #67778a;
+            }
+
+        .vidal-stock-page .stock-control {
+            width: 100%;
+            min-height: 39px;
+            padding: 8px 10px;
+            border: 1px solid #dce3eb;
+            border-radius: 9px;
+            background: white;
+            color: #344357;
+            font-size: .68rem;
+        }
+
+            .vidal-stock-page .stock-control:focus {
+                outline: none;
+                border-color: #6797ca;
+                box-shadow: 0 0 0 3px rgba(34,108,194,.1);
+            }
+
+        .vidal-stock-page .stock-filter-button, .vidal-stock-page .stock-reset-button {
+            min-height: 39px;
+            padding: 0 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            border-radius: 9px;
+            font-size: .68rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .vidal-stock-page .stock-filter-button {
+            color: white;
+            border: 0;
+            background: linear-gradient(135deg,#102947,#17488e);
+        }
+
+        .vidal-stock-page .stock-reset-button {
+            color: #536477;
+            border: 1px solid #dce3eb;
+            background: white;
+            text-decoration: none;
+        }
+
+        .vidal-stock-page .stock-table-scroll {
+            overflow-x: auto;
+        }
+
+        .vidal-stock-page .stock-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1050px;
+        }
+
+            .vidal-stock-page .stock-table th {
+                background: #f7f9fc;
+                color: #758397;
+                padding: 13px 12px;
+                font-size: .58rem;
+                font-weight: 800;
+                letter-spacing: .3px;
+                text-transform: uppercase;
+                white-space: nowrap;
+                border-bottom: 1px solid #e7ecf2;
+            }
+
+            .vidal-stock-page .stock-table td {
+                padding: 13px 12px;
+                color: #4b5a6d;
+                font-size: .67rem;
+                border-bottom: 1px solid #edf1f5;
+                vertical-align: middle;
+            }
+
+            .vidal-stock-page .stock-table tbody tr:hover {
+                background: #fafcfe;
+            }
+
+            .vidal-stock-page .stock-table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+
+            .vidal-stock-page .stock-table th.right, .vidal-stock-page .stock-table td.right {
+                text-align: right;
+            }
+
+                .vidal-stock-page .stock-table td.right strong, .vidal-stock-page .stock-table td.right small {
+                    display: block;
+                }
+
+                .vidal-stock-page .stock-table td.right small {
+                    margin-top: 3px;
+                    color: #8995a5;
+                    font-size: .53rem;
+                }
+
+        .vidal-stock-page .stock-material strong, .vidal-stock-page .stock-material span {
+            display: block;
+        }
+
+        .vidal-stock-page .stock-material strong {
+            color: #344357;
+            font-size: .67rem;
+        }
+
+        .vidal-stock-page .stock-material span {
+            margin-top: 4px;
+            color: #8793a3;
+            font-size: .58rem;
+        }
+
+        .vidal-stock-page .stock-state {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 999px;
+            padding: 6px 9px;
+            font-size: .58rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+            .vidal-stock-page .stock-state.warning {
+                color: #b34052;
+                background: #fff0f2;
+            }
+
+            .vidal-stock-page .stock-state.ok {
+                color: #168957;
+                background: #e9f7f0;
+            }
+
+        .vidal-stock-page .stock-empty {
+            padding: 35px 18px;
+            text-align: center;
+            color: #93a0af;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+        }
+
+            .vidal-stock-page .stock-empty strong {
+                font-size: .8rem;
+                color: #344357;
+            }
+
+            .vidal-stock-page .stock-empty p {
+                margin: 0;
+                font-size: .66rem;
+            }
+
+    @@media (max-width:1150px) {
+        .vidal-stock-page .stock-metrics {
+            grid-template-columns: repeat(2,minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width:800px) {
+        .vidal-stock-page .stock-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .vidal-stock-page .stock-hero-actions {
+            width: 100%;
+        }
+
+        .vidal-stock-page .stock-filters {
+            align-items: stretch;
+        }
+    }
+
+    @@media (max-width:550px) {
+        .vidal-stock-page .stock-hero {
+            padding: 20px;
+        }
+
+        .vidal-stock-page .stock-hero-actions a {
+            flex: 1;
+        }
+
+        .vidal-stock-page .stock-metrics {
+            grid-template-columns: 1fr;
+        }
+
+        .vidal-stock-page .stock-panel-heading {
+            flex-wrap: wrap;
+        }
+
+        .vidal-stock-page .stock-count {
+            margin-left: 50px;
+        }
+
+        .vidal-stock-page .stock-field {
+            flex-basis: 100%;
+        }
+    }
+
+    .vidal-stock-page .stock-panel {
+        box-shadow: 0 4px 18px rgba(16,41,71,.045);
+        border-color: #dce3eb;
+    }
+
+    .vidal-stock-page .stock-panel-heading {
+        background: #fff;
+        border-bottom: 1px solid #e9eef5;
+    }
+
+    .vidal-stock-page .stock-metric {
+        box-shadow: 0 4px 16px rgba(16,41,71,.045);
+    }
+
+    .vidal-stock-page .stock-filter-button:focus-visible, .vidal-stock-page a:focus-visible {
+        outline: 3px solid rgba(34,108,194,.45);
+        outline-offset: 2px;
+    }
+
+
+    .vidal-stock-page .stock-metric small {
+        font-size: .56rem;
+        font-weight: 800;
+        letter-spacing: .35px;
+        color: #7d8999;
+    }
+
+    .vidal-stock-page .stock-metric strong {
+        margin-top: 3px;
+        line-height: 1.2;
+    }
+
+    .vidal-stock-page .stock-metric-caption {
+        display: block;
+        margin-top: 4px;
+        color: #929eae;
+        font-size: .56rem;
+        font-weight: 500;
+        line-height: 1.35;
+    }
+</style>

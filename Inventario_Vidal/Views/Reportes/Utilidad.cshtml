@@ -1,0 +1,1401 @@
+@using Inventario_Vidal.DTOs
+@model IEnumerable<ReporteUtilidadDto>
+
+@{
+    ViewData["Title"] = "Reporte de Utilidad por Proyecto";
+    ViewBag.Subtitle = "Rentabilidad de cada proyecto";
+
+    var totalRegistros = ViewBag.TotalRegistros ?? 0;
+    var totalIngresos = ViewBag.TotalIngresos ?? 0m;
+    var totalCostos = ViewBag.TotalCostos ?? 0m;
+    var totalUtilidad = ViewBag.TotalUtilidad ?? 0m;
+    var margenPromedio = ViewBag.MargenPromedio ?? 0m;
+    var proyectosGanancia = ViewBag.ProyectosGanancia ?? 0;
+    var proyectosPerdida = ViewBag.ProyectosPerdida ?? 0;
+}
+
+<div class="reports-unified-page users-page">
+    <section class="vidal-report-hero" aria-labelledby="report-utilidad-title">
+        <div class="vidal-report-hero-main">
+            <div class="vidal-report-hero-icon">
+                <svg class="icon icon-xl"><use href="#icon-dollar"></use></svg>
+            </div>
+            <div class="vidal-report-hero-copy">
+                <span class="vidal-report-hero-eyebrow">CENTRO DE REPORTES</span>
+                <h1 id="report-utilidad-title">Reporte de utilidad por proyecto</h1>
+                <p>Consulta ingresos, costos y rentabilidad de cada proyecto.</p>
+            </div>
+        </div>
+        <div class="vidal-report-hero-actions">
+            <a asp-action="Index" class="vidal-report-hero-btn outline">
+                <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>Volver a reportes
+            </a>
+            <a asp-action="ExportarUtilidadExcel" class="vidal-report-hero-btn light">
+                <svg class="icon icon-sm"><use href="#icon-download"></use></svg>Excel
+            </a>
+            <a asp-action="ExportarUtilidadPdf" class="vidal-report-hero-btn light">
+                <svg class="icon icon-sm"><use href="#icon-printer"></use></svg>PDF
+            </a>
+            <button type="button" class="vidal-report-hero-btn outline" onclick="window.print()">
+                <svg class="icon icon-sm"><use href="#icon-print"></use></svg>Imprimir
+            </button>
+        </div>
+    </section>
+
+    @* Indicadores en la parte superior, siguiendo el patrón oficial de Proveedores. *@
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: rgba(13, 110, 253, 0.12); color: #0d6efd;">
+                    <svg class="icon"><use href="#icon-folder"></use></svg>
+                </div>
+                <div class="stat-card-info">
+                    <span class="stat-card-label">Total Proyectos</span>
+
+                    <span class="stat-card-value">@totalRegistros</span>
+
+                    <span class="stat-card-description">Proyectos incluidos en el reporte</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: rgba(25, 135, 84, 0.12); color: #198754;">
+                    <svg class="icon"><use href="#icon-check-circle"></use></svg>
+                </div>
+                <div class="stat-card-info">
+                    <span class="stat-card-label">En Ganancia</span>
+
+                    <span class="stat-card-value">@proyectosGanancia</span>
+
+                    <span class="stat-card-description">Proyectos con utilidad positiva</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: rgba(220, 53, 69, 0.12); color: #dc3545;">
+                    <svg class="icon"><use href="#icon-x-circle"></use></svg>
+                </div>
+                <div class="stat-card-info">
+                    <span class="stat-card-label">En Pérdida</span>
+
+                    <span class="stat-card-value">@proyectosPerdida</span>
+
+                    <span class="stat-card-description">Proyectos con resultado negativo</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: rgba(111, 66, 193, 0.12); color: #6f42c1;">
+                    <svg class="icon"><use href="#icon-dollar"></use></svg>
+                </div>
+                <div class="stat-card-info">
+                    <span class="stat-card-label">Margen Promedio</span>
+
+                    <span class="stat-card-value">@margenPromedio.ToString("N1")%</span>
+
+                    <span class="stat-card-description">Rentabilidad promedio del reporte</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @* Los filtros se colocan debajo de los indicadores. *@
+    <div class="card-modern mb-4">
+        <div class="card-header">
+            <div class="d-flex align-items-center gap-2">
+                <svg class="icon"><use href="#icon-filter"></use></svg>
+                <div class="vidal-section-copy">
+                    <span class="vidal-section-eyebrow">CONSULTA</span>
+                    <strong class="vidal-section-title">Filtros de utilidad</strong>
+                    <small class="vidal-section-description">Consulta los proyectos por resultado y período.</small>
+                </div>
+            </div>
+            <div class="ms-auto">
+                <span class="badge bg-secondary">@totalRegistros proyectos</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="Utilidad" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Buscar Proyecto</label>
+                    <input type="text" name="search" class="form-control" placeholder="Código o nombre..." value="@ViewBag.Search" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Resultado</label>
+                    <select name="resultado" class="form-control">
+                        <option value="">-- Todos --</option>
+                        <option value="ganancia" selected="@(ViewBag.Resultado == "ganancia" ? "selected" : null)">Con Ganancia</option>
+                        <option value="perdida" selected="@(ViewBag.Resultado == "perdida" ? "selected" : null)">Con Pérdida</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Desde</label>
+                    <input type="date" name="desde" class="form-control" value="@ViewBag.Desde?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Hasta</label>
+                    <input type="date" name="hasta" class="form-control" value="@ViewBag.Hasta?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary-dark w-100">
+                        <svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-modern">
+        <div class="card-header">
+            <div class="d-flex align-items-center gap-2">
+                <svg class="icon"><use href="#icon-list"></use></svg>
+                <div class="vidal-section-copy">
+                    <span class="vidal-section-eyebrow">RESULTADOS</span>
+                    <strong class="vidal-section-title">Listado de utilidad por proyecto</strong>
+                    <small class="vidal-section-description">Ingresos, costos, utilidad y margen de cada proyecto.</small>
+                </div>
+                <span class="badge bg-secondary ms-2">@totalRegistros registros</span>
+            </div>
+            <div class="ms-auto">
+                <div class="input-group" style="width: 250px;">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+                    </span>
+                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Buscar proyecto..." />
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table-modern table-hover mb-0" id="utilidadTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">#</th>
+                                <th style="width: 12%;">Código</th>
+                                <th style="width: 20%;">Proyecto</th>
+                                <th style="width: 12%;">Cliente</th>
+                                <th style="width: 10%;">Fecha</th>
+                                <th style="width: 12%;">Ingresos</th>
+                                <th style="width: 12%;">Costos</th>
+                                <th style="width: 10%;">Utilidad</th>
+                                <th style="width: 7%;">Margen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int counter = 1;
+                            }
+                            @foreach (var item in Model)
+                            {
+                                var utilidadColor = item.Utilidad >= 0 ? "text-success" : "text-danger";
+                                var margenColor = item.Margen >= 10 ? "bg-success" : item.Margen >= 0 ? "bg-warning" : "bg-danger";
+                                <tr class="@(item.Utilidad < 0 ? "table-danger opacity-75" : "")">
+                                    <td>@counter</td>
+                                    <td>
+                                        <code>@item.Codigo</code>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold">@item.Nombre</span>
+                                    </td>
+                                    <td>
+                                        <span>@item.Cliente</span>
+                                    </td>
+                                    <td>
+                                        <span class="small">@item.FechaInicio.ToString("dd/MM/yyyy")</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-success">S/ @item.Ingresos.ToString("N2")</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-danger">S/ @item.Costos.ToString("N2")</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold @utilidadColor">
+                                            <svg class="icon icon-sm">
+                                                <use href="#icon-@(item.Utilidad >= 0 ? "check-circle" : "x-circle")"></use>
+                                            </svg>
+                                            S/ @item.Utilidad.ToString("N2")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @margenColor">
+                                            @item.Margen.ToString("N1")%
+                                        </span>
+                                    </td>
+                                </tr>
+                                counter++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <svg class="icon icon-xl" style="color: var(--gray);"><use href="#icon-dollar"></use></svg>
+                    <p class="mt-3 text-muted">No hay proyectos registrados</p>
+                    <p class="text-muted small">No se encontraron proyectos que coincidan con los filtros</p>
+                </div>
+            }
+
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        var mejorProyecto = Model.OrderByDescending(p => p.Utilidad).FirstOrDefault();
+        var peorProyecto = Model.OrderBy(p => p.Utilidad).FirstOrDefault();
+        var mayorMargen = Model.OrderByDescending(p => p.Margen).FirstOrDefault();
+
+        <div class="card-modern mt-4">
+            <div class="card-header" style="border-bottom: 3px solid var(--primary-medium);">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="badge-circle primary">
+                        <svg class="icon"><use href="#icon-file-text"></use></svg>
+                    </div>
+                    <div class="vidal-section-copy">
+                        <span class="vidal-section-eyebrow">ANÁLISIS</span>
+                        <strong class="vidal-section-title">Resumen ejecutivo</strong>
+                        <small class="vidal-section-description">Comparativo de resultados y principales indicadores financieros.</small>
+                    </div>
+                </div>
+                <div class="ms-auto">
+                    <span class="badge bg-primary">Estadísticas</span>
+                </div>
+            </div>
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">
+                                <svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg>
+                                Mayor Utilidad
+                            </span>
+                            <span class="summary-value text-success">@mejorProyecto?.Nombre - S/ @mejorProyecto?.Utilidad.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">
+                                <svg class="icon icon-sm"><use href="#icon-x-circle"></use></svg>
+                                Mayor Pérdida
+                            </span>
+                            <span class="summary-value text-danger">@peorProyecto?.Nombre - S/ @peorProyecto?.Utilidad.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">
+                                <svg class="icon icon-sm"><use href="#icon-chart-bar"></use></svg>
+                                Mayor Margen
+                            </span>
+                            <span class="summary-value">@mayorMargen?.Nombre - @mayorMargen?.Margen.ToString("N1")%</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">
+                                <svg class="icon icon-sm"><use href="#icon-dollar"></use></svg>
+                                Total Ingresos
+                            </span>
+                            <span class="summary-value text-success">S/ @totalIngresos.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">
+                                <svg class="icon icon-sm"><use href="#icon-dollar"></use></svg>
+                                Total Costos
+                            </span>
+                            <span class="summary-value text-danger">S/ @totalCostos.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="summary-item">
+                            <span class="summary-label">
+                                <svg class="icon icon-sm"><use href="#icon-dollar"></use></svg>
+                                Utilidad Neta
+                            </span>
+                            <span class="summary-value text-@(totalUtilidad >= 0 ? "success" : "danger")">S/ @totalUtilidad.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    }
+
+    @section Scripts {
+        <script>
+                document.addEventListener('DOMContentLoaded', function() {
+
+                    var searchInput = document.getElementById('searchInput');
+                    var table = document.getElementById('utilidadTable');
+
+                    if (searchInput && table) {
+                        searchInput.addEventListener('keyup', function() {
+                            var filter = this.value.toLowerCase();
+                            var rows = table.querySelectorAll('tbody tr');
+
+                            rows.forEach(function(row) {
+                                var text = row.textContent.toLowerCase();
+                                row.style.display = text.indexOf(filter) > -1 ? '' : 'none';
+                            });
+                        });
+                    }
+
+                    document.querySelectorAll('.alert-modern').forEach(function(alert) {
+                        setTimeout(function() {
+                            alert.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                            alert.style.opacity = '0';
+                            alert.style.transform = 'translateY(-20px)';
+                            setTimeout(function() {
+                                if (alert.parentNode) alert.remove();
+                            }, 600);
+                        }, 6000);
+                    });
+
+                    document.querySelectorAll('.btn-close-custom').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            var alert = this.closest('.alert-modern');
+                            if (alert) {
+                                alert.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                                alert.style.opacity = '0';
+                                alert.style.transform = 'scale(0.95)';
+                                setTimeout(function() {
+                                    if (alert.parentNode) alert.remove();
+                                }, 400);
+                            }
+                        });
+                    });
+
+                });
+        </script>
+    }
+
+</div>
+
+<style>
+    .page-header-gradient {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 50%, var(--primary-light) 100%);
+        border-radius: var(--radius-lg);
+        padding: 1.8rem 2.2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 32px rgba(13, 71, 161, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+    .page-header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        background: rgba(255,255,255,0.12);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.15);
+        backdrop-filter: blur(4px);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+        .header-actions .btn {
+            font-size: 0.82rem;
+            padding: 0.4rem 1.2rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+        }
+
+        .header-actions .btn-light {
+            background: var(--white);
+            color: var(--primary-dark);
+        }
+
+            .header-actions .btn-light:hover {
+                background: rgba(255,255,255,0.9);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            }
+
+        .header-actions .btn-outline-light {
+            border-color: rgba(255,255,255,0.3);
+            color: var(--white);
+        }
+
+            .header-actions .btn-outline-light:hover {
+                background: rgba(255,255,255,0.1);
+                border-color: rgba(255,255,255,0.5);
+                transform: translateY(-2px);
+            }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.2rem;
+        background: var(--white);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--gray-light);
+        transition: var(--transition-normal);
+        height: 100%;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .stat-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .stat-card-info {
+        flex: 1;
+    }
+
+    .stat-card-value {
+        display: block;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--black);
+        line-height: 1.2;
+    }
+
+    .stat-card-label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray);
+    }
+
+    .badge-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .badge-circle.primary {
+            background: rgba(13, 110, 253, 0.15);
+            color: #0d6efd;
+        }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0;
+        border-bottom: 1px solid var(--gray-50);
+        font-size: 0.85rem;
+    }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+    .summary-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        color: var(--gray);
+    }
+
+        .summary-label .icon {
+            color: var(--primary-medium);
+        }
+
+    .summary-value {
+        font-weight: 700;
+        color: var(--black);
+        text-align: right;
+        font-size: 1.1rem;
+    }
+
+    .btn-close-custom {
+        background: none;
+        border: none;
+        padding: 0.2rem;
+        margin-left: auto;
+        cursor: pointer;
+        color: currentColor;
+        opacity: 0.5;
+        transition: var(--transition-fast);
+        flex-shrink: 0;
+        border-radius: 4px;
+    }
+
+        .btn-close-custom:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+    .text-success {
+        color: var(--success) !important;
+    }
+
+    .text-danger {
+        color: var(--danger) !important;
+    }
+
+    @@media (max-width: 768px) {
+        .stat-card {
+            padding: 0.8rem 1rem;
+        }
+
+        .stat-card-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .stat-card-value {
+            font-size: 1.1rem;
+        }
+
+        .page-header-gradient {
+            padding: 1.2rem 1.4rem;
+        }
+
+        .page-header-content .d-flex {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .header-icon-wrapper {
+            width: 50px;
+            height: 50px;
+        }
+
+            .header-icon-wrapper .icon {
+                width: 24px;
+                height: 24px;
+            }
+
+        .page-header-content h1 {
+            font-size: 1.3rem !important;
+        }
+
+        .card-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+
+            .card-header .ms-auto {
+                margin-left: 0 !important;
+            }
+
+            .card-header .input-group {
+                width: 100% !important;
+            }
+
+        .table-modern thead th {
+            font-size: 0.6rem;
+            padding: 0.4rem 0.5rem;
+        }
+
+        .table-modern tbody td {
+            font-size: 0.7rem;
+            padding: 0.4rem 0.5rem;
+        }
+
+        .summary-item {
+            font-size: 0.78rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
+        .summary-value {
+            font-size: 1rem;
+            text-align: left;
+            width: 100%;
+        }
+
+        .summary-label {
+            font-size: 0.78rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .page-header-gradient {
+            padding: 1rem 1rem;
+        }
+
+        .header-actions {
+            flex-direction: column;
+        }
+
+            .header-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+        .table-modern thead th {
+            font-size: 0.55rem;
+            padding: 0.3rem 0.4rem;
+        }
+
+        .table-modern tbody td {
+            font-size: 0.65rem;
+            padding: 0.3rem 0.4rem;
+        }
+
+        .summary-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
+        .summary-value {
+            text-align: left;
+            width: 100%;
+        }
+    }
+
+    @@media print {
+        .page-header-gradient {
+            background: #0a1628 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+            .page-header-gradient .text-white {
+                color: white !important;
+            }
+
+            .page-header-gradient .text-white-50 {
+                color: rgba(255,255,255,0.5) !important;
+            }
+
+        .header-actions .btn,
+        .btn-close-custom,
+        .card-header .input-group {
+            display: none !important;
+        }
+
+        .card-modern {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+            break-inside: avoid;
+        }
+
+        .stat-card {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+        }
+
+        .badge-circle {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .table-danger {
+            background: #f8d7da !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+
+    /* ====================================================================
+           VIDAL 2026 - UNIFICACION DE LOS REPORTES INDIVIDUALES.
+           Presentacion exclusivamente. Conserva modelos, formularios, JS y rutas.
+           ==================================================================== */
+    .reports-unified-page {
+        --vidal-report-navy: #102947;
+        --vidal-report-blue: #17488e;
+        --vidal-report-accent: #226cc2;
+        --vidal-report-border: #dce3eb;
+        --vidal-report-muted: #7d8999;
+        color: #344357;
+        min-width: 0;
+    }
+
+        .reports-unified-page .page-header-gradient {
+            position: relative !important;
+            min-height: 116px;
+            margin-bottom: 18px !important;
+            overflow: hidden;
+            border: 0 !important;
+            border-radius: 20px !important;
+            background: linear-gradient(100deg,#102947 0%,#17488e 49%,#226cc2 100%) !important;
+            box-shadow: 0 6px 22px rgba(16,41,71,.12) !important;
+        }
+
+            .reports-unified-page .page-header-gradient::after {
+                content: "";
+                position: absolute;
+                right: -80px;
+                top: -140px;
+                width: 280px;
+                height: 280px;
+                background: rgba(255,255,255,.05);
+                border-radius: 50%;
+                pointer-events: none;
+            }
+
+        .reports-unified-page .page-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            padding: 24px 30px !important;
+        }
+
+        .reports-unified-page .header-icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 58px;
+            width: 58px;
+            height: 58px;
+            padding: 0;
+            border-radius: 14px !important;
+            border: 1px solid rgba(255,255,255,.18) !important;
+            background: rgba(255,255,255,.12) !important;
+            color: #fff !important;
+        }
+
+        .reports-unified-page .page-header-content > .d-flex {
+            min-width: 0;
+            gap: 16px !important;
+            flex: 1 1 330px;
+        }
+
+        .reports-unified-page .page-header-content h1 {
+            color: #fff !important;
+            font-size: 1.55rem !important;
+            line-height: 1.25;
+            font-weight: 800 !important;
+            margin: 0 0 5px !important;
+        }
+
+        .reports-unified-page .page-header-content p {
+            color: rgba(255,255,255,.8) !important;
+            font-size: .72rem !important;
+            line-height: 1.55;
+            margin: 0 !important;
+        }
+
+            .reports-unified-page .page-header-content p .badge {
+                display: inline-flex;
+                align-items: center;
+                margin-top: 4px;
+                border-radius: 8px;
+                padding: 5px 9px;
+                font-size: .56rem;
+                font-weight: 750;
+            }
+
+        .reports-unified-page .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+            .reports-unified-page .header-actions .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 7px;
+                min-height: 40px;
+                padding: 8px 13px;
+                border-radius: 9px !important;
+                font-size: .66rem !important;
+                font-weight: 750 !important;
+                text-decoration: none;
+            }
+
+            .reports-unified-page .header-actions .btn-light {
+                color: #17488e !important;
+                background: #fff !important;
+                border: 1px solid #fff !important;
+            }
+
+            .reports-unified-page .header-actions .btn-outline-light {
+                color: #fff !important;
+                border: 1px solid rgba(255,255,255,.32) !important;
+                background: rgba(255,255,255,.07) !important;
+            }
+
+                .reports-unified-page .header-actions .btn-outline-light:hover {
+                    background: rgba(255,255,255,.17) !important;
+                }
+
+        .reports-unified-page .card-modern {
+            background: #fff !important;
+            border: 1px solid var(--vidal-report-border) !important;
+            border-radius: 16px !important;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(16,41,71,.045) !important;
+        }
+
+            .reports-unified-page .card-modern > .card-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 17px 20px !important;
+                min-height: 66px;
+                background: #fff !important;
+                border-bottom: 1px solid #e9eef5 !important;
+                color: #102947 !important;
+                font-size: .82rem !important;
+                font-weight: 800 !important;
+            }
+
+                .reports-unified-page .card-modern > .card-header > .d-flex {
+                    color: #102947;
+                    font-weight: 800;
+                    gap: 10px !important;
+                }
+
+                    .reports-unified-page .card-modern > .card-header > .d-flex > .icon {
+                        box-sizing: content-box;
+                        width: 19px;
+                        height: 19px;
+                        padding: 10px;
+                        flex-shrink: 0;
+                        border-radius: 10px;
+                        color: #356fa7;
+                        background: #eaf2fb;
+                    }
+
+            .reports-unified-page .card-modern > .card-body:not(.p-0) {
+                padding: 18px 20px !important;
+            }
+
+            .reports-unified-page .card-modern .badge.bg-secondary {
+                color: #4d6680 !important;
+                background: #edf3f9 !important;
+                border: 1px solid #dce6f0;
+                border-radius: 8px;
+                font-size: .6rem;
+            }
+
+        .reports-unified-page .stat-card {
+            height: 100%;
+            min-height: 94px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px !important;
+            background: #fff !important;
+            border: 1px solid var(--vidal-report-border) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 4px 16px rgba(16,41,71,.045) !important;
+        }
+
+        .reports-unified-page .stat-card-icon {
+            flex-shrink: 0;
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 11px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reports-unified-page .stat-card-value {
+            color: #102947 !important;
+            font-size: 1.16rem !important;
+            font-weight: 800 !important;
+            line-height: 1.2 !important;
+        }
+
+        .reports-unified-page .stat-card-label {
+            color: #7d8999 !important;
+            font-size: .61rem !important;
+            font-weight: 650 !important;
+        }
+
+        .reports-unified-page .form-label {
+            color: #54667c !important;
+            font-size: .68rem !important;
+            font-weight: 750 !important;
+            margin-bottom: 6px !important;
+        }
+
+        .reports-unified-page .form-control,
+        .reports-unified-page .form-select,
+        .reports-unified-page select.form-control {
+            min-height: 41px !important;
+            border: 1px solid #d6e0eb !important;
+            border-radius: 9px !important;
+            background-color: #fff !important;
+            color: #344357 !important;
+            font-size: .69rem !important;
+        }
+
+            .reports-unified-page .form-control:focus,
+            .reports-unified-page .form-select:focus {
+                border-color: #6b9bcf !important;
+                box-shadow: 0 0 0 3px rgba(34,108,194,.09) !important;
+            }
+
+        .reports-unified-page .btn-primary-dark,
+        .reports-unified-page .btn-primary {
+            border: 1px solid #17488e !important;
+            background: linear-gradient(135deg,#102947,#17488e) !important;
+            color: #fff !important;
+            min-height: 40px;
+            border-radius: 9px !important;
+            font-size: .67rem !important;
+            font-weight: 750 !important;
+        }
+
+        .reports-unified-page .btn-outline-dark-custom {
+            border: 1px solid #dce3eb !important;
+            background: #fff;
+            color: #506681 !important;
+            border-radius: 9px !important;
+            min-height: 40px;
+        }
+
+        .reports-unified-page .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .reports-unified-page .table-modern {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+            .reports-unified-page .table-modern thead th {
+                background: #f7f9fc !important;
+                color: #64758b !important;
+                font-size: .58rem !important;
+                font-weight: 800 !important;
+                letter-spacing: .35px;
+                border-bottom: 1px solid #e5ecf3 !important;
+                padding: 12px 13px !important;
+                white-space: nowrap;
+            }
+
+            .reports-unified-page .table-modern tbody td {
+                color: #485a70 !important;
+                font-size: .64rem !important;
+                border-bottom: 1px solid #edf1f5 !important;
+                padding: 12px 13px !important;
+                vertical-align: middle;
+            }
+
+            .reports-unified-page .table-modern tbody tr:hover {
+                background: #fafcfe !important;
+            }
+
+            .reports-unified-page .table-modern tbody tr:last-child td {
+                border-bottom: 0 !important;
+            }
+
+        .reports-unified-page .badge {
+            font-weight: 700;
+            border-radius: 8px;
+        }
+
+        .reports-unified-page a:focus-visible,
+        .reports-unified-page button:focus-visible {
+            outline: 3px solid rgba(34,108,194,.5);
+            outline-offset: 2px;
+        }
+
+    @@media (max-width:850px) {
+        .reports-unified-page .page-header-content {
+            padding: 20px !important;
+            align-items: flex-start;
+        }
+
+        .reports-unified-page .header-actions {
+            width: 100%;
+        }
+
+            .reports-unified-page .header-actions .btn {
+                flex: 1 1 auto;
+            }
+    }
+
+    @@media (max-width:560px) {
+        .reports-unified-page .page-header-content > .d-flex {
+            gap: 12px !important;
+        }
+
+        .reports-unified-page .header-icon-wrapper {
+            width: 47px;
+            height: 47px;
+            flex-basis: 47px;
+        }
+
+        .reports-unified-page .page-header-content h1 {
+            font-size: 1.25rem !important;
+        }
+
+        .reports-unified-page .card-modern > .card-header {
+            padding: 14px !important;
+            flex-wrap: wrap;
+        }
+
+        .reports-unified-page .card-modern > .card-body:not(.p-0) {
+            padding: 14px !important;
+        }
+
+        .reports-unified-page .stat-card {
+            padding: 12px !important;
+        }
+    }
+
+    @@media print {
+        .reports-unified-page .header-actions {
+            display: none !important;
+        }
+
+        .reports-unified-page .card-modern, .reports-unified-page .stat-card {
+            box-shadow: none !important;
+            break-inside: avoid;
+        }
+    }
+
+    .reports-unified-page .vidal-report-hero {
+        min-height: 118px;
+        margin-bottom: 17px;
+        padding: 23px 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        color: #fff;
+        background: linear-gradient(100deg,#102947 0%,#17488e 49%,#226cc2 100%);
+    }
+
+        .reports-unified-page .vidal-report-hero::after {
+            content: "";
+            position: absolute;
+            top: -145px;
+            right: -85px;
+            width: 290px;
+            height: 290px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+            pointer-events: none;
+        }
+
+    .reports-unified-page .vidal-report-hero-main,
+    .reports-unified-page .vidal-report-hero-actions {
+        position: relative;
+        z-index: 1;
+    }
+
+    .reports-unified-page .vidal-report-hero-main {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        min-width: 0;
+    }
+
+    .reports-unified-page .vidal-report-hero-icon {
+        width: 60px;
+        height: 60px;
+        flex-shrink: 0;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.11);
+        border: 1px solid rgba(255,255,255,.13);
+        color: white;
+    }
+
+    .reports-unified-page .vidal-report-hero-copy {
+        min-width: 0;
+    }
+
+    .reports-unified-page .vidal-report-hero-eyebrow {
+        font-size: .57rem;
+        font-weight: 800;
+        letter-spacing: .85px;
+        color: rgba(255,255,255,.67);
+    }
+
+    .reports-unified-page .vidal-report-hero h1 {
+        margin: 2px 0 4px;
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1.2;
+        color: #fff;
+    }
+
+    .reports-unified-page .vidal-report-hero p {
+        margin: 0;
+        font-size: .72rem;
+        line-height: 1.5;
+        color: rgba(255,255,255,.77);
+    }
+
+    .reports-unified-page .vidal-report-hero-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .reports-unified-page .vidal-report-hero-btn {
+        min-height: 41px;
+        padding: 0 15px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        text-decoration: none;
+        font-size: .67rem;
+        font-weight: 750;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+        .reports-unified-page .vidal-report-hero-btn.light {
+            background: #fff;
+            border: 1px solid #fff;
+            color: #102947;
+        }
+
+            .reports-unified-page .vidal-report-hero-btn.light:hover {
+                background: #f0f5fb;
+                color: #102947;
+            }
+
+        .reports-unified-page .vidal-report-hero-btn.outline {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.3);
+            color: #fff;
+        }
+
+            .reports-unified-page .vidal-report-hero-btn.outline:hover {
+                background: rgba(255,255,255,.14);
+                color: #fff;
+            }
+
+    @@media (max-width:980px) {
+        .reports-unified-page .vidal-report-hero {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .reports-unified-page .vidal-report-hero-actions {
+            justify-content: flex-start;
+            width: 100%;
+        }
+    }
+
+    @@media (max-width:550px) {
+        .reports-unified-page .vidal-report-hero {
+            padding: 20px;
+        }
+
+        .reports-unified-page .vidal-report-hero-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .reports-unified-page .vidal-report-hero h1 {
+            font-size: 1.3rem;
+        }
+
+        .reports-unified-page .vidal-report-hero-actions {
+            display: grid;
+            grid-template-columns: repeat(2,minmax(0,1fr));
+        }
+
+        .reports-unified-page .vidal-report-hero-btn {
+            padding: 8px;
+            font-size: .6rem;
+            white-space: normal;
+            text-align: center;
+        }
+    }
+
+    @@media print {
+        .reports-unified-page .vidal-report-hero-actions {
+            display: none !important;
+        }
+    }
+
+
+    .reports-unified-page .stat-card-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 3px;
+    }
+
+        .reports-unified-page .stat-card-info .stat-card-label {
+            order: 0;
+            display: block;
+            margin: 0;
+            color: #8995a5 !important;
+            font-size: .57rem !important;
+            font-weight: 800 !important;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            line-height: 1.35;
+        }
+
+        .reports-unified-page .stat-card-info .stat-card-value {
+            order: 1;
+            display: block;
+            margin: 0;
+            color: #102947 !important;
+            font-size: 1.3rem !important;
+            font-weight: 800 !important;
+            line-height: 1.2;
+        }
+
+        .reports-unified-page .stat-card-info .stat-card-description {
+            order: 2;
+            display: block;
+            margin: 0;
+            color: #929dab;
+            font-size: .57rem;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+    @@media (max-width: 576px) {
+        .reports-unified-page .stat-card-info .stat-card-value {
+            font-size: 1.12rem !important;
+        }
+    }
+
+    .reports-unified-page .card-modern > .card-header > .d-flex {
+        min-width: 0;
+        align-items: center;
+        gap: 11px !important;
+    }
+
+    .reports-unified-page .card-modern > .card-header .vidal-section-copy {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .reports-unified-page .card-modern > .card-header .vidal-section-eyebrow {
+        color: #929dab !important;
+        font-size: .53rem !important;
+        font-weight: 800 !important;
+        line-height: 1.35;
+        letter-spacing: .8px;
+        text-transform: uppercase;
+    }
+
+    .reports-unified-page .card-modern > .card-header .vidal-section-title {
+        color: #102947 !important;
+        font-size: .9rem !important;
+        font-weight: 800 !important;
+        line-height: 1.25;
+    }
+
+    .reports-unified-page .card-modern > .card-header .vidal-section-description {
+        display: block;
+        margin: 0;
+        color: #8793a3 !important;
+        font-size: .61rem !important;
+        font-weight: 400 !important;
+        line-height: 1.35;
+    }
+
+    .reports-unified-page .card-modern > .card-header .badge-circle.primary {
+        box-sizing: content-box;
+        width: 19px;
+        height: 19px;
+        padding: 10px;
+        border-radius: 10px;
+        background: #eaf2fb;
+        color: #356fa7;
+        flex-shrink: 0;
+    }
+
+        .reports-unified-page .card-modern > .card-header .badge-circle.primary .icon {
+            width: 19px;
+            height: 19px;
+        }
+
+    @@media (max-width: 560px) {
+        .reports-unified-page .card-modern > .card-header .vidal-section-description {
+            font-size: .59rem !important;
+        }
+    }
+</style>
