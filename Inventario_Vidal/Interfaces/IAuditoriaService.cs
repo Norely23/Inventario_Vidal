@@ -39,9 +39,10 @@ namespace Inventario_Vidal.Interfaces
             int page = 1,
             int pageSize = 20);
 
-        /// <summary>
+      
+
         /// Obtiene las tablas disponibles en auditoría
-        /// </summary>
+       
         Task<List<string>> GetTablasAuditadasAsync();
 
         /// <summary>
